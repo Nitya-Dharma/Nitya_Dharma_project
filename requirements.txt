@@ -1,0 +1,11 @@
+# Django LTS Version
+Django>=4.2,<5.0
+
+# MySQL Database
+mysqlclient>=2.2.0
+
+# Environment Variables
+python-decouple>=3.8
+
+# Additional packages will be added as needed in future modules
+
