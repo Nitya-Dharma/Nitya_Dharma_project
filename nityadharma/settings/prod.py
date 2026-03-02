@@ -23,23 +23,38 @@ SECRET_KEY = config('SECRET_KEY')  # Will raise error if not set
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())  # Will raise error if not set
+# Render: RENDER_EXTERNAL_HOSTNAME is auto-added when set
+_render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+_allowed = list(config('ALLOWED_HOSTS', default='', cast=Csv()))
+if _render_host and _render_host not in _allowed:
+    _allowed.append(_render_host)
+ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else ['localhost'])
 
 # Database Configuration
 # Phase 2 Module 0 Task 0.1: Environment-based database config - REQUIRED in production
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE'),  # Required
-        'NAME': config('DB_NAME'),  # Required
-        'USER': config('DB_USER'),  # Required
-        'PASSWORD': config('DB_PASSWORD'),  # Required
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+# Render: use DATABASE_URL (PostgreSQL) when set; otherwise use MySQL DB_* vars
+if os.environ.get('DATABASE_URL'):
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': config('DB_ENGINE'),
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
+    }
 
 # Production Security Settings
 # Phase 2 Module 0 Task 0.1: Security-first defaults for production

@@ -10,6 +10,12 @@ python-decouple>=3.8
 # Image validation for ad banners (dimensions, format)
 Pillow>=10.0.0
 
+# Production / Render deployment
+gunicorn>=21.0.0
+whitenoise>=6.6.0
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9
+
 # Additional packages will be added as needed in future modules
 
 
