@@ -1,0 +1,117 @@
+{% extends "account/account_base.html" %}
+
+{% block title %}Security Settings - My Account - Nitya Dharma{% endblock %}
+
+{% block account_content %}
+    <h2 class="h4 mb-4">Security Settings</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Change Password Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Change Password</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% if user_id %}{% url 'accounts:security_settings_with_id' user_id=user_id %}{% else %}{% url 'accounts:security_settings' %}{% endif %}" id="passwordForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                
+                <div class="mb-3">
+                    <label for="current_password" class="form-label">Current Password</label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="current_password" 
+                           name="current_password" 
+                           required
+                           autocomplete="current-password">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="new_password" 
+                           name="new_password" 
+                           required
+                           autocomplete="new-password">
+                    <small class="form-text text-muted">Password must be at least 8 characters long.</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="confirm_password" 
+                           name="confirm_password" 
+                           required
+                           autocomplete="new-password">
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary" id="updatePasswordBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="passwordSpinner"></span>
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Login Info Section (Read-only) -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Login Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Email (Primary Login ID)</label>
+                <input type="email" 
+                       class="form-control" 
+                       value="{{ user.email }}"
+                       readonly
+                       style="background-color: #e9ecef;">
+                <small class="form-text text-muted">This is your primary login identifier.</small>
+            </div>
+            
+            {% if user.last_login %}
+                <div class="mb-0">
+                    <label class="form-label">Last Login</label>
+                    <input type="text" 
+                           class="form-control" 
+                           value="{{ user.last_login|date:'F d, Y g:i A' }}"
+                           readonly
+                           style="background-color: #e9ecef;">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                alert('New password and confirm password do not match.');
+                return false;
+            }
+            
+            const updateBtn = document.getElementById('updatePasswordBtn');
+            const spinner = document.getElementById('passwordSpinner');
+            updateBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
+    </script>
+{% endblock %}
+
+
+

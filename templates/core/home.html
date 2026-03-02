@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui_hidden.css' %}">
+    <style>
+        /* Page Type Buttons - Updated for red theme */
+        .page-type-buttons {
+            margin-top: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .page-type-buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Page type buttons styled in home.css */
+        
+        .page-type-btn i {
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile: Horizontal scroll */
+        @media (max-width: 768px) {
+            .page-type-buttons-container {
+                justify-content: flex-start;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                padding-bottom: 0.5rem;
+            }
+            
+            .page-type-buttons-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .page-type-btn {
+                flex-shrink: 0;
+                padding: 0.625rem 1.25rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Popular Poojas Section */
+        .popular-poojas-section {
+            padding: 3rem 0;
+        }
+        
+        .popular-pooja-btn {
+            margin: 0.5rem;
+            min-width: 150px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1>Explore Your Perfect Places</h1>
+                    <p class="lead">Connect with experienced and trusted Pandits for your pooja and religious ceremonies</p>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="search-hero-form">
+                        {% include "module7_search/search_filters_hero.html" %}
+                    </div>
+                    
+                    <!-- Page Type Quick Access Buttons -->
+                    <div class="page-type-buttons">
+                        <div class="page-type-buttons-container">
+                            <a href="#" class="page-type-btn" data-result-type="pandits" onclick="handlePageTypeClick(event, 'pandits'); return false;">
+                                <i class="bi bi-person-circle"></i>
+                                <span>Pandits</span>
+                            </a>
+                            <a href="#" class="page-type-btn" data-result-type="pages" data-page-type="TEMPLE" onclick="handlePageTypeClick(event, 'pages', 'TEMPLE'); return false;">
+                                <i class="bi bi-building"></i>
+                                <span>Temples</span>
+                            </a>
+                            {% if SHOW_TRUST_BRAND_SOCIAL %}
+                            <a href="#" class="page-type-btn trust-tab" data-result-type="pages" data-page-type="TRUST" onclick="handlePageTypeClick(event, 'pages', 'TRUST'); return false;">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Trusts</span>
+                            </a>
+                            <a href="#" class="page-type-btn brand-tab" data-result-type="pages" data-page-type="BRAND" onclick="handlePageTypeClick(event, 'pages', 'BRAND'); return false;">
+                                <i class="bi bi-tag"></i>
+                                <span>Brands</span>
+                            </a>
+                            <a href="#" class="page-type-btn social-tab" data-result-type="pages" data-page-type="SOCIAL_SERVICE" onclick="handlePageTypeClick(event, 'pages', 'SOCIAL_SERVICE'); return false;">
+                                <i class="bi bi-heart"></i>
+                                <span>Social</span>
+                            </a>
+                            {% else %}
+                            <!-- Trust/Brand/Social buttons hidden via UI flag -->
+                            <a href="#" class="page-type-btn trust-tab ui-hidden" data-result-type="pages" data-page-type="TRUST" onclick="handlePageTypeClick(event, 'pages', 'TRUST'); return false;">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Trusts</span>
+                            </a>
+                            <a href="#" class="page-type-btn brand-tab ui-hidden" data-result-type="pages" data-page-type="BRAND" onclick="handlePageTypeClick(event, 'pages', 'BRAND'); return false;">
+                                <i class="bi bi-tag"></i>
+                                <span>Brands</span>
+                            </a>
+                            <a href="#" class="page-type-btn social-tab ui-hidden" data-result-type="pages" data-page-type="SOCIAL_SERVICE" onclick="handlePageTypeClick(event, 'pages', 'SOCIAL_SERVICE'); return false;">
+                                <i class="bi bi-heart"></i>
+                                <span>Social</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if sample_listings %}
+    <section class="sample-listings-section py-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="h3 text-center fw-bold">Explore Pandits</h2>
+                </div>
+            </div>
+            <div class="row g-4">
+                {% for pandit in sample_listings %}
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        {% include "module7_search/listing_card.html" with pandit=pandit %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-4">
+                <a href="{% url 'search_ui:search_results' %}" class="btn btn-primary">
+                    View All Pandits →
+                </a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="trust-section py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-4">
+                    <h3 class="text-center fw-bold mb-2">Why Trust Nitya Dharma</h3>
+                    <p class="text-center text-muted mb-5">
+                        Verified Pandits. Transparent profiles. Direct communication.
+                    </p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-12 col-md-4">
+                    <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                        <i class="bi bi-shield-check-fill fs-1 text-danger mb-3 d-block"></i>
+                        <h5 class="fw-semibold mb-2">Verified Profiles</h5>
+                        <p class="text-muted mb-0 small">All Pandits go through a verification process to ensure authenticity and reliability.</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                        <i class="bi bi-chat-dots-fill fs-1 text-danger mb-3 d-block"></i>
+                        <h5 class="fw-semibold mb-2">Direct Contact</h5>
+                        <p class="text-muted mb-0 small">No middlemen. Connect directly with Pandits via call or WhatsApp for transparent communication.</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                        <i class="bi bi-geo-alt-fill fs-1 text-danger mb-3 d-block"></i>
+                        <h5 class="fw-semibold mb-2">Local & Language-friendly</h5>
+                        <p class="text-muted mb-0 small">Find Pandits in your area who understand your language and cultural preferences.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works-section py-5 bg-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h3 class="text-center fw-bold mb-0">How It Works</h3>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="text-center px-3">
+                        <div class="step-badge mb-3">
+                            <span>1</span>
+                        </div>
+                        <i class="bi bi-search-heart fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="h5 fw-semibold mb-2">Search Pandits</h4>
+                        <p class="text-muted mb-0">Find Pandits by location, pooja type, or keyword</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="text-center px-3">
+                        <div class="step-badge mb-3">
+                            <span>2</span>
+                        </div>
+                        <i class="bi bi-person-badge fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="h5 fw-semibold mb-2">View Profiles</h4>
+                        <p class="text-muted mb-0">Explore Pandit profiles, experience, and services</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="text-center px-3">
+                        <div class="step-badge mb-3">
+                            <span>3</span>
+                        </div>
+                        <i class="bi bi-envelope-check fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="h5 fw-semibold mb-2">Send Booking Intent</h4>
+                        <p class="text-muted mb-0">Express your interest in booking a Pandit</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="text-center px-3">
+                        <div class="step-badge mb-3">
+                            <span>4</span>
+                        </div>
+                        <i class="bi bi-telephone fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="h5 fw-semibold mb-2">Coordinate Offline</h4>
+                        <p class="text-muted mb-0">Connect directly with Pandit to finalize details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if show_reviews_context %}
+    <section class="reviews-context-section py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="lead text-muted mb-3">
+                        Reviews reflect user experiences and help you make informed decisions.
+                    </p>
+                    <a href="{% url 'search_ui:search_results' %}" class="btn btn-outline-primary">
+                        Browse Pandit Profiles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="cta-bridge-section py-5 bg-white text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    {% if user.is_authenticated %}
+                        {% if user_role == 'pandit' %}
+                            <h4 class="fw-bold mb-3">Manage Your Pandit Profile</h4>
+                            <a href="{% url 'profiles:profile_edit' %}" class="btn btn-danger px-5 py-2 me-2" style="background-color: #E11D48; border-color: #E11D48;">Complete Your Profile</a>
+                            <a href="{% url 'module5_dashboards:dashboard_pandit' %}" class="btn btn-outline-danger px-5 py-2" style="border-color: #E11D48; color: #E11D48;">View Dashboard</a>
+                        {% elif user_role == 'admin_pandit' %}
+                            <h4 class="fw-bold mb-3">Admin Pandit Dashboard</h4>
+                            <a href="{% url 'module5_dashboards:dashboard_admin_pandit' %}" class="btn btn-danger px-5 py-2" style="background-color: #E11D48; border-color: #E11D48;">View Dashboard</a>
+                        {% elif user_role == 'super_admin' %}
+                            <h4 class="fw-bold mb-3">Super Admin Dashboard</h4>
+                            <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-danger px-5 py-2" style="background-color: #E11D48; border-color: #E11D48;">View Dashboard</a>
+                        {% else %}
+                            <h4 class="fw-bold mb-3">Ready to find the right Pandit?</h4>
+                            <a href="{% url 'search_ui:search_results' %}" class="btn btn-danger px-5 py-2" style="background-color: #E11D48; border-color: #E11D48;">Search Pandits</a>
+                        {% endif %}
+                    {% else %}
+                        <h4 class="fw-bold mb-3">Ready to find the right Pandit?</h4>
+                        <a href="{% url 'search:search_results' %}" class="btn btn-danger px-5 py-2" style="background-color: #E11D48; border-color: #E11D48;">Search Pandits</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+<script>
+// Handle page type button clicks - preserve city and area filters
+function handlePageTypeClick(event, resultType, pageType) {
+    const citySelect = document.getElementById('city_hero');
+    const areaSelect = document.getElementById('area_hero');
+    const poojaSelect = document.getElementById('pooja_hero');
+    
+    // Build URL with preserved filters
+    let url = "{% url 'search_ui:search_results' %}?result_type=" + resultType;
+    
+    if (pageType) {
+        url += "&page_type=" + pageType;
+    }
+    
+    // Preserve city filter
+    if (citySelect && citySelect.value) {
+        url += "&city=" + encodeURIComponent(citySelect.value);
+    }
+    
+    // Preserve area filter
+    if (areaSelect && areaSelect.value) {
+        url += "&area=" + encodeURIComponent(areaSelect.value);
+    }
+    
+    // Preserve pooja filter
+    if (poojaSelect && poojaSelect.value) {
+        url += "&pooja=" + encodeURIComponent(poojaSelect.value);
+    }
+    
+    // Navigate to search results
+    window.location.href = url;
+}
+</script>
+
+{% endblock %}
+
+

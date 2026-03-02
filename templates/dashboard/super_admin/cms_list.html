@@ -1,0 +1,174 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Content Management{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<style>
+    .cms-list-card {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    
+    .cms-page-item {
+        background: var(--bg-secondary-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+    
+    .cms-page-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+    
+    .cms-page-title {
+        color: var(--text-primary-theme);
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+    }
+    
+    .cms-page-meta {
+        color: var(--text-muted-theme);
+        font-size: 0.875rem;
+        margin-bottom: 12px;
+    }
+    
+    .cms-badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    
+    .cms-badge-published {
+        background: var(--success-theme);
+        color: #FFFFFF;
+    }
+    
+    .cms-badge-draft {
+        background: var(--text-muted-theme);
+        color: #FFFFFF;
+    }
+    
+    .btn-edit-cms {
+        background: var(--accent-theme);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-edit-cms:hover {
+        background: darken(var(--accent-theme), 8%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--accent-theme-rgb), 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Content Management{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Manage CMS pages and SEO settings</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="cms-list-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h5 mb-0 fw-semibold" style="color: var(--text-primary-theme);">CMS Pages</h3>
+        <a href="{% url 'pages:super_admin_cms_seo_config' %}" class="btn btn-outline-primary">
+            <i class="bi bi-gear me-2"></i>SEO Configuration
+        </a>
+    </div>
+    
+    {% if pages %}
+        <div class="cms-pages-list">
+            {% for page in pages %}
+                <div class="cms-page-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="cms-page-title">{{ page.title }}</h4>
+                            <div class="cms-page-meta">
+                                <span><i class="bi bi-file-text me-1"></i>{{ page.get_page_type_display }}</span>
+                                <span class="ms-3"><i class="bi bi-clock me-1"></i>Updated: {{ page.updated_at|date:"M d, Y" }}</span>
+                                {% if page.is_published %}
+                                    <span class="ms-3"><i class="bi bi-calendar-check me-1"></i>Published: {{ page.published_at|date:"M d, Y" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            {% if page.is_published %}
+                                <span class="cms-badge cms-badge-published">
+                                    <i class="bi bi-check-circle me-1"></i>Published
+                                </span>
+                            {% else %}
+                                <span class="cms-badge cms-badge-draft">
+                                    <i class="bi bi-file-earmark me-1"></i>Draft
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <a href="{% url 'pages:super_admin_cms_edit' slug=page.slug %}" class="btn btn-edit-cms me-2">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </a>
+                            <a href="{% url 'pages:super_admin_cms_revisions' slug=page.slug %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-clock-history me-1"></i>Revisions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--text-muted-theme);"></i>
+            <p class="text-muted mt-3">No CMS pages found. Create pages using the management command.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

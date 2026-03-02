@@ -1,0 +1,98 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Intent Inbox - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="h2 mb-4" id="inbox-heading">Booking Intent Inbox</h1>
+                <p class="text-muted mb-4">View booking intents you have received</p>
+
+                
+                {% if received_intents %}
+                    <div class="list-group">
+                        {% for intent in received_intents %}
+                            <div class="list-group-item">
+                                <div class="d-flex flex-column flex-md-row w-100 justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1 me-md-3 mb-2 mb-md-0">
+                                        <h5 class="mb-1">
+                                            From: <span aria-label="Sender">{{ intent.requester.get_full_name|default:intent.requester.email }}</span>
+                                        </h5>
+                                        {% if intent.user_mobile_number %}
+                                        <p class="mb-1 text-muted small">
+                                            <i class="bi bi-telephone me-1"></i>
+                                            Mobile Number: <strong>{{ intent.user_mobile_number }}</strong>
+                                        </p>
+                                        {% endif %}
+                                        <p class="mb-1 text-muted small">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Received on {{ intent.created_at|date:"F d, Y" }} at {{ intent.created_at|time:"g:i A" }}
+                                        </p>
+                                        {% if intent.optional_requested_date %}
+                                            <p class="mb-1 text-muted small">
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                Preferred Date: {{ intent.optional_requested_date|date:"F d, Y" }}
+                                                {% if intent.optional_requested_time %}
+                                                    at {{ intent.optional_requested_time|time:"g:i A" }}
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                        {% if intent.message %}
+                                            <div class="mt-2 p-2 bg-light rounded">
+                                                <p class="mb-0">
+                                                    <strong>Message:</strong><br>
+                                                    {{ intent.message|linebreaks }}
+                                                </p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                
+                                {% if intent.status == 'submitted' %}
+                                    <p class="text-muted small mb-0 mt-2">
+                                        <i class="bi bi-bell me-1"></i>
+                                        New booking intent - awaiting your response
+                                    </p>
+                                {% elif intent.status == 'viewed' %}
+                                    <p class="text-muted small mb-0 mt-2">
+                                        <i class="bi bi-eye me-1"></i>
+                                        You have viewed this intent
+                                    </p>
+                                {% endif %}
+
+                                
+                                
+
+                                
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    
+                    {% if pagination %}
+                        {% include "module7_search/pagination.html" %}
+                    {% endif %}
+                {% else %}
+                    
+                    {% include "module8_booking/booking_states.html" with state_type="no_intents" %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    
+{% endblock %}
+
+{% block extra_js %}
+    
+    
+{% endblock %}
+

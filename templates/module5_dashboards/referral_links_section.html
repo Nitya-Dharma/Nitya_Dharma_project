@@ -1,0 +1,404 @@
+
+{% load static %}
+
+<div class="card dashboard-card mb-4">
+    <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+        <h3 class="h5 mb-0">
+            <i class="bi bi-link-45deg me-2"></i>Referral Links Management
+        </h3>
+        <div class="d-flex align-items-center gap-2">
+            {% if referral_policy %}
+            <label class="small text-muted mb-0 me-1">Max uses:</label>
+            <select id="referralMaxUses" class="form-select form-select-sm" style="width: auto;">
+                {% for t in referral_policy.allowed_max_use_tiers %}
+                <option value="{{ t }}" {% if forloop.first %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+            <label class="small text-muted mb-0 me-1 ms-2">Expiry (days):</label>
+            <select id="referralExpiryDays" class="form-select form-select-sm" style="width: auto;">
+                {% for d in referral_expiry_days_options %}
+                <option value="{{ d }}" {% if d == referral_policy.default_expiry_days %}selected{% endif %}>{{ d }}</option>
+                {% empty %}
+                <option value="30" selected>30</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button type="button" 
+                    class="btn btn-primary btn-sm" 
+                    id="generateReferralBtn"
+                    onclick="generateReferralLink()">
+                <i class="bi bi-plus-circle me-1"></i>Generate New Link
+            </button>
+        </div>
+    </div>
+    <div class="dashboard-card-body">
+        
+        <!-- TASK 7: Referral Usage Metrics (READ-ONLY) -->
+        {% if referral_analytics %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-primary">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted mb-2">Total Referrals Created</h6>
+                        <h3 class="mb-0">{{ referral_analytics.total_referrals_created }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted mb-2">Active Referrals</h6>
+                        <h3 class="mb-0">{{ referral_analytics.active_referrals }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted mb-2">Expired Referrals</h6>
+                        <h3 class="mb-0">{{ referral_analytics.expired_referrals }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted mb-2">Used Referrals</h6>
+                        <h3 class="mb-0">{{ referral_analytics.total_usage_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div id="referralAlert" class="alert d-none" role="alert"></div>
+        
+        
+        <div id="referralLoading" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Generating...</span>
+            </div>
+            <p class="mt-2 text-muted">Generating referral link...</p>
+        </div>
+        
+        
+        <div id="generatedReferralSection" class="d-none mb-4">
+            <div class="alert alert-success">
+                <h6 class="alert-heading">
+                    <i class="bi bi-check-circle me-2"></i>Referral Link Generated Successfully!
+                </h6>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Referral URL:</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="generatedReferralUrl" 
+                               readonly
+                               value="">
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                onclick="copyReferralUrl()"
+                                title="Copy to clipboard">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Referral Code:</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="generatedReferralCode" 
+                               readonly
+                               value="">
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                onclick="copyReferralCode()"
+                                title="Copy to clipboard">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Instructions:</strong> Share this URL with the person who wants to register as a Pandit. 
+                    They will need both the URL and the Referral Code to complete registration.
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="existingReferralLinks">
+            <h6 class="mb-3">Your Referral Links</h6>
+            {% if referral_links %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Status</th>
+                                <th>Uses</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for link in referral_links %}
+                                <tr>
+                                    <td>
+                                        <code class="small">{{ link.token|truncatechars:20 }}...</code>
+                                    </td>
+                                    <td>
+                                        {% if link.is_active and link.used_count < link.max_uses %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ link.used_count }} / {{ link.max_uses }}
+                                    </td>
+                                    <td>
+                                        <small>{{ link.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewReferralLink('{{ link.token }}', '{{ link.referral_code }}')"
+                                                title="View full link">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No referral links generated yet.</p>
+                    <p class="small">Click "Generate New Link" to create your first referral link.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="referralLinkModal" tabindex="-1" aria-labelledby="referralLinkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="referralLinkModalLabel">
+                    <i class="bi bi-link-45deg me-2"></i>Referral Link Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Referral URL:</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="modalReferralUrl" 
+                               readonly
+                               value="">
+                        <button class="btn btn-outline-primary" 
+                                type="button" 
+                                onclick="copyModalReferralUrl()">
+                            <i class="bi bi-clipboard"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Referral Code:</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="modalReferralCode" 
+                               readonly
+                               value="">
+                        <button class="btn btn-outline-primary" 
+                                type="button" 
+                                onclick="copyModalReferralCode()">
+                            <i class="bi bi-clipboard"></i> Copy Code
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Share Instructions:</strong> Share both the URL and the Referral Code with the person who wants to register as a Pandit. 
+                    They will need both to complete registration.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generate Referral Link
+function generateReferralLink() {
+    const btn = document.getElementById('generateReferralBtn');
+    const loading = document.getElementById('referralLoading');
+    const alert = document.getElementById('referralAlert');
+    const generatedSection = document.getElementById('generatedReferralSection');
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    alert.classList.add('d-none');
+    loading.classList.remove('d-none');
+    generatedSection.classList.add('d-none');
+    
+    // Get CSRF token from meta tag or cookie
+    let csrftoken = null;
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        csrftoken = metaToken.getAttribute('content');
+    }
+    if (!csrftoken) {
+        csrftoken = getCookie('csrftoken');
+    }
+    
+    if (!csrftoken) {
+        showAlert('danger', 'CSRF token not found. Please refresh the page.');
+        loading.classList.add('d-none');
+        btn.disabled = false;
+        return;
+    }
+    
+    var body = {};
+    var maxUsesEl = document.getElementById('referralMaxUses');
+    var expiryDaysEl = document.getElementById('referralExpiryDays');
+    if (maxUsesEl) body.max_uses = parseInt(maxUsesEl.value, 10);
+    if (expiryDaysEl) body.expiry_days = parseInt(expiryDaysEl.value, 10);
+    
+    // Make API call to generate referral link
+    fetch('{% url "referrals:generate_referral_link" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+    })
+    .then(response => response.json())
+    .then(data => {
+        loading.classList.add('d-none');
+        btn.disabled = false;
+        
+        if (data.success) {
+            // Show generated link
+            const referralLink = data.referral_link;
+            const fullUrl = window.location.origin + referralLink.url;
+            
+            document.getElementById('generatedReferralUrl').value = fullUrl;
+            document.getElementById('generatedReferralCode').value = referralLink.referral_code;
+            generatedSection.classList.remove('d-none');
+            
+            // Scroll to generated section
+            generatedSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Show success message
+            showAlert('success', 'Referral link generated successfully!');
+            
+            // Reload page after 3 seconds to show new link in list
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            showAlert('danger', data.message || 'Failed to generate referral link.');
+        }
+    })
+    .catch(error => {
+        loading.classList.add('d-none');
+        btn.disabled = false;
+        showAlert('danger', 'An error occurred while generating the referral link. Please try again.');
+        console.error('Error:', error);
+    });
+}
+
+// View Referral Link in Modal
+function viewReferralLink(token, code) {
+    const fullUrl = window.location.origin + '/accounts/pandit/register/' + token + '/';
+    document.getElementById('modalReferralUrl').value = fullUrl;
+    document.getElementById('modalReferralCode').value = code;
+    
+    const modal = new bootstrap.Modal(document.getElementById('referralLinkModal'));
+    modal.show();
+}
+
+// Copy Functions
+function copyReferralUrl() {
+    const urlInput = document.getElementById('generatedReferralUrl');
+    urlInput.select();
+    document.execCommand('copy');
+    showCopyFeedback('URL copied to clipboard!');
+}
+
+function copyReferralCode() {
+    const codeInput = document.getElementById('generatedReferralCode');
+    codeInput.select();
+    document.execCommand('copy');
+    showCopyFeedback('Code copied to clipboard!');
+}
+
+function copyModalReferralUrl() {
+    const urlInput = document.getElementById('modalReferralUrl');
+    urlInput.select();
+    document.execCommand('copy');
+    showCopyFeedback('URL copied to clipboard!');
+}
+
+function copyModalReferralCode() {
+    const codeInput = document.getElementById('modalReferralCode');
+    codeInput.select();
+    document.execCommand('copy');
+    showCopyFeedback('Code copied to clipboard!');
+}
+
+// Helper Functions
+function showAlert(type, message) {
+    const alert = document.getElementById('referralAlert');
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
+    alert.classList.remove('d-none');
+}
+
+function showCopyFeedback(message) {
+    // Simple toast-like feedback
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed top-0 end-0 p-3';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2 text-success"></i>${message}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 2000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+

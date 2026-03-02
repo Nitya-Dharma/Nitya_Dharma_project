@@ -1,0 +1,238 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Write a Review - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    
+    <style>
+        .review-form-section {
+            background: #f8f9fa;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .star-rating-input {
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        .star-rating-input .bi-star {
+            color: #dee2e6;
+        }
+        .star-rating-input .bi-star-fill {
+            color: #ffc107;
+        }
+        .star-rating-input .bi-star {
+            transition: color 0.2s;
+        }
+        .star-rating-input .bi-star:hover {
+            color: #ffc107;
+        }
+        @media (max-width: 768px) {
+            .review-form-section {
+                padding: 1rem 0;
+            }
+            .review-form-section .card {
+                margin: 0 -15px;
+                border-radius: 0;
+            }
+            .review-form-section .btn {
+                min-height: 44px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    
+    <section class="review-form-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0" id="form-heading">
+                                <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Write a Review
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            
+                            {% if not can_submit %}
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    {% if eligibility_message %}
+                                        {{ eligibility_message }}
+                                    {% else %}
+                                        You are not eligible to submit a review at this time.
+                                    {% endif %}
+                                    
+                                </div>
+                            {% else %}
+                                
+                                <form method="post" action="{% url 'reviews_ui:submit_review' pandit_public_id=pandit.public_id %}" id="review-form">
+                                    {% csrf_token %}
+                                    
+                                    
+                                    <div class="mb-3">
+                                        <label for="pandit" class="form-label">Pandit</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="pandit" 
+                                               value="{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }}"
+                                               readonly
+                                               aria-label="Pandit being reviewed"
+                                               aria-describedby="pandit-help">
+                                        <small id="pandit-help" class="form-text text-muted">This Pandit will receive your review</small>
+                                        <input type="hidden" name="pandit_id" value="{{ pandit.id }}">
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Rating <span class="text-danger">*</span></label>
+                                        <div class="star-rating-input" role="radiogroup" aria-label="Select rating">
+                                            {% for i in "12345" %}
+                                                <i class="bi bi-star star-rating-star" 
+                                                   data-rating="{{ forloop.counter }}"
+                                                   aria-label="{{ forloop.counter }} star{{ forloop.counter|pluralize }}"
+                                                   tabindex="0"
+                                                   role="radio"
+                                                   aria-checked="false"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <input type="hidden" name="rating" id="rating-input" required>
+                                        <small class="form-text text-muted">Click stars to select rating</small>
+                                        
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">Your Review <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" 
+                                                  id="comment" 
+                                                  name="comment"
+                                                  rows="6"
+                                                  placeholder="Share your experience..."
+                                                  required
+                                                  aria-label="Enter your review"
+                                                  aria-describedby="comment-help">{{ form.comment.value|default:'' }}</textarea>
+                                        <small id="comment-help" class="form-text text-muted">Be respectful and honest in your review</small>
+                                    </div>
+
+                                    
+                                    {% if form.tags or available_tags %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Tags <span class="text-muted">(Optional)</span></label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for tag in available_tags|default:form.tags.field.queryset %}
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" 
+                                                               type="checkbox" 
+                                                               name="tags" 
+                                                               value="{{ tag.id }}" 
+                                                               id="tag_{{ tag.id }}"
+                                                               {% if tag.id in form.tags.value %}checked{% endif %}>
+                                                        <label class="form-check-label" for="tag_{{ tag.id }}">
+                                                            {{ tag.name }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    
+                                    {% if form.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <strong>Please correct the following errors:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                {% for field, errors in form.errors.items %}
+                                                    {% for error in errors %}
+                                                        <li>{{ error }}</li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" 
+                                                class="btn btn-primary btn-lg" 
+                                                id="submit-btn"
+                                                aria-label="Submit review">
+                                            <i class="bi bi-send me-2"></i>Submit Review
+                                        </button>
+                                        <a href="{% url 'profiles:profile_public' pandit.id %}" 
+                                           class="btn btn-outline-secondary btn-lg">
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </form>
+
+                                
+                                
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> Reviews are user opinions and do not imply verification or endorsement. All reviews are subject to moderation.
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+{% endblock %}
+
+{% block extra_js %}
+    
+    
+    <script>
+        // Star Rating Interaction - Task 9.UI.6
+        document.querySelectorAll('.star-rating-star').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                const stars = document.querySelectorAll('.star-rating-star');
+                const ratingInput = document.getElementById('rating-input');
+                
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.remove('bi-star');
+                        s.classList.add('bi-star-fill');
+                        s.setAttribute('aria-checked', 'true');
+                    } else {
+                        s.classList.remove('bi-star-fill');
+                        s.classList.add('bi-star');
+                        s.setAttribute('aria-checked', 'false');
+                    }
+                });
+                
+                ratingInput.value = rating;
+            });
+            
+            star.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        });
+
+        // Form Submission Handling - Task 9.UI.7
+        document.getElementById('review-form')?.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...';
+            }
+        });
+        
+    </script>
+{% endblock %}
+

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Write a Review - {{ pandit.display_name|default:pandit.user.get_full_name }} - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/reviews_ui.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="review-form-container">
+                <h2 class="review-form-title">Write a Review</h2>
+                <p class="review-form-subtitle">Share your experience with {{ pandit.display_name|default:pandit_user.get_full_name }}</p>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" class="review-form">
+                    {% csrf_token %}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Review Title (Optional)</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="title" 
+                               name="title" 
+                               placeholder="e.g., Great experience!"
+                               value="{{ title|default:'' }}"
+                               maxlength="120">
+                        <small class="form-text" style="color: #64748B;">A short title for your review</small>
+                    </div>
+                    
+                    <!-- Rating Field (Optional) -->
+                    <div class="mb-3">
+                        <label class="form-label">Rating (Optional)</label>
+                        <div class="star-rating-input">
+                            <input type="radio" id="rating5" name="rating" value="5" {% if rating == '5' or not rating %}checked{% endif %}>
+                            <label for="rating5"><i class="bi bi-star-fill"></i></label>
+                            <input type="radio" id="rating4" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
+                            <label for="rating4"><i class="bi bi-star-fill"></i></label>
+                            <input type="radio" id="rating3" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
+                            <label for="rating3"><i class="bi bi-star-fill"></i></label>
+                            <input type="radio" id="rating2" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
+                            <label for="rating2"><i class="bi bi-star-fill"></i></label>
+                            <input type="radio" id="rating1" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
+                            <label for="rating1"><i class="bi bi-star-fill"></i></label>
+                        </div>
+                        <small class="form-text" style="color: #64748B;">Rate your experience (optional)</small>
+                    </div>
+                    
+                    <!-- Message Field (Required) -->
+                    <div class="mb-4">
+                        <label for="message" class="form-label">Review Message <span style="color: #E11D48;">*</span></label>
+                        <textarea class="form-control" 
+                                  id="message" 
+                                  name="message" 
+                                  rows="6" 
+                                  placeholder="Share your experience with this Pandit..."
+                                  required
+                                  maxlength="1000">{{ message|default:'' }}</textarea>
+                        <small class="form-text" style="color: #64748B;">Maximum 1000 characters</small>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="review-btn-submit">
+                            <i class="bi bi-check-circle me-2"></i>Submit Review
+                        </button>
+                    </div>
+                    
+                    <!-- Cancel Link -->
+                    <div class="text-center mt-3">
+                        <a href="{% url 'reviews_ui:pandit_reviews' pandit_public_id=pandit.user.public_id %}" style="color: #64748B; text-decoration: none;">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

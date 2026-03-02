@@ -1,0 +1,118 @@
+{% comment %}
+Hero Section Search Form
+Single-line search bar with City, Area, Pooja dropdowns and Search button
+{% endcomment %}
+
+<form method="get" action="{% url 'search_ui:search_results' %}" class="row g-3 align-items-end">
+    <div class="col-12 col-md-4">
+        <label for="city_hero" class="form-label visually-hidden">City</label>
+        <select class="form-select form-select-lg" id="city_hero" name="city" aria-label="Select city">
+            <option value="">Select City</option>
+            {% for city in cities %}
+                <option value="{{ city.id }}">{{ city.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12 col-md-4">
+        <label for="area_hero" class="form-label visually-hidden">Area</label>
+        <select class="form-select form-select-lg" id="area_hero" name="area" aria-label="Select local area">
+            <option value="">Select Area</option>
+            {% for area in areas %}
+                <option value="{{ area.id }}" data-city="{{ area.city.id }}">{{ area.name }}, {{ area.city.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12 col-md-4">
+        <label for="pooja_hero" class="form-label visually-hidden">Pooja</label>
+        <select class="form-select form-select-lg" id="pooja_hero" name="pooja" aria-label="Select pooja type">
+            <option value="">Select Pooja</option>
+            {% for pooja in poojas %}
+                <option value="{{ pooja.id }}">{{ pooja.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12 text-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg px-5" aria-label="Search Pandits">
+            <i class="bi bi-search me-2"></i>Search Pandits
+        </button>
+    </div>
+</form>
+
+<script>
+// Filter areas based on selected city + Smart Default Filters (localStorage)
+document.addEventListener('DOMContentLoaded', function() {
+    const citySelect = document.getElementById('city_hero');
+    const areaSelect = document.getElementById('area_hero');
+    
+    // Restore last selected city and area from localStorage
+    if (citySelect && !citySelect.value) {
+        const savedCity = localStorage.getItem('search_last_city');
+        if (savedCity) {
+            citySelect.value = savedCity;
+            // Trigger change to filter areas
+            citySelect.dispatchEvent(new Event('change'));
+        }
+    }
+    
+    if (areaSelect && !areaSelect.value) {
+        const savedArea = localStorage.getItem('search_last_area');
+        if (savedArea) {
+            areaSelect.value = savedArea;
+        }
+    }
+    
+    // Save city selection to localStorage
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            const selectedCityId = this.value;
+            
+            if (selectedCityId) {
+                localStorage.setItem('search_last_city', selectedCityId);
+            } else {
+                localStorage.removeItem('search_last_city');
+            }
+            
+            // Filter areas based on selected city
+            if (areaSelect) {
+                const areaOptions = areaSelect.querySelectorAll('option');
+                
+                // Reset area selection if city changed
+                const savedArea = localStorage.getItem('search_last_area');
+                if (savedArea) {
+                    const savedAreaOption = Array.from(areaOptions).find(opt => 
+                        opt.value === savedArea && opt.getAttribute('data-city') === selectedCityId
+                    );
+                    if (!savedAreaOption) {
+                        areaSelect.value = '';
+                        localStorage.removeItem('search_last_area');
+                    }
+                } else {
+                    areaSelect.value = '';
+                }
+                
+                // Show/hide areas based on selected city
+                areaOptions.forEach(function(option) {
+                    if (option.value === '' || option.getAttribute('data-city') === selectedCityId) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            }
+        });
+    }
+    
+    // Save area selection to localStorage
+    if (areaSelect) {
+        areaSelect.addEventListener('change', function() {
+            const selectedAreaId = this.value;
+            
+            if (selectedAreaId) {
+                localStorage.setItem('search_last_area', selectedAreaId);
+            } else {
+                localStorage.removeItem('search_last_area');
+            }
+        });
+    }
+});
+</script>

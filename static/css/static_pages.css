@@ -1,0 +1,360 @@
+/**
+ * Static Pages CSS - SEO Optimized
+ * 60-30-10 Color System
+ * SXO (Search Experience Optimization) Optimized
+ */
+
+/* Color Variables */
+:root {
+    --primary-bg: #FFFFFF;
+    --primary-bg-alt: #F8FAFC;
+    --secondary-text: #0F172A;
+    --secondary-text-alt: #1E293B;
+    --accent: #E11D48;
+    --border: #E5E7EB;
+    --muted: #64748B;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #DC2626;
+}
+
+/* Container - Max width for readability (SXO) */
+.static-page-container {
+    background-color: var(--primary-bg-alt);
+    min-height: calc(100vh - 200px);
+    padding: 0;
+}
+
+.static-page-content {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: var(--primary-bg);
+    padding: 0;
+}
+
+/* Hero Section */
+.static-hero-section {
+    background: linear-gradient(135deg, var(--primary-bg) 0%, var(--primary-bg-alt) 100%);
+    padding: 60px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.static-hero-section h1 {
+    color: var(--secondary-text);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    color: var(--muted);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.last-updated {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-top: 16px;
+}
+
+/* Content Section */
+.static-content-section {
+    padding: 48px 40px;
+    line-height: 1.7;
+    font-size: 16px;
+    color: var(--secondary-text-alt);
+}
+
+/* CMS Content Rendering */
+.cms-content {
+    margin-bottom: 48px;
+}
+
+.cms-content h1,
+.cms-content h2,
+.cms-content h3,
+.cms-content h4 {
+    color: var(--secondary-text);
+    margin-top: 32px;
+    margin-bottom: 16px;
+    line-height: 1.3;
+}
+
+.cms-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.cms-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.cms-content p {
+    margin-bottom: 16px;
+    line-height: 1.7;
+    color: var(--secondary-text-alt);
+}
+
+.cms-content ul,
+.cms-content ol {
+    margin-bottom: 20px;
+    padding-left: 24px;
+}
+
+.cms-content li {
+    margin-bottom: 12px;
+    line-height: 1.7;
+}
+
+.cms-content a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.cms-content a:hover {
+    color: #be123c;
+    text-decoration: underline;
+}
+
+.cms-content strong {
+    color: var(--secondary-text);
+    font-weight: 600;
+}
+
+/* Content Blocks */
+.content-block {
+    margin-bottom: 48px;
+}
+
+.content-block:last-child {
+    margin-bottom: 0;
+}
+
+.content-block h2 {
+    color: var(--secondary-text);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    margin-top: 0;
+    line-height: 1.3;
+}
+
+.content-block h3 {
+    color: var(--secondary-text);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    line-height: 1.4;
+}
+
+.content-block p {
+    margin-bottom: 16px;
+    color: var(--secondary-text-alt);
+    line-height: 1.7;
+}
+
+.content-block ul,
+.content-block ol {
+    margin-bottom: 20px;
+    padding-left: 24px;
+}
+
+.content-block li {
+    margin-bottom: 12px;
+    line-height: 1.7;
+    color: var(--secondary-text-alt);
+}
+
+.content-block li strong {
+    color: var(--secondary-text);
+    font-weight: 600;
+}
+
+.content-block a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.content-block a:hover {
+    color: #be123c;
+    text-decoration: underline;
+}
+
+/* FAQ Section */
+.faq-section {
+    background-color: var(--primary-bg-alt);
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.faq-item {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+}
+
+.faq-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.faq-item h3 {
+    color: var(--secondary-text);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 0;
+}
+
+.faq-item p {
+    margin-bottom: 0;
+    color: var(--secondary-text-alt);
+}
+
+/* CTA Section */
+.cta-section {
+    background-color: var(--primary-bg-alt);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.cta-buttons .btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.cta-buttons .btn-primary {
+    background-color: var(--accent);
+    color: var(--primary-bg);
+    border: none;
+}
+
+.cta-buttons .btn-primary:hover {
+    background-color: #be123c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.cta-buttons .btn-outline-primary {
+    background-color: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+}
+
+.cta-buttons .btn-outline-primary:hover {
+    background-color: var(--accent);
+    color: var(--primary-bg);
+}
+
+.cta-buttons .btn-outline-secondary {
+    background-color: transparent;
+    color: var(--secondary-text);
+    border: 2px solid var(--border);
+}
+
+.cta-buttons .btn-outline-secondary:hover {
+    background-color: var(--secondary-text);
+    color: var(--primary-bg);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .static-hero-section {
+        padding: 40px 16px;
+    }
+
+    .static-hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .static-content-section {
+        padding: 32px 16px;
+        font-size: 15px;
+    }
+
+    .content-block {
+        margin-bottom: 32px;
+    }
+
+    .content-block h2 {
+        font-size: 1.5rem;
+    }
+
+    .content-block h3 {
+        font-size: 1.125rem;
+    }
+
+    .faq-section {
+        padding: 24px 16px;
+    }
+
+    .faq-item {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+    }
+
+    .cta-section {
+        padding: 32px 16px;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+    }
+
+    .cta-buttons .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .static-hero-section h1 {
+        font-size: 1.75rem;
+    }
+
+    .static-content-section {
+        padding: 24px 12px;
+    }
+
+    .content-block h2 {
+        font-size: 1.375rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .static-page-container {
+        background-color: var(--primary-bg);
+    }
+
+    .cta-section {
+        display: none;
+    }
+}
+

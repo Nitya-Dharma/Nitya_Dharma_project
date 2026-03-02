@@ -1,0 +1,955 @@
+/* ============================================
+   ADMIN PANDIT UI PREMIUM REDESIGN - PART 1
+   Foundation + Authentication Screens
+   ============================================ */
+
+/* UNIT 1: Admin Pandit UI Base Styles */
+.admin-section {
+    background: var(--bg-primary-theme, #F8FAFC);
+    padding: 48px 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.admin-card {
+    background: var(--card-bg-theme, #FFFFFF);
+    border-radius: 16px;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    transition: all 0.25s ease;
+    overflow: hidden;
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.admin-muted {
+    color: var(--text-muted-theme, #64748B);
+}
+
+/* UNIT 3: Login Form Field Polish */
+.admin-auth-page .form-label {
+    font-weight: 500;
+    color: var(--text-primary-theme, #0F172A);
+    margin-bottom: 6px;
+}
+
+.admin-auth-page .form-control {
+    border-radius: 12px;
+    min-height: 44px;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--bg-secondary-theme, #FFFFFF);
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.admin-auth-page .form-control:focus {
+    border-color: var(--accent-theme, #E11D48);
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+    background-color: var(--bg-secondary-theme, #FFFFFF);
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.admin-auth-page .form-control::placeholder {
+    color: var(--text-muted-theme, #94A3B8);
+}
+
+/* Fixed Floating Labels (No Overlapping) */
+.admin-auth-page .form-floating {
+    position: relative;
+}
+
+.admin-auth-page .form-floating > .form-control {
+    height: 58px;
+    padding: 1.25rem 0.75rem 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap;
+}
+
+.admin-auth-page .form-floating label {
+    color: var(--text-muted-theme, #64748B);
+    padding: 0.75rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+/* Move label properly when focused or filled */
+.admin-auth-page .form-floating > .form-control:focus ~ label,
+.admin-auth-page .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    transform: scale(0.85) translateY(-0.6rem) translateX(0);
+    opacity: 0.9;
+    color: var(--accent-theme, #E11D48);
+}
+
+/* UNIT 5: Auth Buttons & Feedback */
+.admin-auth-page .btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.admin-auth-page .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.admin-auth-page .btn-danger:active {
+    transform: scale(0.97);
+}
+
+.admin-auth-page .admin-muted {
+    color: #64748B;
+    font-size: 0.875rem;
+}
+
+/* Auth Header Styling */
+.admin-auth-header {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.admin-auth-header h2,
+.admin-auth-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: white;
+}
+
+.admin-auth-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-auth-body {
+    padding: 2.5rem;
+}
+
+/* Info Note Styling */
+.admin-info-note {
+    background-color: var(--bg-secondary-theme, #F8FAFC);
+    border-left: 4px solid var(--accent-theme, #E11D48);
+    padding: 1.25rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.admin-info-note h6 {
+    color: var(--text-primary-theme, #0F172A);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+.admin-info-note p,
+.admin-info-note ul {
+    color: var(--text-muted-theme, #64748B);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-info-note hr {
+    margin: 1rem 0;
+    border-color: var(--border-color-theme, #E5E7EB);
+    opacity: 0.5;
+}
+
+/* UNIT 7: Admin Pandit Sidebar Styling */
+.admin-sidebar {
+    background: var(--card-bg-theme, #FFFFFF);
+    border-radius: 16px;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    padding: 16px;
+}
+
+.admin-sidebar .nav-link {
+    display: block;
+    padding: 12px 14px;
+    color: var(--text-primary-theme, #0F172A);
+    border-radius: 10px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.admin-sidebar .nav-link:hover {
+    background: var(--bg-secondary-theme, #F8FAFC);
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.admin-sidebar .nav-link.active,
+.admin-sidebar .nav-link.dashboard-tab.active {
+    background: var(--bg-secondary-theme, #F8FAFC);
+    border-left: 4px solid var(--accent-theme, #E11D48);
+    font-weight: 600;
+    color: var(--accent-theme, #E11D48);
+}
+
+.admin-sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+/* UNIT 8: Dashboard Summary Cards */
+.admin-pandit-page .admin-card.border-accent {
+    border-left: 4px solid #E11D48;
+}
+
+.admin-pandit-page .admin-card h6 {
+    color: var(--text-primary-theme, #0F172A);
+    font-weight: 600;
+}
+
+.admin-pandit-page .admin-card h4 {
+    color: var(--text-primary-theme, #0F172A);
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+/* UNIT 9: List Views / Tables */
+.admin-pandit-page .table th {
+    color: #64748B;
+    font-weight: 500;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #E5E7EB;
+    padding: 12px;
+}
+
+.admin-pandit-page .table td {
+    vertical-align: middle;
+    padding: 12px;
+    color: #0F172A;
+}
+
+.admin-pandit-page .table tbody tr:hover {
+    background: #F8FAFC;
+    transition: background-color 0.2s ease;
+}
+
+.admin-pandit-page .table tbody tr {
+    border-bottom: 1px solid #E5E7EB;
+}
+
+/* UNIT 10: Filters & Search Bars */
+.admin-pandit-page .admin-card .form-label {
+    font-weight: 500;
+    color: #0F172A;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+}
+
+.admin-pandit-page .admin-card .form-control,
+.admin-pandit-page .admin-card .form-select {
+    border-radius: 12px;
+    min-height: 44px;
+    border: 1px solid #E5E7EB;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.admin-pandit-page .admin-card .form-control:focus,
+.admin-pandit-page .admin-card .form-select:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+.admin-pandit-page .admin-card .btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.admin-pandit-page .admin-card .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+/* UNIT 11: Empty States */
+.admin-pandit-page .admin-card.text-center {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    padding: 48px 24px;
+}
+
+.admin-pandit-page .admin-card.text-center i {
+    color: #CBD5E1;
+}
+
+.admin-pandit-page .admin-card.text-center h5 {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+/* Badge Styling */
+.admin-pandit-page .badge {
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+/* Button Group Styling */
+.admin-pandit-page .btn-group .btn {
+    border-radius: 8px;
+    margin-right: 4px;
+}
+
+/* ============================================
+   ADMIN PANDIT UI PREMIUM REDESIGN - PART 3
+   Moderation Forms, Actions, States & Final Polish
+   ============================================ */
+
+/* UNIT 13: Moderation Action Forms */
+.admin-pandit-page .moderation-action-area {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-pandit-page .moderation-action-area h6 {
+    color: #0F172A;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* UNIT 14: Approve / Reject Button Hierarchy */
+.admin-pandit-page .btn-success {
+    background-color: #22C55E;
+    border-color: #22C55E;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.admin-pandit-page .btn-success:hover {
+    background-color: #16A34A;
+    border-color: #16A34A;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.admin-pandit-page .btn-outline-danger {
+    border-color: #DC2626;
+    color: #DC2626;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+    background-color: transparent;
+}
+
+.admin-pandit-page .btn-outline-danger:hover {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.admin-pandit-page .btn-danger {
+    background-color: #DC2626;
+    border-color: #DC2626;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.admin-pandit-page .btn-danger:hover {
+    background-color: #B91C1C;
+    border-color: #B91C1C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Button Group Spacing */
+.admin-pandit-page .btn-group,
+.admin-pandit-page .d-flex.gap-3 {
+    gap: 0.75rem;
+}
+
+/* UNIT 15: Reason / Comment Textareas */
+.admin-pandit-page textarea.form-control {
+    border-radius: 12px;
+    min-height: 120px;
+    border: 1px solid #E5E7EB;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    resize: vertical;
+}
+
+.admin-pandit-page textarea.form-control:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+.admin-pandit-page textarea.form-control::placeholder {
+    color: #94A3B8;
+}
+
+/* Modal Textarea Styling */
+.admin-pandit-page .modal textarea.form-control {
+    min-height: 100px;
+}
+
+/* UNIT 16: Status Badges - Active/Approved (GREEN) */
+.admin-pandit-page .badge-approved,
+.admin-pandit-page .badge.bg-success,
+.admin-pandit-page .badge[class*="approved"],
+.admin-pandit-page .badge[class*="success"],
+.admin-pandit-page .badge:contains("Active") {
+    background: var(--success-theme, #22C55E) !important; /* Green background - uses theme variable */
+    color: #FFFFFF !important; /* White text for contrast */
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    border: none !important;
+}
+
+/* Dark mode support for green badge */
+[data-theme="dark"] .admin-pandit-page .badge-approved,
+[data-theme="dark"] .admin-pandit-page .badge.bg-success,
+[data-theme="dark"] .admin-pandit-page .badge[class*="approved"],
+[data-theme="dark"] .admin-pandit-page .badge[class*="success"] {
+    background: var(--success-theme, #22C55E) !important; /* Green stays green in dark mode */
+    color: #FFFFFF !important;
+}
+
+.admin-pandit-page .badge-pending,
+.admin-pandit-page .badge.bg-warning {
+    background: #FEF3C7 !important;
+    color: #92400E !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.admin-pandit-page .badge-rejected,
+.admin-pandit-page .badge.bg-danger {
+    background: #FEE2E2 !important;
+    color: #991B1B !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.admin-pandit-page .badge.bg-info {
+    background: #DBEAFE !important;
+    color: #1E40AF !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.admin-pandit-page .badge.bg-secondary {
+    background: #F1F5F9 !important;
+    color: #475569 !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* UNIT 17: Error & Warning States */
+.admin-pandit-page .alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-pandit-page .alert-danger {
+    background: #FEF2F2;
+    border-left: 4px solid #FECACA;
+    color: #991B1B;
+}
+
+.admin-pandit-page .alert-danger .alert-heading {
+    color: #991B1B;
+    font-weight: 600;
+}
+
+.admin-pandit-page .alert-warning {
+    background: #FFFBEB;
+    border-left: 4px solid #FDE68A;
+    color: #92400E;
+}
+
+.admin-pandit-page .alert-warning .alert-heading {
+    color: #92400E;
+    font-weight: 600;
+}
+
+.admin-pandit-page .alert-info {
+    background: #EFF6FF;
+    border-left: 4px solid #BFDBFE;
+    color: #1E40AF;
+}
+
+.admin-pandit-page .alert-info .alert-heading {
+    color: #1E40AF;
+    font-weight: 600;
+}
+
+/* UNIT 18: Confirmation / Success States */
+.admin-pandit-page .alert-success {
+    background: #ECFDF5;
+    border-left: 4px solid #A7F3D0;
+    color: #065F46;
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-pandit-page .alert-success .alert-heading {
+    color: #065F46;
+    font-weight: 600;
+}
+
+/* UNIT 19: Micro-Interactions */
+.admin-pandit-page .admin-card {
+    transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.admin-pandit-page .admin-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+.admin-pandit-page button:active,
+.admin-pandit-page .btn:active {
+    transform: scale(0.97);
+}
+
+.admin-pandit-page .table tbody tr {
+    transition: background-color 180ms ease;
+}
+
+.admin-pandit-page .form-control,
+.admin-pandit-page .form-select {
+    transition: all 180ms ease;
+}
+
+/* Modal Styling */
+.admin-pandit-page .modal-content {
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.admin-pandit-page .modal-header {
+    border-bottom: 1px solid #E5E7EB;
+    padding: 1.5rem;
+}
+
+.admin-pandit-page .modal-header .modal-title {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+.admin-pandit-page .modal-body {
+    padding: 1.5rem;
+}
+
+.admin-pandit-page .modal-footer {
+    border-top: 1px solid #E5E7EB;
+    padding: 1.5rem;
+}
+
+.admin-pandit-page .modal-footer .btn {
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Progress Bar Styling */
+.admin-pandit-page .progress {
+    background-color: #F1F5F9;
+    border-radius: 8px;
+    height: 20px;
+}
+
+.admin-pandit-page .progress-bar {
+    background-color: #6366F1;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+/* ============================================
+   ADMIN PANDIT DASHBOARD PREMIUM REDESIGN
+   Mobile Responsive + 60-30-10 Color System
+   ============================================ */
+
+/* UNIT 4: Dashboard Container Structure */
+.admin-dashboard-container {
+    background: var(--bg-primary-theme, #F8FAFC);
+    min-height: 100vh;
+    padding: 24px;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: var(--card-bg-theme, #FFFFFF);
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    transition: all 0.3s ease;
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* UNIT 5: Stats Cards Redesign */
+.stats-card {
+    border-top: 4px solid #E11D48;
+}
+
+.stats-number {
+    color: #0F172A;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.stats-label {
+    color: #64748B;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* UNIT 8: Premium Buttons */
+.btn-primary-premium {
+    background: #E11D48;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-premium:hover {
+    background: #be123c;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.btn-secondary-premium {
+    background: #1E293B;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary-premium:hover {
+    background: #0F172A;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+}
+
+/* UNIT 9: Notifications & Badges */
+.notification-badge {
+    background: #E11D48;
+    color: #FFFFFF;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: #ECFDF5;
+    color: #22C55E;
+    border-left: 4px solid #22C55E;
+}
+
+.alert-warning {
+    background: #FFFBEB;
+    color: #F59E0B;
+    border-left: 4px solid #F59E0B;
+}
+
+/* UNIT 10: Smooth Micro Interactions */
+.admin-dashboard-container * {
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-dashboard-container a:hover {
+    color: #E11D48;
+}
+
+/* UNIT 11: Typography Upgrade */
+.admin-dashboard-container h1,
+.admin-dashboard-container h2,
+.admin-dashboard-container h3,
+.admin-dashboard-container h4,
+.admin-dashboard-container h5,
+.admin-dashboard-container h6 {
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.6;
+}
+
+.admin-dashboard-container p,
+.admin-dashboard-container .admin-muted {
+    color: #64748B;
+    line-height: 1.6;
+}
+
+/* UNIT 6: Mobile Sidebar Collapse */
+@media (max-width: 992px) {
+    .dashboard-sidebar {
+        position: fixed;
+        left: -260px;
+        width: 260px;
+        height: 100%;
+        background: #0F172A;
+        transition: left 0.3s ease;
+        z-index: 1000;
+        top: 0;
+        overflow-y: auto;
+        padding-top: 60px;
+    }
+    
+    .dashboard-sidebar.active {
+        left: 0;
+    }
+    
+    .dashboard-sidebar .nav-link {
+        color: #FFFFFF;
+    }
+    
+    .dashboard-sidebar .nav-link:hover,
+    .dashboard-sidebar .nav-link.active {
+        background: rgba(225, 29, 72, 0.2);
+        color: #E11D48;
+    }
+    
+    /* Hamburger Button */
+    .sidebar-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: #E11D48;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    }
+    
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.5);
+        z-index: 999;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* UNIT 7: Tables Mobile Optimization */
+.table-mobile-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .table-mobile-wrapper {
+        margin: 0 -12px;
+        padding: 0 12px;
+    }
+    
+    .table-mobile {
+        min-width: 100%;
+        font-size: 0.875rem;
+    }
+    
+    .table-mobile thead {
+        display: none;
+    }
+    
+    .table-mobile tbody tr {
+        display: block;
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+    
+    .table-mobile tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 8px 0;
+        border: none;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    
+    .table-mobile tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    .table-mobile tbody td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #0F172A;
+        margin-right: 12px;
+        flex-shrink: 0;
+        min-width: 120px;
+    }
+    
+    /* If no data-label, use a generic label */
+    .table-mobile tbody td:not([data-label]):before {
+        content: '';
+    }
+}
+
+/* UNIT 12: Mobile Spacing Optimization */
+@media (max-width: 576px) {
+    .admin-dashboard-container {
+        padding: 12px;
+    }
+    
+    .dashboard-card {
+        padding: 16px;
+    }
+    
+    .admin-dashboard-container .btn {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-section {
+        padding: 32px 0;
+    }
+    
+    .admin-auth-body {
+        padding: 1.5rem;
+    }
+    
+    .admin-auth-header {
+        padding: 1.5rem;
+    }
+    
+    .admin-auth-page .btn-danger {
+        width: 100%;
+        min-height: 48px;
+    }
+    
+    /* UNIT 12: Mobile Responsiveness for Admin */
+    .admin-sidebar {
+        margin-bottom: 16px;
+    }
+    
+    .admin-pandit-page .table {
+        font-size: 13px;
+    }
+    
+    .admin-pandit-page .table th,
+    .admin-pandit-page .table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    .admin-pandit-page .admin-card {
+        margin-bottom: 16px;
+        padding: 1.5rem !important;
+    }
+    
+    .admin-pandit-page .admin-card h4 {
+        font-size: 1.5rem;
+    }
+    
+    .admin-pandit-page .btn-group,
+    .admin-pandit-page .d-flex.gap-3 {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .admin-pandit-page .btn-group .btn,
+    .admin-pandit-page .d-flex.gap-3 .btn {
+        width: 100%;
+        margin-bottom: 4px;
+        margin-right: 0;
+    }
+    
+    .admin-pandit-page .modal-body {
+        padding: 1rem;
+    }
+    
+    .admin-pandit-page .modal-footer {
+        padding: 1rem;
+        flex-direction: column;
+    }
+    
+    .admin-pandit-page .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+

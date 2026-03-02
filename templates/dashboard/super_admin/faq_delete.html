@@ -1,0 +1,77 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Delete FAQ{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'pages:super_admin_faq_list' %}">
+            <i class="bi bi-question-circle me-2"></i>FAQ Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_heading %}Delete FAQ{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Confirm deletion of this FAQ</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card" style="background: var(--card-bg-theme); border: 1px solid var(--border-color-theme); border-radius: 16px; padding: 24px;">
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Warning:</strong> This action cannot be undone.
+    </div>
+    
+    <h4 style="color: var(--text-primary-theme);">{{ faq.question }}</h4>
+    <p class="text-muted">{{ faq.answer|truncatewords:30 }}</p>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'pages:super_admin_faq_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-2"></i>Delete FAQ
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+
+
+

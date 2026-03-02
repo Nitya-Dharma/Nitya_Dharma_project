@@ -1,0 +1,191 @@
+<nav class="navbar navbar-expand-lg navbar-premium" style="background-color: var(--navbar-bg-theme) !important; color: var(--text-primary-theme) !important;">
+    <div class="container" style="color: var(--text-primary-theme) !important;">
+        <a class="navbar-brand" href="{% url 'core:home' %}">
+            {% if active_navbar_logo and active_navbar_logo.logo_image %}
+                <img src="{{ active_navbar_logo.logo_image.url }}" alt="Nitya Dharma" class="brand-logo">
+            {% elif site_branding and site_branding.primary_logo %}
+                <img src="{{ site_branding.primary_logo.url }}" alt="{% if site_branding.site_name %}{{ site_branding.site_name }}{% else %}Nitya Dharma{% endif %}" class="brand-logo">
+            {% else %}
+                <i class="bi bi-flower1 brand-icon-fallback"></i>
+            {% endif %}
+        </a>
+        <button class="navbar-toggler" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:home' %}">Home</a>
+                </li>
+                
+                {# Premium Multi-level Poojas Dropdown - Hover-based navigation #}
+                <li class="nav-item poojas-multilevel-dropdown">
+                    <a class="nav-link poojas-trigger" href="#" id="poojasDropdown" role="button" aria-expanded="false">
+                        Poojas
+                        <i class="bi bi-chevron-down ms-1" style="font-size: 0.7rem;"></i>
+                    </a>
+                    <ul class="dropdown-menu poojas-dropdown-menu" aria-labelledby="poojasDropdown">
+                        {% if pooja_categories %}
+                            {% for category, poojas in pooja_categories.items %}
+                                <li class="dropdown-submenu">
+                                    {# Category is hover-only (not clickable) #}
+                                    <span class="dropdown-item pooja-category-header" role="button" tabindex="0" style="color: var(--text-primary-theme) !important;">
+                                        <i class="bi bi-chevron-right me-2" style="color: var(--text-primary-theme) !important;"></i>{{ category }}
+                                    </span>
+                                    <ul class="dropdown-menu pooja-submenu">
+                                        {% for pooja in poojas %}
+                                            <li>
+                                                {# Pooja items are clickable - redirect to search #}
+                                                <a class="dropdown-item pooja-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme) !important;">
+                                                    <i class="bi bi-circle-fill me-2" style="font-size: 0.4rem; color: var(--accent-theme) !important;"></i>{{ pooja.name }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                                {% if not forloop.last %}<li><hr class="dropdown-divider"></li>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% if poojas %}
+                                {% for pooja in poojas %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme) !important;">
+                                            {{ pooja.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="dropdown-item-text text-muted">No poojas available</span></li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                </li>
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Pages
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="pagesDropdown">
+                        {% if user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile_settings' %}" style="color: var(--text-primary-theme) !important;">My Account</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:login' %}" style="color: var(--text-primary-theme) !important;">My Account</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'support:contact_us' %}" style="color: var(--text-primary-theme) !important;">Contact Us</a></li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <!-- Theme Toggle -->
+                    <li class="nav-item d-flex align-items-center">
+                        <div class="theme-toggle">
+                            <input type="checkbox" id="themeToggle" hidden>
+                            <label for="themeToggle" class="toggle-slider" title="Toggle Theme" aria-label="Toggle Theme">
+                                <span class="toggle-circle"></span>
+                            </label>
+                        </div>
+                    </li>
+                    
+                    <!-- Notification Icon -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% if user.is_superuser or user.role == 'admin' %}{% url 'accounts:admin_notification_list' user_id=user.id %}{% else %}{% url 'notifications:list' %}{% endif %}" title="Notifications">
+                            <i class="bi bi-bell"></i>
+                            <span class="d-md-none ms-1">Notifications</span>
+                            {% if unread_notification_count and unread_notification_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
+                                    {{ unread_notification_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    
+                    <!-- Settings Icon -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:profile_settings' %}" title="Account Settings">
+                            <i class="bi bi-gear"></i>
+                            <span class="d-md-none ms-1">Settings</span>
+                        </a>
+                    </li>
+                    
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i><span>{{ user.get_full_name|default:user.email|truncatechars:20 }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            {% if user_role == 'pandit' %}
+                                <li><a class="dropdown-item" href="{% url 'module5_dashboards:dashboard_pandit' %}">
+                                    <i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            {% elif user_role == 'admin_pandit' %}
+                                <li><a class="dropdown-item" href="{% url 'module5_dashboards:dashboard_admin_pandit' %}">
+                                    <i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            {% elif user_role == 'super_admin' %}
+                                <li><a class="dropdown-item" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+                                    <i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="{% url 'module5_dashboards:dashboard_user' %}">
+                                    <i class="bi bi-speedometer2 me-2"></i>My Dashboard</a></li>
+                            {% endif %}
+                            
+                            {% if user.is_authenticated %}
+                                {% if user.role == 'admin' or user.role == 'pandit' or user.is_superuser %}
+                                    <li><a class="dropdown-item" href="{% url 'pages:page_list' %}" style="color: var(--text-primary-theme) !important;">
+                                        <i class="bi bi-file-earmark-text me-2" style="color: var(--text-primary-theme) !important;"></i>My Pages</a></li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <li><a class="dropdown-item" href="{% url 'booking_intent_ui:history' %}" style="color: var(--text-primary-theme) !important;">
+                                <i class="bi bi-clock-history me-2" style="color: var(--text-primary-theme) !important;"></i>My Booking Intents</a></li>
+                            
+                            <li><a class="dropdown-item" href="{% url 'notifications:list' %}" style="color: var(--text-primary-theme) !important;">
+                                <i class="bi bi-bell me-2" style="color: var(--text-primary-theme) !important;"></i>Notifications</a></li>
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            {% if user.pandit_profile %}
+                                <li><a class="dropdown-item" href="{% url 'profiles:profile_public' user.pandit_profile.public_id %}" style="color: var(--text-primary-theme) !important;">
+                                    <i class="bi bi-person me-2" style="color: var(--text-primary-theme) !important;"></i>My Profile</a></li>
+                            {% endif %}
+                            
+                            {% if is_profile_owner %}
+                                <li><a class="dropdown-item" href="{% url 'profiles:profile_edit' %}" style="color: var(--text-primary-theme) !important;">
+                                    <i class="bi bi-pencil me-2" style="color: var(--text-primary-theme) !important;"></i>Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'profiles:profile_private' %}" style="color: var(--text-primary-theme) !important;">
+                                    <i class="bi bi-eye me-2" style="color: var(--text-primary-theme) !important;"></i>View Private Profile</a></li>
+                            {% endif %}
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}" style="color: var(--text-primary-theme) !important;">
+                                <i class="bi bi-box-arrow-right me-2" style="color: var(--text-primary-theme) !important;"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Theme Toggle (Guest) -->
+                    <li class="nav-item d-flex align-items-center">
+                        <div class="theme-toggle">
+                            <input type="checkbox" id="themeToggle" hidden>
+                            <label for="themeToggle" class="toggle-slider" title="Toggle Theme" aria-label="Toggle Theme">
+                                <span class="toggle-circle"></span>
+                            </label>
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}" style="color: var(--accent-theme) !important;">
+                            <i class="bi bi-box-arrow-in-right me-1" style="color: var(--accent-theme) !important;"></i><span style="color: var(--accent-theme) !important;">Sign In</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+

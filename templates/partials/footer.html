@@ -1,0 +1,103 @@
+<footer class="footer-premium">
+    <div class="container">
+        <div class="row gy-4">
+            <!-- Column 1: Brand -->
+            <div class="col-12 col-md-4">
+                <div class="footer-brand">
+                    <h5 class="fw-bold text-white mb-3">Nitya Dharma</h5>
+                    <p class="text-light small mb-0">
+                        Connect with experienced and trusted Pandits for your pooja and religious ceremonies.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Column 2: Links -->
+            <div class="col-12 col-md-4">
+                <h6 class="fw-semibold text-white mb-3">Quick Links</h6>
+                <nav aria-label="Footer navigation">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <a href="{% url 'core:home' %}" class="footer-link">Home</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'about_us' %}" class="footer-link">About Us</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'support:contact_us' %}" class="footer-link">Contact Us</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'terms_conditions' %}" class="footer-link">Terms of Service</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'privacy_policy' %}" class="footer-link">Privacy Policy</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'pages:public_faq' %}" class="footer-link">FAQ</a>
+                        </li>
+                        {% comment %}
+                        Blog temporarily disabled
+                        {% endcomment %}
+                        {% if False %}
+                        <li class="mb-2">
+                            <a href="#blogs" class="footer-link">Blogs</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            
+            <!-- Column 3: Social -->
+            <div class="col-12 col-md-4">
+                <h6 class="fw-semibold text-white mb-3">Follow Us</h6>
+                <div class="social-media-links">
+                    {% if global_social_links %}
+                        {% if global_social_links.instagram_url %}
+                            <a href="{{ global_social_links.instagram_url }}" class="footer-social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                        {% endif %}
+                        {% if global_social_links.facebook_url %}
+                            <a href="{{ global_social_links.facebook_url }}" class="footer-social-link" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                        {% endif %}
+                        {% if global_social_links.twitter_url %}
+                            <a href="{{ global_social_links.twitter_url }}" class="footer-social-link" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-twitter-x"></i>
+                            </a>
+                        {% endif %}
+                        {% if global_social_links.linkedin_url %}
+                            <a href="{{ global_social_links.linkedin_url }}" class="footer-social-link" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                        {% endif %}
+                        {% if global_social_links.youtube_url %}
+                            <a href="{{ global_social_links.youtube_url }}" class="footer-social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-youtube"></i>
+                            </a>
+                        {% endif %}
+                        {% if global_social_links.threads_url %}
+                            <a href="{{ global_social_links.threads_url }}" class="footer-social-link" aria-label="Threads" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-threads"></i>
+                            </a>
+                        {% endif %}
+                        {% if not global_social_links.instagram_url and not global_social_links.facebook_url and not global_social_links.twitter_url and not global_social_links.linkedin_url and not global_social_links.youtube_url and not global_social_links.threads_url %}
+                            <p class="text-light small mb-0">Social links coming soon</p>
+                        {% endif %}
+                    {% else %}
+                        {# Fallback: Show placeholder if context processor fails #}
+                        <p class="text-light small mb-0">Social links coming soon</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <p class="text-light small mb-0">&copy; 2025 Nitya Dharma. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+

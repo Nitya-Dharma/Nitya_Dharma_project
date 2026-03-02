@@ -1,0 +1,34 @@
+
+<!-- Location Section -->
+<div class="premium-card p-4 mb-4">
+    <h6 class="fw-semibold mb-3">Location</h6>
+    
+    <div class="location-info">
+        {% if pandit.cities_served.all %}
+            <p class="mb-2">
+                <strong>Cities Served:</strong> 
+                <span>
+                    {% for city in pandit.cities_served.all %}
+                        {{ city.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </p>
+        {% endif %}
+        
+        {% if pandit.areas_served.all %}
+            <p class="mb-0">
+                <strong>Areas Served:</strong> 
+                <span>
+                    {% for area in pandit.areas_served.all %}
+                        {{ area.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </p>
+        {% endif %}
+        
+        {% if not pandit.cities_served.all and not pandit.areas_served.all %}
+            <p class="muted mb-0">Location information not available.</p>
+        {% endif %}
+    </div>
+</div>
+

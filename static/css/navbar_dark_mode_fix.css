@@ -1,0 +1,225 @@
+/* ============================================
+   NAVBAR DARK MODE FIX - ULTRA SPECIFIC
+   Force all navbar elements to be visible
+   ============================================ */
+
+/* Force all navbar text to be visible - Base colors */
+.navbar-premium,
+.navbar-premium *,
+.navbar-premium .nav-link,
+.navbar-premium .navbar-nav .nav-link,
+.navbar-premium .navbar-nav .nav-item .nav-link,
+.navbar-premium .navbar-brand,
+.navbar-premium a {
+    color: var(--text-primary-theme) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Ensure nav links have base color */
+.navbar-premium .navbar-nav .nav-link,
+.navbar-premium .nav-item .nav-link,
+.navbar-premium .poojas-trigger {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Navbar brand hover */
+.navbar-premium .navbar-brand:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Force all icons to be visible */
+.navbar-premium i,
+.navbar-premium .bi,
+.navbar-premium .nav-link i,
+.navbar-premium .bi-bell,
+.navbar-premium .bi-gear,
+.navbar-premium .bi-person-circle,
+.navbar-premium .bi-chevron-down,
+.navbar-premium .bi-chevron-right,
+.navbar-premium .bi-box-arrow-in-right,
+.navbar-premium .bi-circle-fill {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Force dropdown items */
+.navbar-premium .dropdown-item,
+.navbar-premium .dropdown-item-text,
+.navbar-premium .pooja-item,
+.navbar-premium .pooja-category-header {
+    color: var(--text-primary-theme) !important;
+}
+
+.navbar-premium .dropdown-item i,
+.navbar-premium .pooja-item i {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Force dropdown toggle arrows */
+.navbar-premium .dropdown-toggle::after,
+.navbar-premium .nav-link.dropdown-toggle::after {
+    border-top-color: var(--text-primary-theme) !important;
+}
+
+/* Hover states - Enhanced visibility with maximum specificity */
+.navbar-premium .navbar-nav .nav-link:hover,
+.navbar-premium .nav-link:hover,
+.navbar-premium a:hover,
+.navbar-premium .poojas-trigger:hover,
+.navbar-premium .nav-item .nav-link:hover {
+    color: var(--accent-theme) !important;
+    background-color: var(--bg-secondary-theme) !important;
+    transition: all 0.2s ease !important;
+    border-radius: 8px !important;
+}
+
+.navbar-premium .navbar-nav .nav-link:hover i,
+.navbar-premium .nav-link:hover i,
+.navbar-premium a:hover i,
+.navbar-premium .poojas-trigger:hover i,
+.navbar-premium .nav-item .nav-link:hover i {
+    color: var(--accent-theme) !important;
+    transition: color 0.2s ease !important;
+}
+
+.navbar-premium .dropdown-toggle:hover::after {
+    border-top-color: var(--accent-theme) !important;
+}
+
+.navbar-premium .dropdown-item:hover {
+    color: var(--accent-theme) !important;
+    background-color: var(--bg-secondary-theme) !important;
+    transition: all 0.2s ease !important;
+}
+
+.navbar-premium .dropdown-item:hover i {
+    color: var(--accent-theme) !important;
+    transition: color 0.2s ease !important;
+}
+
+/* Override Bootstrap navbar-light */
+.navbar-light .navbar-brand,
+.navbar-light .navbar-nav .nav-link,
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link:focus,
+.navbar-light .navbar-nav .nav-link.active {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Mobile menu */
+@media (max-width: 991.98px) {
+    .navbar-premium .navbar-collapse,
+    .navbar-premium .navbar-collapse *,
+    .navbar-premium .navbar-nav,
+    .navbar-premium .navbar-nav * {
+        color: var(--text-primary-theme) !important;
+    }
+    
+    .navbar-premium .navbar-nav .nav-link,
+    .navbar-premium .navbar-nav .nav-link span {
+        color: var(--text-primary-theme) !important;
+    }
+}
+
+/* Dashboard tabs and navigation */
+.dashboard-container,
+.dashboard-container *,
+.dashboard-sidebar,
+.dashboard-sidebar * {
+    color: var(--text-primary-theme) !important;
+}
+
+.dashboard-sidebar .nav-link {
+    color: var(--text-primary-theme) !important;
+}
+
+.dashboard-sidebar .nav-link:hover {
+    color: var(--accent-theme) !important;
+}
+
+.dashboard-sidebar .nav-link.active {
+    color: var(--accent-theme) !important;
+}
+
+/* Super Admin Sidebar - Always White */
+.super-admin-sidebar,
+.super-admin-sidebar *,
+.super-admin-sidebar .nav-link,
+.super-admin-sidebar .nav-link i,
+.super-admin-sidebar .nav-item,
+.super-admin-sidebar .nav-item *,
+.super-admin-sidebar a,
+.super-admin-sidebar span {
+    color: #FFFFFF !important;
+}
+
+.super-admin-sidebar .nav-link:hover {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.super-admin-sidebar .nav-link.active {
+    color: #FFFFFF !important;
+    background: rgba(225, 29, 72, 0.2) !important;
+}
+
+/* Admin Sidebar */
+.admin-sidebar,
+.admin-sidebar * {
+    color: var(--text-primary-theme) !important;
+}
+
+.admin-sidebar .nav-link {
+    color: var(--text-primary-theme) !important;
+}
+
+.admin-sidebar .nav-link:hover {
+    color: var(--accent-theme) !important;
+}
+
+.admin-sidebar .nav-link.active {
+    color: var(--accent-theme) !important;
+}
+
+/* Dashboard content */
+.dashboard-content,
+.dashboard-content *,
+.dashboard-card,
+.dashboard-card *,
+.super-admin-card,
+.super-admin-card *,
+.admin-card,
+.admin-card * {
+    color: var(--text-primary-theme) !important;
+}
+
+.dashboard-card h1,
+.dashboard-card h2,
+.dashboard-card h3,
+.dashboard-card h4,
+.dashboard-card h5,
+.dashboard-card h6,
+.super-admin-card h1,
+.super-admin-card h2,
+.super-admin-card h3,
+.super-admin-card h4,
+.super-admin-card h5,
+.super-admin-card h6,
+.admin-card h1,
+.admin-card h2,
+.admin-card h3,
+.admin-card h4,
+.admin-card h5,
+.admin-card h6 {
+    color: var(--text-primary-theme) !important;
+}
+
+.dashboard-card p,
+.dashboard-card span,
+.super-admin-card p,
+.super-admin-card span,
+.admin-card p,
+.admin-card span {
+    color: var(--text-secondary-theme) !important;
+}
+

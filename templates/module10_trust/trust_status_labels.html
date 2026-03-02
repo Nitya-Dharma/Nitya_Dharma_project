@@ -1,0 +1,55 @@
+
+
+{% if trust_status %}
+    
+    {% if trust_status == 'active' or trust_status == 'verified' %}
+        <span class="badge bg-success trust-status-label" aria-label="Trust status: Active">
+            <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Active
+        </span>
+    {% endif %}
+
+    
+    {% if trust_status == 'under_review' %}
+        <span class="badge bg-warning text-dark trust-status-label" aria-label="Trust status: Under review">
+            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Under Review
+        </span>
+        
+    {% endif %}
+
+    
+    {% if trust_status == 'limited_visibility' %}
+        <span class="badge bg-secondary trust-status-label" aria-label="Trust status: Limited visibility">
+            <i class="bi bi-eye-slash me-1" aria-hidden="true"></i>Limited Visibility
+        </span>
+        
+    {% endif %}
+
+    
+    {% if trust_status == 'blocked' or trust_status == 'hidden' %}
+        <span class="badge bg-danger trust-status-label" aria-label="Trust status: Blocked or hidden">
+            <i class="bi bi-x-circle me-1" aria-hidden="true"></i>
+            {% if trust_status == 'blocked' %}Blocked{% else %}Hidden{% endif %}
+        </span>
+        
+    {% endif %}
+
+    
+    {% if trust_status == 'neutral' or trust_status == 'no_referral' %}
+        <span class="badge bg-light text-dark trust-status-label" aria-label="Trust status: Neutral">
+            <i class="bi bi-dash-circle me-1" aria-hidden="true"></i>
+            {% if trust_status == 'no_referral' %}No Referral Yet{% else %}Neutral{% endif %}
+        </span>
+        
+    {% endif %}
+
+    
+    {% if trust_status == 'new_listing' %}
+        <span class="badge bg-info trust-status-label" aria-label="Trust status: New listing">
+            <i class="bi bi-star me-1" aria-hidden="true"></i>New Listing
+        </span>
+        
+    {% endif %}
+
+    
+{% endif %}
+

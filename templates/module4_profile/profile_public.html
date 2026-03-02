@@ -1,0 +1,781 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if pandit.seo_title %}{{ pandit.seo_title }}{% else %}{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }} - Pandit Profile{% endif %}{% endblock %}
+
+{% block extra_head %}
+    {% if pandit.seo_description %}
+    <meta name="description" content="{{ pandit.seo_description }}">
+    {% endif %}
+    {% if pandit.seo_keywords %}
+    <meta name="keywords" content="{{ pandit.seo_keywords }}">
+    {% endif %}
+    {% if pandit_schema_json %}
+    <script type="application/ld+json">
+{{ pandit_schema_json|safe }}
+    </script>
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/follow_system.css' %}">
+<style>
+        /* Hero Section with Cover Photo */
+        .profile-hero-section {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-bottom: 0;
+            overflow: hidden;
+        }
+        
+        .profile-hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+            z-index: 1;
+        }
+        
+        .profile-hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .profile-hero-info {
+            display: flex;
+            align-items: flex-end;
+            gap: 2rem;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        .profile-icon-large {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .profile-icon-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .profile-icon-large i {
+            font-size: 60px;
+            color: white;
+        }
+        
+        .profile-hero-details {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .profile-hero-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-hero-name .verified-badge {
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+        
+        .profile-hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .profile-hero-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-hero-meta-item i {
+            font-size: 1.1rem;
+        }
+        
+        .profile-hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+            min-width: 200px;
+        }
+        
+        .profile-hero-actions .btn {
+            min-width: 150px;
+        }
+        
+        /* Navigation Tabs */
+        .profile-nav-tabs {
+            background: white;
+            border-bottom: 2px solid #e9ecef;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .profile-nav-tabs .nav-link {
+            color: #495057;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-nav-tabs .nav-link:hover {
+            color: #0d6efd;
+            border-bottom-color: #0d6efd;
+        }
+        
+        .profile-nav-tabs .nav-link.active {
+            color: #0d6efd;
+            border-bottom-color: #0d6efd;
+            font-weight: 600;
+        }
+        
+        /* Content Sections */
+        .profile-content-section {
+            padding: 2rem 0;
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 991.98px) {
+            /* Hero Section - Tablet */
+            .profile-hero-section {
+                height: 450px;
+            }
+            
+            .profile-hero-content {
+                padding: 1.5rem;
+            }
+            
+            .profile-hero-info {
+                gap: 1.5rem;
+            }
+            
+            .profile-icon-large {
+                width: 110px;
+                height: 110px;
+            }
+            
+            .profile-hero-name {
+                font-size: 2rem;
+            }
+            
+            .profile-hero-meta {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            /* Hero Section - Mobile */
+            .profile-hero-section {
+                height: 350px;
+            }
+            
+            .profile-hero-content {
+                padding: 1rem;
+            }
+            
+            .profile-hero-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .profile-icon-large {
+                width: 90px;
+                height: 90px;
+                align-self: center;
+            }
+            
+            .profile-icon-large i {
+                font-size: 45px;
+            }
+            
+            .profile-hero-details {
+                width: 100%;
+                min-width: unset;
+                text-align: center;
+            }
+            
+            .profile-hero-name {
+                font-size: 1.5rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .profile-hero-name .verified-badge {
+                font-size: 1.2rem;
+            }
+            
+            .profile-hero-meta {
+                justify-content: center;
+                gap: 0.75rem;
+                font-size: 0.85rem;
+                margin-top: 0.75rem;
+            }
+            
+            .profile-hero-meta-item {
+                font-size: 0.85rem;
+            }
+            
+            .profile-hero-meta-item i {
+                font-size: 1rem;
+            }
+            
+            .profile-hero-actions {
+                width: 100%;
+                align-items: stretch;
+                min-width: unset;
+                margin-top: 1rem;
+            }
+            
+            .profile-hero-actions .btn {
+                width: 100%;
+                min-width: unset;
+            }
+            
+            /* Navigation Tabs - Mobile */
+            .profile-nav-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+            
+            .profile-nav-tabs .nav {
+                flex-wrap: nowrap;
+                min-width: max-content;
+            }
+            
+            .profile-nav-tabs .nav-link {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                white-space: nowrap;
+            }
+            
+            .profile-nav-tabs .nav-link i {
+                font-size: 0.9rem;
+            }
+            
+            /* Content Sections - Mobile */
+            .profile-content-section {
+                padding: 1rem 0;
+            }
+            
+        }
+        
+        @media (max-width: 576px) {
+            /* Extra Small Mobile */
+            .profile-hero-section {
+                height: 300px;
+            }
+            
+            .profile-hero-content {
+                padding: 0.75rem;
+            }
+            
+            .profile-icon-large {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .profile-icon-large i {
+                font-size: 40px;
+            }
+            
+            .profile-hero-name {
+                font-size: 1.25rem;
+            }
+            
+            .profile-hero-meta {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .profile-hero-meta-item {
+                justify-content: center;
+            }
+            
+            .profile-nav-tabs .nav-link {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.85rem;
+            }
+            
+            .profile-nav-tabs .nav-link i {
+                display: none; /* Hide icons on very small screens */
+            }
+            
+            /* Cards and Sections */
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .card-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .card-header h3,
+            .card-header h5 {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Ensure tabs are scrollable on mobile */
+        @media (max-width: 768px) {
+            .profile-nav-tabs .container {
+                padding-left: 0;
+                padding-right: 0;
+            }
+            
+            .profile-nav-tabs .nav {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+        }
+        
+        /* Better spacing for tab content on mobile */
+        @media (max-width: 768px) {
+            .tab-content {
+                padding-top: 1rem;
+            }
+            
+            .tab-pane .row {
+                margin-left: -0.75rem;
+                margin-right: -0.75rem;
+            }
+            
+            .tab-pane .col-12,
+            .tab-pane .col-md-8,
+            .tab-pane .col-md-4 {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            
+            /* Better button spacing on mobile */
+            .btn {
+                margin-bottom: 0.5rem;
+            }
+            
+            .btn-group,
+            .btn-group-vertical {
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                flex: 1;
+            }
+        }
+        
+        /* Prevent horizontal scroll on mobile */
+        @media (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+            
+            .container-fluid {
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
+        
+        /* WhatsApp Button Hover Styling */
+        .whatsapp-btn:hover,
+        .whatsapp-btn:focus,
+        .whatsapp-btn:active {
+            background-color: #22C55E !important;
+            border-color: #22C55E !important;
+            color: white !important;
+        }
+        
+        .whatsapp-btn:hover i,
+        .whatsapp-btn:focus i,
+        .whatsapp-btn:active i {
+            color: white !important;
+        }
+        
+        /* WhatsApp Button Hero Section - Ensure white text on hover */
+        .whatsapp-btn-hero:hover,
+        .whatsapp-btn-hero:focus,
+        .whatsapp-btn-hero:active {
+            background-color: #25D366 !important;
+            border-color: #25D366 !important;
+            color: white !important;
+        }
+        
+        .whatsapp-btn-hero:hover i,
+        .whatsapp-btn-hero:focus i,
+        .whatsapp-btn-hero:active i {
+            color: white !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% if profile_state or error_message %}
+        {% include "module4_profile/profile_states.html" %}
+    {% endif %}
+    
+    {# Show warning if profile is not approved (only visible to owner) #}
+    {% if is_profile_owner and not is_profile_approved %}
+        <div class="container mt-3">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                    <div class="flex-grow-1">
+                        <strong>Profile Pending Approval</strong>
+                        <p class="mb-0 mt-1">Your profile is currently pending approval. It will be visible to the public once approved by an Admin Pandit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Hero Section with Cover Photo -->
+    <div class="profile-hero-section" {% if pandit.has_cover_image %}style="background-image: url('{{ pandit.get_cover_image_url }}');"{% endif %}>
+        <div class="container-fluid px-0">
+            <div class="profile-hero-content">
+                <div class="container-fluid px-3 px-md-4">
+                    <div class="profile-hero-info">
+                        <!-- Profile Icon/Image -->
+                        <div class="profile-icon-large">
+                            {% if pandit.has_profile_image %}
+                                <img src="{{ pandit.get_profile_image_url }}" 
+                                     alt="{{ pandit.display_name|default:pandit.user.get_full_name|default:'Pandit' }} Profile Image">
+                            {% else %}
+                                <i class="bi bi-person-circle"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Profile Details -->
+                        <div class="profile-hero-details">
+                            <h1 class="profile-hero-name">
+                                {{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }}
+                                {% if pandit.is_profile_approved %}
+                                    <i class="bi bi-check-circle-fill verified-badge" title="Verified Pandit"></i>
+                                {% endif %}
+                            </h1>
+                            
+                            <div class="profile-hero-meta">
+                                {% if pandit.poojas_performed.exists %}
+                                    <div class="profile-hero-meta-item">
+                                        <i class="bi bi-bookmark-fill"></i>
+                                        <span>{{ pandit.poojas_performed.count }} Pooja{{ pandit.poojas_performed.count|pluralize }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if pandit.experience_years %}
+                                    <div class="profile-hero-meta-item">
+                                        <i class="bi bi-award-fill"></i>
+                                        <span>{{ pandit.experience_years }} Year{{ pandit.experience_years|pluralize }} Experience</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if ratings_summary and ratings_summary.average_rating %}
+                                    <div class="profile-hero-meta-item">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span>★ {{ ratings_summary.average_rating|floatformat:1 }} ({{ ratings_summary.total_reviews }} Review{{ ratings_summary.total_reviews|pluralize }})</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Follow Button (End Users Only) + Follower count (visible to all) -->
+                            <div class="follow-button-container mt-3">
+                            {% if user.is_authenticated and user.role == 'user' %}
+                                <button class="follow-btn" 
+                                        data-entity-type="pandit" 
+                                        data-entity-public-id="{{ pandit.public_id }}">
+                                    Follow
+                                </button>
+                                <span class="follower-count">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
+                            {% elif not user.is_authenticated %}
+                                <button class="follow-btn disabled" 
+                                        title="Login to follow"
+                                        disabled>
+                                    Follow
+                                </button>
+                                <span class="follower-count text-white">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
+                            {% else %}
+                                <span class="follower-count text-white">{% if follower_count > 0 %}<i class="bi bi-people-fill me-1"></i>{{ follower_count }} follower{{ follower_count|pluralize }}{% endif %}</span>
+                            {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="profile-hero-actions">
+                            <button type="button"
+                                    class="btn btn-outline-light btn-lg share-trigger"
+                                    data-share-url="{{ request.build_absolute_uri }}"
+                                    data-share-title="{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }} - Pandit Profile"
+                                    data-entity-type="pandit"
+                                    data-entity-id="{{ pandit.public_id }}"
+                                    title="Share this profile">
+                                <i class="bi bi-share me-1"></i>Share
+                            </button>
+                            {% if user.is_authenticated and not is_profile_owner %}
+                                <a href="{% url 'booking_intent_ui:create' pandit.public_id %}" 
+                                   class="btn btn-danger btn-lg">
+                                    <i class="bi bi-envelope me-1"></i>Send Message
+                                </a>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'accounts:login' %}" 
+                                   class="btn btn-danger btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Login to Contact
+                                </a>
+                            {% endif %}
+                            
+                            {% if user.is_authenticated and is_profile_owner %}
+                                <a href="{% url 'profiles:profile_edit' %}" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit Profile
+                                </a>
+                            {% endif %}
+                            
+                            <!-- Call and WhatsApp Buttons -->
+                            {% if pandit.primary_mobile_number or pandit.phone_number %}
+                                {% with mobile_number=pandit.primary_mobile_number|default:pandit.phone_number %}
+                                    {% if pandit.enable_call or pandit.allow_call %}
+                                        <a href="tel:{{ mobile_number|striptags }}" 
+                                           class="btn btn-success btn-lg"
+                                           title="Call {{ pandit.display_name|default:pandit.user.get_full_name }}">
+                                            <i class="bi bi-telephone-fill me-1"></i>Call
+                                        </a>
+                                    {% endif %}
+                                    {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
+                                        {% with whatsapp_number=mobile_number|striptags|cut:'+'|cut:' '|cut:'-' %}
+                                        <a href="https://wa.me/{{ whatsapp_number }}" 
+                                           target="_blank"
+                                           class="btn btn-success btn-lg whatsapp-btn-hero"
+                                           style="background-color: #25D366; border-color: #25D366; color: white;"
+                                           title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
+                                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                        </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="profile-nav-tabs">
+        <div class="container-fluid px-0">
+            <div class="container px-3 px-md-4">
+                <ul class="nav nav-tabs border-0" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                        <i class="bi bi-file-text me-2"></i>Overview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="poojas-tab" data-bs-toggle="tab" data-bs-target="#poojas" type="button" role="tab">
+                        <i class="bi bi-bookmark me-2"></i>Poojas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab">
+                        <i class="bi bi-geo-alt me-2"></i>Location
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                        <i class="bi bi-star me-2"></i>Reviews
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- UNIT 11: Premium Public Profile Layout -->
+    <section class="section-padding bg-slate-50 pandit-public-profile">
+        <div class="container">
+            <div class="tab-content" id="profileTabContent">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div class="row g-4">
+                        <!-- Main Profile Content -->
+                        <div class="col-12 col-lg-8">
+                        {% include "module4_profile/profile_sections/about.html" %}
+                        
+                        {% if pandit.experience_years or pandit.languages.exists or pandit.languages_spoken %}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h3 class="h5 mb-0">Experience & Details</h3>
+                                </div>
+                                <div class="card-body">
+                                    {% if pandit.experience_years %}
+                                        <p><strong>Experience:</strong> {{ pandit.experience_years }} Year{{ pandit.experience_years|pluralize }}</p>
+                                    {% endif %}
+                                    {% if pandit.languages.exists %}
+                                        <p><strong>Languages:</strong> 
+                                            {% for language in pandit.languages.all %}
+                                                {{ language.name }}{% if language.native_name %} ({{ language.native_name }}){% endif %}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    {% elif pandit.languages_spoken %}
+                                        {# Fallback to legacy text field #}
+                                        <p><strong>Languages:</strong> {{ pandit.languages_spoken }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-12 col-md-4">
+                                <!-- Primary CTA: Send Booking Intent -->
+                                {% if user.is_authenticated and not is_profile_owner %}
+                                    <a href="{% url 'booking_intent_ui:create' pandit.public_id %}" 
+                                       class="btn btn-danger w-100 mb-2">
+                                        <i class="bi bi-envelope me-1"></i>Send Booking Intent
+                                    </a>
+                                {% elif not user.is_authenticated %}
+                                    <a href="{% url 'accounts:login' %}" 
+                                       class="btn btn-danger w-100 mb-2">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>Login to Contact
+                                    </a>
+                                {% endif %}
+                                
+                                <!-- Call Button -->
+                                {% if pandit.call_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
+                                    {% with mobile_number=pandit.call_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
+                                        {% if pandit.enable_call or pandit.allow_call %}
+                                            <a href="tel:{{ mobile_number|striptags }}" 
+                                               class="btn btn-success w-100 mb-2"
+                                               title="Call {{ pandit.display_name|default:pandit.user.get_full_name }}">
+                                                <i class="bi bi-telephone-fill me-1"></i>Call
+                                            </a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                                
+                                <!-- WhatsApp Button -->
+                                {% if pandit.whatsapp_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
+                                    {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
+                                        {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
+                                            {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
+                                            <a href="https://wa.me/{{ whatsapp_num }}" 
+                                               target="_blank"
+                                               class="btn btn-outline-success w-100 mb-3 whatsapp-btn"
+                                               style="border-color: #22C55E; color: #22C55E;"
+                                               title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
+                                                <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                            </a>
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                                
+                                {% if trust_signals %}
+                                    <div class="mb-3">
+                                        <h6 class="fw-semibold mb-2">Trust Indicators</h6>
+                                        {% include "module10_trust/trust_badges.html" with trust_signals=trust_signals %}
+                                    </div>
+                                {% endif %}
+                                
+                                {% include "module4_profile/profile_sections/availability_summary.html" %}
+                            </div>
+                        </div>
+                </div>
+            </div>
+            
+            <!-- Poojas Tab -->
+            <div class="tab-pane fade" id="poojas" role="tabpanel">
+                {% include "module4_profile/profile_sections/poojas.html" %}
+            </div>
+            
+            <!-- Location Tab -->
+            <div class="tab-pane fade" id="location" role="tabpanel">
+                {% include "module4_profile/profile_sections/location.html" %}
+            </div>
+            
+            <!-- Reviews Tab -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+                {% if pandit %}
+                    <div class="reviews-section-container">
+                        <!-- Header with Write Review Button -->
+                        <div class="reviews-section-header">
+                            <h6 class="reviews-section-title">Reviews & Ratings</h6>
+                            {% if can_submit_review and user.is_authenticated %}
+                                <a href="{% url 'reviews_ui:submit_review' pandit_public_id=pandit.user.public_id %}" class="reviews-write-btn">
+                                    <i class="bi bi-pencil-square me-1"></i>Write a Review
+                                </a>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'accounts:login' %}?next={% url 'profiles:profile_public' public_id=pandit.public_id %}" class="reviews-write-btn reviews-write-btn-secondary">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Login to Write Review
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Ratings Summary -->
+                        {% if ratings_summary %}
+                            {% include "module9_reviews/ratings_summary.html" with ratings_summary=ratings_summary %}
+                        {% endif %}
+                        
+                        <!-- Reviews List (First 5) -->
+                        {% if pandit_reviews %}
+                            {% include "module9_reviews/reviews_list_inline.html" with reviews=pandit_reviews pandit=pandit %}
+                        {% else %}
+                            <div class="reviews-empty-state-compact">
+                                <div class="reviews-empty-state-icon-compact">
+                                    <i class="bi bi-star"></i>
+                                </div>
+                                <p class="reviews-empty-state-text-compact">No reviews yet. Be the first to review this Pandit!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/follow_system.js' %}"></script>
+{% endblock %}
+

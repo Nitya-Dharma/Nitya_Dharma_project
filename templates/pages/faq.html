@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .faq-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .faq-category-title {
+        color: var(--text-primary-theme);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-top: 2.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border-color-theme);
+    }
+    
+    .faq-category-title:first-child {
+        margin-top: 0;
+    }
+    
+    .faq-item {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .faq-item:hover {
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        border-color: var(--accent-theme);
+    }
+    
+    .faq-question {
+        width: 100%;
+        background: var(--bg-secondary-theme);
+        color: var(--text-primary-theme);
+        border: none;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    
+    .faq-question:hover {
+        background: var(--bg-primary-theme);
+        color: var(--accent-theme);
+    }
+    
+    .faq-question.active {
+        color: var(--accent-theme);
+    }
+    
+    .faq-question-icon {
+        color: var(--accent-theme);
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+        margin-left: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .faq-question.active .faq-question-icon {
+        transform: rotate(180deg);
+    }
+    
+    .faq-answer {
+        display: none;
+        padding: 1.5rem;
+        color: var(--text-secondary-theme);
+        line-height: 1.7;
+        background: var(--bg-primary-theme);
+        border-top: 1px solid var(--border-color-theme);
+    }
+    
+    .faq-answer.active {
+        display: block;
+    }
+    
+    .faq-answer p {
+        margin-bottom: 1rem;
+    }
+    
+    .faq-answer p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .faq-empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted-theme);
+    }
+    
+    .faq-empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-muted-theme);
+    }
+    
+    @media (max-width: 768px) {
+        .faq-container {
+            padding: 1rem 0.5rem;
+        }
+        
+        .faq-category-title {
+            font-size: 1.5rem;
+        }
+        
+        .faq-question {
+            font-size: 1rem;
+            padding: 1rem 1.25rem;
+        }
+        
+        .faq-answer {
+            padding: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_head %}
+<!-- SEO Meta Tags -->
+<meta name="description" content="{{ seo_description }}">
+<meta name="keywords" content="{{ seo_keywords }}">
+<link rel="canonical" href="{{ canonical_url }}">
+
+<!-- Open Graph -->
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_description }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:url" content="{{ canonical_url }}">
+{% if og_image %}
+<meta property="og:image" content="{{ og_image }}">
+{% endif %}
+
+<!-- FAQPage Structured Data for SEO -->
+{% if faq_schema_items %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for item in faq_schema_items %}
+    {
+      "@type": "Question",
+      "name": "{{ item.name|escapejs }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ item.acceptedAnswer.text|striptags|escapejs }}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="faq-container">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold" style="color: var(--text-primary-theme);">Frequently Asked Questions</h1>
+        <p class="lead text-muted" style="color: var(--text-muted-theme);">Find answers to common questions about Nitya Dharma</p>
+    </div>
+    
+    {% if categories or uncategorized_faqs %}
+        {% for category in categories %}
+            {% with category_faqs=category.faqs.all|dictsort:"order" %}
+                {% if category_faqs %}
+                    <h2 class="faq-category-title">{{ category.name }}</h2>
+                    {% for faq in category_faqs %}
+                        {% if faq.is_published %}
+                            <div class="faq-item">
+                                <button class="faq-question" type="button" onclick="toggleFAQ(this)">
+                                    <span>{{ faq.question }}</span>
+                                    <i class="bi bi-chevron-down faq-question-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    {{ faq.answer|safe }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+        
+        {% if uncategorized_faqs %}
+            <h2 class="faq-category-title">General</h2>
+            {% for faq in uncategorized_faqs %}
+                <div class="faq-item">
+                    <button class="faq-question" type="button" onclick="toggleFAQ(this)">
+                        <span>{{ faq.question }}</span>
+                        <i class="bi bi-chevron-down faq-question-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        {{ faq.answer|safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% else %}
+        <div class="faq-empty-state">
+            <i class="bi bi-question-circle"></i>
+            <h3>No FAQs Available</h3>
+            <p>Frequently asked questions will be added soon.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleFAQ(button) {
+    const answer = button.nextElementSibling;
+    const isActive = answer.classList.contains('active');
+    
+    // Close all other FAQs in the same container
+    const container = button.closest('.faq-container');
+    container.querySelectorAll('.faq-answer.active').forEach(function(activeAnswer) {
+        if (activeAnswer !== answer) {
+            activeAnswer.classList.remove('active');
+            activeAnswer.previousElementSibling.classList.remove('active');
+        }
+    });
+    
+    // Toggle current FAQ
+    if (isActive) {
+        answer.classList.remove('active');
+        button.classList.remove('active');
+    } else {
+        answer.classList.add('active');
+        button.classList.add('active');
+    }
+}
+</script>
+{% endblock %}
+

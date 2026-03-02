@@ -1,0 +1,40 @@
+
+<!-- UNIT 9: Premium Availability Summary -->
+<div class="availability-summary-section premium-card p-4 mb-4">
+    <h6 class="fw-semibold mb-3">Availability</h6>
+    
+    {% if pandit.availability_summary %}
+        <div class="availability-badge">
+            <span class="badge bg-info text-dark px-3 py-2" style="font-size: 0.875rem;">
+                {{ pandit.availability_summary }}
+            </span>
+        </div>
+    {% else %}
+        <p class="muted mb-0">Availability information not available.</p>
+    {% endif %}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

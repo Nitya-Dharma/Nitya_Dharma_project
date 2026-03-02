@@ -1,0 +1,362 @@
+
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Pandit Dashboard{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
+<style>
+    /* Wrap dashboard in pandit-page for scoped styles */
+    .dashboard-container {
+        background-color: #F8FAFC;
+        min-height: 100vh;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Pandit Dashboard{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Overview of your profile and activity</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'module5_dashboards:dashboard_pandit' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Overview
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'profiles:profile_private' %}">
+            <i class="bi bi-person-circle me-2"></i>My Profile
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'profiles:profile_edit' %}">
+            <i class="bi bi-pencil-square me-2"></i>Edit Profile
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'booking_intent_ui:inbox' %}">
+            <i class="bi bi-inbox me-2"></i>Booking Intents
+        </a>
+    </li>
+    
+    {# TASK 2: Notifications Link #}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:pandit_notification_settings' user_id=user.id %}">
+            <i class="bi bi-bell me-2"></i>Notifications
+            {% if user.notification_preferences and user.notification_preferences.unread_count > 0 %}
+                <span class="badge bg-danger ms-1">{{ user.notification_preferences.unread_count }}</span>
+            {% endif %}
+        </a>
+    </li>
+    
+    {# TASK 2: Account Settings Link #}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:profile_settings' %}">
+            <i class="bi bi-gear me-2"></i>Account Settings
+        </a>
+    </li>
+    
+{% endblock %}
+
+{% block dashboard_content %}
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                <i class="bi bi-speedometer2 me-2"></i>Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="temple-pages-tab-btn" data-bs-toggle="tab" data-bs-target="#temple-pages" type="button" role="tab">
+                <i class="bi bi-building me-2"></i>Temple Pages
+                {% if has_temple_pages %}
+                    <span class="badge bg-primary ms-1">{{ temple_pages|length }}</span>
+                {% endif %}
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="dashboardTabContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+    
+    {# TASK 5: Email Verification Resend UI - Show only if email not verified #}
+    {% if not user.email_verified or not user.email_verified_at %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                <div class="flex-grow-1">
+                    <strong>Email Not Verified</strong>
+                    <p class="mb-0 mt-1">Please verify your email address to access all platform features. Check your inbox for the verification email.</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <form method="post" action="{% url 'accounts:resend_pandit_verification' pandit_public_id=user.public_id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-primary" id="resend-verification-btn">
+                        <i class="bi bi-envelope me-1"></i>Resend Verification Email
+                    </button>
+                </form>
+                {% if user.last_verification_email_sent_at %}
+                    <small class="text-muted d-block mt-2">
+                        Last sent: {{ user.last_verification_email_sent_at|timesince }} ago
+                    </small>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+    
+    {# TASK 4: Profile Completion Warning Banner #}
+    {% if user.pandit_profile %}
+        {% with profile=user.pandit_profile %}
+            {% if not profile.is_profile_complete %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert" id="profile-completion-banner">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-info-circle-fill me-3 fs-4 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <h5 class="alert-heading mb-2">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Complete Your Profile
+                            </h5>
+                            <p class="mb-2">
+                                Your profile is <strong>{{ profile.get_completion_percentage }}% complete</strong>. 
+                                Complete your profile to improve visibility and attract more bookings.
+                            </p>
+                            
+                            {# Progress Bar #}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="text-muted">Progress</small>
+                                    <small class="text-muted"><strong>{{ profile.get_completion_percentage }}%</strong></small>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                                         role="progressbar" 
+                                         style="width: {{ profile.get_completion_percentage }}%"
+                                         aria-valuenow="{{ profile.get_completion_percentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ profile.get_completion_percentage }}%
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Missing Fields #}
+                            {% with missing=profile.get_missing_required_fields %}
+                                {% if missing %}
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block mb-1"><strong>Missing:</strong></small>
+                                        <ul class="mb-0 small">
+                                            {% for field in missing %}
+                                                <li>{{ field }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                            
+                            {# CTA Button #}
+                            <div class="mt-3">
+                                <a href="{% url 'profiles:profile_edit' %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil-square me-1"></i>Complete Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {# Profile Complete - Show Success Indicator #}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+                        <div class="flex-grow-1">
+                            <strong>Profile Ready!</strong> Your profile is complete and visible to users.
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+    
+    <!-- UNIT 4: Premium Profile Completion Card -->
+    {% if profile_completion_percentage is not None %}
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Profile Completion</h3>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-medium">Profile Complete</span>
+                    <span class="fw-bold">{{ profile_completion_percentage }}%</span>
+                </div>
+                <div class="progress" style="height: 25px; border-radius: 12px;">
+                    <div class="progress-bar bg-danger" 
+                         role="progressbar" 
+                         style="width: {{ profile_completion_percentage }}%; border-radius: 12px;" 
+                         aria-valuenow="{{ profile_completion_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ profile_completion_percentage }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    
+    <!-- UNIT 4: Premium Metrics Cards -->
+    {% if dashboard_metrics %}
+        <div class="row g-4 mb-4">
+            {% for metric in dashboard_metrics %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="premium-card border-accent p-4 h-100">
+                        {% if metric.icon %}
+                            <div class="mb-2">
+                                <i class="{{ metric.icon }}"></i>
+                            </div>
+                        {% endif %}
+                        <h4 class="fw-bold mb-1">{{ metric.value|default:"0" }}</h4>
+                        <h6 class="fw-semibold mb-1">{{ metric.label|default:"Metric" }}</h6>
+                        {% if metric.description %}
+                            <p class="muted small mb-0">{{ metric.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-muted text-center">No metrics available.</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    
+    <!-- UNIT 4: Premium Booking Intents Card -->
+    {% if booking_intent_count is not None %}
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Booking Intents</h3>
+            <p class="mb-0">
+                <strong class="fw-bold">Total Booking Intents:</strong> <span class="fs-4">{{ booking_intent_count }}</span>
+            </p>
+            {% if booking_intent_summary %}
+                <p class="muted mt-2 mb-0">{{ booking_intent_summary }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    
+    <!-- UNIT 4: Premium Reviews Card -->
+    {% if review_count is not None %}
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Reviews</h3>
+            <p class="mb-0">
+                <strong class="fw-bold">Total Reviews:</strong> <span class="fs-4">{{ review_count }}</span>
+            </p>
+            {% if review_summary %}
+                <p class="muted mt-2 mb-0">{{ review_summary }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    
+    <!-- UNIT 4: Premium Availability Card -->
+    {% if availability_summary %}
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Availability</h3>
+            <p class="mb-0">{{ availability_summary }}</p>
+        </div>
+    {% endif %}
+
+    
+    <!-- UNIT 4: Premium Activity Summary Card -->
+    {% if analytics_summaries %}
+        <div class="premium-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Activity Summary</h3>
+            {% for summary in analytics_summaries %}
+                <div class="mb-3">
+                    <strong class="fw-semibold">{{ summary.label }}:</strong> <span class="fw-bold">{{ summary.value }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    
+    {% if chart_data_list %}
+        {% for chart in chart_data_list %}
+            {% include "module5_dashboards/dashboard_widgets/charts.html" with chart_data=chart.data chart_title=chart.title chart_id=chart.id chart_legend=chart.legend %}
+        {% endfor %}
+    {% endif %}
+        </div>
+        
+        <!-- TASK 4: Temple Pages Tab Content -->
+        <div class="tab-pane fade" id="temple-pages" role="tabpanel">
+            <div class="premium-card p-4">
+                <h3 class="h5 mb-4 fw-semibold">
+                    <i class="bi bi-building me-2"></i>Temple Pages
+                </h3>
+                <div>
+                    {% if has_temple_pages %}
+                        <div class="row g-4">
+                            {% for page_data in temple_pages %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="premium-card p-4 h-100">
+                                            <h5 class="card-title">
+                                                <a href="{% url 'pages:page_detail' page_public_id=page_data.page_public_id %}" class="text-decoration-none">
+                                                    {{ page_data.title }}
+                                                </a>
+                                            </h5>
+                                            <div class="mb-2">
+                                                <span class="badge bg-{% if page_data.role == 'OWNER' %}danger{% else %}info{% endif %}">
+                                                    {{ page_data.role|title }}
+                                                </span>
+                                                <span class="badge bg-{% if page_data.status == 'ACTIVE' %}success{% elif page_data.status == 'DEACTIVATED' %}warning{% else %}secondary{% endif %} ms-1">
+                                                    {{ page_data.status }}
+                                                </span>
+                                            </div>
+                                            <a href="{% url 'pages:page_detail' page_public_id=page_data.page_public_id %}" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-gear me-1"></i>Manage Page
+                                            </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-building" style="font-size: 4rem; color: #CBD5E1;"></i>
+                            <h4 class="mt-3 mb-2 fw-semibold">No Pages Assigned</h4>
+                            <p class="muted mb-4">
+                                No pages assigned to you. You can request access from your Admin Pandit.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // TASK 3: Auto-show Temple Pages tab if coming from notification
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash === '#temple-pages-tab' || window.location.hash === '#temple-pages') {
+            const tabButton = document.getElementById('temple-pages-tab-btn');
+            const tabPane = document.getElementById('temple-pages');
+            if (tabButton && tabPane) {
+                // Remove active from overview
+                document.getElementById('overview-tab').classList.remove('active');
+                document.getElementById('overview').classList.remove('show', 'active');
+                // Activate temple pages tab
+                tabButton.classList.add('active');
+                tabPane.classList.add('show', 'active');
+            }
+        }
+    });
+</script>
+{% endblock %}
+

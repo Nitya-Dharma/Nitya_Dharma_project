@@ -1,0 +1,84 @@
+"""
+Constants for referrals app.
+Defines referral status values and audit actions.
+
+TASK 9: Audit Log Expansion
+"""
+
+# Referral Status (already in models, but centralized here for consistency)
+REFERRAL_STATUS_ACTIVE = 'active'
+REFERRAL_STATUS_EXPIRED = 'expired'
+REFERRAL_STATUS_REVOKED = 'revoked'
+
+REFERRAL_STATUS_CHOICES = [
+    (REFERRAL_STATUS_ACTIVE, 'Active'),
+    (REFERRAL_STATUS_EXPIRED, 'Expired'),
+    (REFERRAL_STATUS_REVOKED, 'Revoked'),
+]
+
+# TASK 9: Audit Actions for Referrals
+AUDIT_ACTION_REFERRAL_CREATED = 'REFERRAL_CREATED'
+AUDIT_ACTION_REFERRAL_USED = 'REFERRAL_USED'
+AUDIT_ACTION_REFERRAL_EXPIRED = 'REFERRAL_EXPIRED'
+AUDIT_ACTION_REFERRAL_REVOKED = 'REFERRAL_REVOKED'
+
+# TASK 9: Audit Actions for Email Verification
+AUDIT_ACTION_EMAIL_VERIFICATION_SENT = 'EMAIL_VERIFICATION_SENT'
+AUDIT_ACTION_EMAIL_VERIFIED = 'EMAIL_VERIFIED'
+
+# TASK 9: Audit Actions for Pandit Registration
+AUDIT_ACTION_PANDIT_REGISTRATION_CREATED = 'PANDIT_REGISTRATION_CREATED'
+
+# All Referral Audit Actions
+REFERRAL_AUDIT_ACTIONS = [
+    AUDIT_ACTION_REFERRAL_CREATED,
+    AUDIT_ACTION_REFERRAL_USED,
+    AUDIT_ACTION_REFERRAL_EXPIRED,
+    AUDIT_ACTION_REFERRAL_REVOKED,
+]
+
+# All Email Verification Audit Actions
+EMAIL_VERIFICATION_AUDIT_ACTIONS = [
+    AUDIT_ACTION_EMAIL_VERIFICATION_SENT,
+    AUDIT_ACTION_EMAIL_VERIFIED,
+]
+
+# All Pandit Registration Audit Actions
+PANDIT_REGISTRATION_AUDIT_ACTIONS = [
+    AUDIT_ACTION_PANDIT_REGISTRATION_CREATED,
+]
+
+# Combined Audit Actions List
+ALL_AUDIT_ACTIONS = (
+    REFERRAL_AUDIT_ACTIONS +
+    EMAIL_VERIFICATION_AUDIT_ACTIONS +
+    PANDIT_REGISTRATION_AUDIT_ACTIONS
+)
+
+# Audit Action Choices (for dropdowns/forms if needed)
+AUDIT_ACTION_CHOICES = [
+    (AUDIT_ACTION_REFERRAL_CREATED, 'Referral Created'),
+    (AUDIT_ACTION_REFERRAL_USED, 'Referral Used'),
+    (AUDIT_ACTION_REFERRAL_EXPIRED, 'Referral Expired'),
+    (AUDIT_ACTION_REFERRAL_REVOKED, 'Referral Revoked'),
+    (AUDIT_ACTION_EMAIL_VERIFICATION_SENT, 'Email Verification Sent'),
+    (AUDIT_ACTION_EMAIL_VERIFIED, 'Email Verified'),
+    (AUDIT_ACTION_PANDIT_REGISTRATION_CREATED, 'Pandit Registration Created'),
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

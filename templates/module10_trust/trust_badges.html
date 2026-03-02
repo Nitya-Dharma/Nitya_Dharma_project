@@ -1,0 +1,29 @@
+
+
+{% if trust_signals %}
+    <div class="trust-badges-container mb-3" role="region" aria-label="Trust indicators">
+        {% for signal in trust_signals %}
+            
+            <span class="badge trust-badge trust-badge-{{ signal.type|default:'default' }} me-2 mb-2" 
+                  {% if signal.description %}
+                      data-bs-toggle="tooltip" 
+                      data-bs-placement="top"
+                      title="{{ signal.description }}"
+                      aria-label="{{ signal.label }}: {{ signal.description }}"
+                  {% else %}
+                      aria-label="{{ signal.label }}"
+                  {% endif %}>
+                {% if signal.icon %}
+                    <i class="{{ signal.icon }} me-1" aria-hidden="true"></i>
+                {% endif %}
+                {{ signal.label }}
+            </span>
+            
+        {% endfor %}
+    </div>
+    
+    
+    
+    
+{% endif %}
+

@@ -1,0 +1,1072 @@
+/* 
+    Phase 3 - Module 4 - Task 4.UI.9
+    Custom CSS - Additional styling for profile pages
+    No logic, styling only
+*/
+
+/* End User Profile Redesign - PART 1 */
+
+/* Profile Page Container */
+.account-content .user-profile-page {
+    background-color: var(--bg-primary, #F9FAF7);
+    min-height: auto;
+    padding: 0;
+    margin: -2rem;
+    border-radius: 0.5rem;
+}
+
+.account-content .profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Profile Header - Premium Look (UNIT 3) */
+.account-content .profile-header {
+    background: linear-gradient(
+        135deg,
+        var(--secondary-main, #3F4E4F),
+        var(--secondary-light, #7D8F8A)
+    );
+    color: #fff;
+    padding: 32px;
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: var(--shadow-md, 0 10px 30px rgba(0,0,0,0.06));
+    margin-bottom: 24px;
+}
+
+.profile-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.profile-header .subtitle,
+.profile-header-subtitle {
+    opacity: 0.85;
+    margin-top: 4px;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+}
+
+.profile-avatar-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-avatar-placeholder i {
+    font-size: 3rem;
+    color: #fff;
+}
+
+.profile-header-name {
+    color: #fff;
+    margin: 0;
+}
+
+/* Profile Grid - Two Column Layout (UNIT 2) */
+.account-content .profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 992px) {
+    .account-content .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Profile Cards (UNIT 4) */
+.account-content .profile-card {
+    background: var(--bg-secondary, #FFFFFF);
+    border-radius: var(--radius-md, 12px);
+    box-shadow: var(--shadow-sm, 0 4px 12px rgba(0,0,0,0.04));
+    border: 1px solid var(--secondary-border, #D6DED9);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.profile-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary, #1F2933);
+}
+
+/* Activity List (UNIT 5) */
+.activity-list {
+    padding: 0;
+}
+
+.activity-item {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--secondary-border, #D6DED9);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: var(--text-muted, #6B7280);
+}
+
+/* End User Profile Redesign - PART 2 */
+
+/* UNIT 6: Typography Hierarchy (Premium & Calm) */
+.user-profile-page h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text-primary, #1F2933);
+}
+
+.user-profile-page h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary, #1F2933);
+}
+
+.user-profile-page h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary, #4B5563);
+}
+
+.user-profile-page p,
+.user-profile-page li,
+.user-profile-page span {
+    font-size: 14px;
+    color: var(--text-secondary, #4B5563);
+    line-height: 1.6;
+}
+
+.user-profile-page .muted,
+.user-profile-page .text-muted {
+    color: var(--text-muted, #6B7280);
+}
+
+/* UNIT 7: Buttons & CTAs (60-30-10 Applied) */
+.user-profile-page .btn-primary {
+    background-color: var(--accent-main, #C84B31);
+    color: #fff;
+    border-radius: var(--radius-md, 12px);
+    padding: 10px 18px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.user-profile-page .btn-primary:hover {
+    background-color: var(--accent-hover, #A63A25);
+    color: #fff;
+}
+
+.user-profile-page .btn-secondary,
+.user-profile-page .btn-outline-secondary {
+    background-color: transparent;
+    color: var(--secondary-main, #3F4E4F);
+    border: 1px solid var(--secondary-border, #D6DED9);
+    border-radius: var(--radius-md, 12px);
+    padding: 10px 18px;
+    transition: all 0.2s ease;
+}
+
+.user-profile-page .btn-secondary:hover,
+.user-profile-page .btn-outline-secondary:hover {
+    background-color: var(--bg-section, #F2F4EF);
+    color: var(--secondary-main, #3F4E4F);
+    border-color: var(--secondary-border, #D6DED9);
+}
+
+.user-profile-page .btn-outline-primary {
+    background-color: transparent;
+    color: var(--accent-main, #C84B31);
+    border: 1px solid var(--accent-main, #C84B31);
+    border-radius: var(--radius-md, 12px);
+    padding: 10px 18px;
+    transition: all 0.2s ease;
+}
+
+.user-profile-page .btn-outline-primary:hover {
+    background-color: var(--accent-main, #C84B31);
+    color: #fff;
+}
+
+.user-profile-page .btn-outline-danger {
+    background-color: transparent;
+    color: var(--danger-color, #dc3545);
+    border: 1px solid var(--danger-color, #dc3545);
+    border-radius: var(--radius-md, 12px);
+    padding: 10px 18px;
+    transition: all 0.2s ease;
+}
+
+.user-profile-page .btn-outline-danger:hover {
+    background-color: var(--danger-color, #dc3545);
+    color: #fff;
+}
+
+/* UNIT 8: Edit Profile UX (Non-Breaking) */
+.account-content .profile-edit-card {
+    background: var(--bg-secondary, #FFFFFF);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: var(--shadow-sm, 0 4px 12px rgba(0,0,0,0.04));
+    padding: 24px;
+    border: 1px solid var(--secondary-border, #D6DED9);
+}
+
+.profile-edit-card label,
+.profile-card label,
+.user-profile-page .form-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text-primary, #1F2933);
+}
+
+.profile-edit-card .form-control,
+.profile-card .form-control {
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--secondary-border, #D6DED9);
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+}
+
+.profile-edit-card .form-control:focus,
+.profile-card .form-control:focus {
+    border-color: var(--accent-main, #C84B31);
+    box-shadow: 0 0 0 3px var(--accent-soft, #F3D1C7);
+    outline: none;
+}
+
+.profile-edit-card .form-text,
+.profile-card .form-text {
+    font-size: 12px;
+    color: var(--text-muted, #6B7280);
+    margin-top: 4px;
+}
+
+/* UNIT 9: Empty States (Friendly & Clear) */
+.empty-state {
+    padding: 20px;
+    text-align: center;
+    background: var(--bg-section, #F2F4EF);
+    border-radius: var(--radius-md, 12px);
+}
+
+.empty-state p {
+    margin: 0;
+    color: var(--text-muted, #6B7280);
+}
+
+/* UNIT 10: Micro-Interactions (Premium Feel) */
+.profile-card,
+.profile-edit-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 10px 30px rgba(0,0,0,0.06));
+}
+
+.user-profile-page .btn {
+    transition: all 0.2s ease;
+}
+
+.user-profile-page .btn:hover {
+    transform: translateY(-1px);
+}
+
+.user-profile-page .btn:active {
+    transform: translateY(0);
+}
+
+/* End User Profile Redesign - PART 3 */
+
+/* UNIT 11: Mobile-First Profile Layout */
+@media (max-width: 768px) {
+    .account-content .user-profile-page {
+        padding: 1rem !important;
+        margin: -1rem !important;
+    }
+    
+    .account-content .profile-container {
+        padding: 1rem 0.5rem;
+    }
+    
+    .account-content .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 20px !important;
+    }
+    
+    .account-content .profile-header .d-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .account-content .profile-avatar-wrapper {
+        margin-right: 0 !important;
+    }
+    
+    .account-content .profile-avatar-img,
+    .account-content .profile-avatar-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .account-content .profile-header-name {
+        font-size: 22px !important;
+    }
+    
+    .account-content .profile-header-subtitle {
+        font-size: 13px !important;
+    }
+    
+    .account-content .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .account-content .profile-edit-card {
+        padding: 16px;
+    }
+    
+    .account-content .profile-card {
+        padding: 16px;
+    }
+    
+    .account-content .profile-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .account-content .profile-actions .btn,
+    .account-content .d-flex.justify-content-end .btn {
+        width: 100%;
+        margin: 0;
+    }
+    
+    .account-content .d-flex.justify-content-end {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .account-content .d-flex.justify-content-end .btn {
+        width: 100%;
+    }
+    
+    /* Form inputs on mobile */
+    .account-content .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* UNIT 12: Tablet & Desktop Scaling */
+@media (min-width: 769px) and (max-width: 991px) {
+    .account-content .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .account-content .profile-container {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .account-content .profile-grid {
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .account-content .profile-main {
+        padding-right: 16px;
+    }
+    
+    .account-content .profile-container {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .account-content .profile-container {
+        max-width: 1200px;
+        padding: 2rem;
+    }
+}
+
+/* UNIT 13: Accessibility & Focus States */
+.account-content a:focus-visible,
+.account-content button:focus-visible,
+.account-content input:focus-visible,
+.account-content select:focus-visible,
+.account-content textarea:focus-visible {
+    outline: 2px solid var(--accent-main, #C84B31);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 8px);
+}
+
+.account-content label {
+    cursor: pointer;
+}
+
+.account-content input::placeholder,
+.account-content textarea::placeholder {
+    color: var(--text-muted, #6B7280);
+    opacity: 0.7;
+}
+
+.account-content .btn:focus-visible {
+    outline: 2px solid var(--accent-main, #C84B31);
+    outline-offset: 2px;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent-main, #C84B31);
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* UNIT 14: Loading & Skeleton UX (Visual Only) */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--bg-section, #F2F4EF) 25%,
+        #eaeaea 37%,
+        var(--bg-section, #F2F4EF) 63%
+    );
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: var(--radius-sm, 8px);
+    min-height: 20px;
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text:last-child {
+    margin-bottom: 0;
+    width: 60%;
+}
+
+.skeleton-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+/* UNIT 15: Final Visual Consistency Check */
+.account-content .user-profile-page * {
+    box-sizing: border-box;
+}
+
+/* Consistent spacing between sections */
+.account-content .profile-header {
+    margin-bottom: 24px;
+}
+
+.account-content .profile-card,
+.account-content .profile-edit-card {
+    margin-bottom: 16px;
+}
+
+.account-content .mb-4 {
+    margin-bottom: 24px !important;
+}
+
+.account-content .mb-3 {
+    margin-bottom: 16px !important;
+}
+
+/* Consistent border-radius using CSS variables */
+.account-content .profile-header,
+.account-content .profile-card,
+.account-content .profile-edit-card,
+.account-content .btn,
+.account-content .form-control,
+.account-content .empty-state {
+    border-radius: var(--radius-md, 12px);
+}
+
+.account-content .profile-header {
+    border-radius: var(--radius-lg, 16px);
+}
+
+.account-content .form-control {
+    border-radius: var(--radius-sm, 8px);
+}
+
+/* No hard-coded colors - use CSS variables only */
+.account-content .text-muted {
+    color: var(--text-muted, #6B7280) !important;
+}
+
+.account-content .text-primary {
+    color: var(--text-primary, #1F2933) !important;
+}
+
+.account-content .text-secondary {
+    color: var(--text-secondary, #4B5563) !important;
+}
+
+/* Accent color used ONLY for primary actions, active states, focus */
+.account-content .btn-primary {
+    background-color: var(--accent-main, #C84B31);
+    border-color: var(--accent-main, #C84B31);
+}
+
+.account-content .btn-primary:hover,
+.account-content .btn-primary:focus {
+    background-color: var(--accent-hover, #A63A25);
+    border-color: var(--accent-hover, #A63A25);
+}
+
+.account-content .form-control:focus {
+    border-color: var(--accent-main, #C84B31);
+    box-shadow: 0 0 0 3px var(--accent-soft, #F3D1C7);
+}
+
+/* Consistent font sizes */
+.account-content .profile-header h1,
+.account-content .profile-header-name {
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.account-content .profile-card h3,
+.account-content .profile-edit-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.account-content .form-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.account-content .form-control {
+    font-size: 14px;
+}
+
+.account-content .btn {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Print styles */
+@media print {
+    .account-content .user-profile-page {
+        background: #fff;
+    }
+    
+    .account-content .profile-header {
+        background: #f8f9fa;
+        color: #000;
+    }
+    
+    .account-content .btn {
+        display: none;
+    }
+}
+
+/* Section Spacing */
+.about-section,
+.poojas-section,
+.location-section,
+.availability-summary-section,
+.trust-badges-section {
+    margin-bottom: 2rem;
+}
+
+/* List Styling */
+.list-group-item {
+    padding: 0.75rem 0;
+}
+
+/* Badge Styling */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Progress Bar Styling */
+.progress {
+    border-radius: 0.5rem;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Accessibility - Focus States */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Image Alt Text Placeholder */
+.img-placeholder {
+    background-color: var(--light-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+}
+
+/* 
+    Phase 3 - Module 7 - Task 7.UI.15
+    Search Module Styles - Accessibility & Responsiveness
+    No logic, styling only
+*/
+
+/* Search Module Styles */
+.search-filters {
+    margin-bottom: 2rem;
+}
+
+.search-filters .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.search-results-header {
+    border-bottom: 2px solid #e9ecef;
+}
+
+.listing-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.listing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Call and WhatsApp buttons styling - Side by side, green, visible text */
+.listing-card .btn-success,
+.listing-card .btn[style*="#25D366"] {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 0.5rem;
+    white-space: nowrap;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.listing-card .btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.listing-card .btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.listing-card .btn[style*="#25D366"] {
+    background-color: #25D366 !important;
+    border-color: #25D366 !important;
+}
+
+.listing-card .btn[style*="#25D366"]:hover {
+    background-color: #20ba5a !important;
+    border-color: #1da851 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button icons */
+.listing-card .btn-success i,
+.listing-card .btn[style*="#25D366"] i {
+    font-size: 1rem;
+    margin-right: 0.25rem;
+}
+
+/* Ensure buttons in row are properly sized */
+.listing-card .row.g-2 .col-6 .btn {
+    width: 100%;
+}
+
+/* Responsive search filters */
+@media (max-width: 768px) {
+    .search-filters .col-12 {
+        margin-bottom: 1rem;
+    }
+    
+    .hero-search-section h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-search-section p {
+        font-size: 1rem;
+    }
+}
+
+/* 
+    Phase 3 - Module 8 - Task 8.UI.13
+    Booking Intent Module Styles - Accessibility & Responsiveness
+    No logic, styling only
+*/
+
+/* Booking Intent Form Styles */
+.booking-intent-form-section {
+    margin-bottom: 2rem;
+}
+
+.booking-intent-form-section .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Booking Intent History & Inbox Styles */
+.booking-intent-list-item {
+    transition: background-color 0.2s;
+}
+
+.booking-intent-list-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive booking intent forms */
+@media (max-width: 768px) {
+    .booking-intent-form-section {
+        padding: 1rem 0;
+    }
+    
+    .booking-intent-form-section .card {
+        margin: 0 -15px;
+        border-radius: 0;
+    }
+    
+    /* Ensure buttons are touch-friendly on mobile */
+    .booking-intent-form-section .btn {
+        min-height: 44px; /* iOS touch target recommendation */
+        font-size: 1rem;
+    }
+    
+    /* Improve spacing on mobile */
+    .booking-intent-form-section .form-label {
+        font-size: 0.95rem;
+    }
+    
+    /* Better text wrapping on mobile */
+    .booking-intent-list-item {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    /* Stack status badges on mobile */
+    .list-group-item .d-flex {
+        flex-direction: column;
+    }
+    
+    /* Better spacing for list items on mobile */
+    .list-group-item {
+        padding: 1rem 0.75rem;
+    }
+}
+
+/* 
+    Phase 3 - Module 9 - Task 9.UI.15
+    Ratings & Reviews Module Styles - Accessibility & Responsiveness
+    No logic, styling only
+*/
+
+/* Review Card Styles */
+.review-card {
+    transition: background-color 0.2s;
+}
+
+.review-card:hover {
+    background-color: #f8f9fa;
+}
+
+/* Star Rating Styles */
+.rating-display {
+    font-size: 1.2rem;
+}
+
+.rating-display-large {
+    font-size: 1.5rem;
+}
+
+.star-rating-input .bi-star,
+.star-rating-input .bi-star-fill {
+    transition: color 0.2s;
+}
+
+.star-rating-input .bi-star:hover {
+    color: #ffc107;
+}
+
+/* Ratings Summary Styles */
+.ratings-summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Responsive reviews */
+@media (max-width: 768px) {
+    .review-form-section {
+        padding: 1rem 0;
+    }
+    
+    .review-form-section .card {
+        margin: 0 -15px;
+        border-radius: 0;
+    }
+    
+    /* Touch-friendly buttons */
+    .review-form-section .btn {
+        min-height: 44px;
+        font-size: 1rem;
+    }
+    
+    /* Better spacing */
+    .review-card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Stack ratings summary on mobile */
+    .ratings-summary-card .row {
+        flex-direction: column;
+    }
+    
+    /* Better text wrapping */
+    .review-card .card-text {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+/* 
+    Phase 3 - Module 10 - Task 10.UI.4, 10.UI.15
+    Public Trust Display Module Styles - Neutrality & Accessibility
+    No logic, styling only
+*/
+
+/* Trust Badge Styles - Neutral & Informational */
+.trust-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.trust-badge {
+    font-size: 0.875rem;
+    font-weight: normal; /* No bold emphasis */
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    transition: none; /* No hover effects */
+}
+
+/* Trust Signal Badge Styles */
+.trust-signal-badge {
+    font-size: 0.875rem;
+    font-weight: normal;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Trust Status Label Styles */
+.trust-status-label {
+    font-size: 0.875rem;
+    font-weight: normal;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Trust Tooltip Trigger - Task 10.UI.5 */
+.trust-tooltip-trigger {
+    font-size: 0.875rem;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: help;
+}
+
+.trust-tooltip-trigger:hover {
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.trust-tooltip-trigger:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+/* Trust Disclaimer Styles - Task 10.UI.16 */
+.trust-disclaimer {
+    font-size: 0.875rem;
+}
+
+.trust-disclaimer .alert {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+/* Trust Self-View Notice - Task 10.UI.8 */
+.trust-self-view-notice {
+    font-size: 0.875rem;
+}
+
+/* Responsive Trust Display - Task 10.UI.15 */
+@media (max-width: 768px) {
+    .trust-badges-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .trust-badge,
+    .trust-signal-badge,
+    .trust-status-label {
+        font-size: 0.8125rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .trust-disclaimer {
+        font-size: 0.8125rem;
+    }
+}
+
+/* 
+    TRUST STYLING BOUNDARIES:
+    - NO promotional colors
+    - NO large emphasis
+    - NO CTA-like styling
+    - NO animations
+    - NO hover effects (except tooltip trigger)
+    - NO attention-grabbing effects
+    - Trust badges are secondary, informational only
+*/
+
+/* 
+    Multi-level Dropdown for Poojas Navigation
+    Phase 3 - Navbar Enhancement
+*/
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+    margin-left: 0.125rem;
+    min-width: 200px;
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Arrow indicator for submenu */
+.dropdown-submenu > .dropdown-toggle::after {
+    content: "\f105";
+    font-family: "bootstrap-icons";
+    float: right;
+    margin-left: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+/* Ensure parent dropdown stays open on hover */
+.nav-item.dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Better spacing for nested dropdowns */
+.dropdown-submenu .dropdown-item {
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+/* Mobile: Stack submenu vertically */
+@media (max-width: 991px) {
+    .dropdown-submenu > .dropdown-menu {
+        position: static;
+        float: none;
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+        border: none;
+        box-shadow: none;
+    }
+    
+    .dropdown-submenu > .dropdown-toggle::after {
+        content: "\f107";
+    }
+}
+

@@ -1,0 +1,396 @@
+/* Pandit Registration UI - 60-30-10 Design System */
+
+/* UNIT TASK 2: Page Background & Layout */
+.pandit-register-container {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+    background-color: #F8FAFC; /* Primary 60% */
+}
+
+.pandit-register-card {
+    max-width: 720px;
+    width: 100%;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    background: #FFFFFF; /* Primary 60% */
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+/* UNIT TASK 3: Header / Title Section */
+.pandit-register-header {
+    background: #0F172A; /* Secondary 30% */
+    color: #FFFFFF;
+    padding: 32px;
+    border-radius: 16px 16px 0 0;
+    text-align: center;
+}
+
+.pandit-register-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #FFFFFF;
+}
+
+.pandit-register-header p {
+    margin: 0.5rem 0 0 0;
+    color: #CBD5E1;
+    font-size: 14px;
+}
+
+/* UNIT TASK 4: Step Indicator Redesign */
+.pandit-steps-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    position: relative;
+}
+
+.pandit-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.pandit-step::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #E5E7EB;
+    z-index: 0;
+}
+
+.pandit-step:first-child::before {
+    display: none;
+}
+
+.pandit-step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #E5E7EB; /* Upcoming step */
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.pandit-step.active .pandit-step-number {
+    background: #E11D48; /* Accent 10% - Active */
+    color: #FFFFFF;
+}
+
+.pandit-step.completed .pandit-step-number {
+    background: #22C55E; /* Success - Completed */
+    color: #FFFFFF;
+}
+
+.pandit-step-label {
+    font-size: 0.85rem;
+    color: #64748B; /* Muted */
+}
+
+.pandit-step.active .pandit-step-label {
+    color: #0F172A; /* Secondary 30% */
+    font-weight: 600;
+}
+
+.pandit-step.completed .pandit-step-label {
+    color: #64748B;
+}
+
+/* UNIT TASK 5: Form Field Styling */
+.pandit-register-body {
+    padding: 2.5rem;
+}
+
+.pandit-register-body .form-floating {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.pandit-register-body .form-control {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 20px 16px 8px 16px;
+    background: #FFFFFF;
+    color: #0F172A;
+    transition: all 0.2s ease;
+    height: auto;
+    min-height: 58px;
+}
+
+.pandit-register-body .form-control::placeholder {
+    color: transparent;
+}
+
+.pandit-register-body .form-control:focus,
+.pandit-register-body .form-control:not(:placeholder-shown) {
+    padding-top: 26px;
+    padding-bottom: 8px;
+}
+
+.pandit-register-body .form-control:focus {
+    border-color: #E11D48; /* Accent 10% */
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+.pandit-register-body .form-control.is-invalid {
+    border-color: #DC2626; /* Danger */
+    background: #FEF2F2;
+}
+
+.pandit-register-body .form-control.is-invalid:focus {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Fix label positioning to prevent overlap */
+.pandit-register-body .form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 16px;
+    height: 100%;
+    padding: 20px 0 8px 0;
+    pointer-events: none;
+    border: 1px solid transparent;
+    transform-origin: 0 0;
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    color: #64748B;
+    font-weight: 400;
+}
+
+.pandit-register-body .form-floating > .form-control:focus ~ label,
+.pandit-register-body .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    opacity: 0.85;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+    color: #0F172A;
+    font-weight: 600;
+}
+
+.pandit-register-body .form-floating > .form-control:focus ~ label {
+    color: #E11D48;
+}
+
+.pandit-register-body .form-floating > .form-control:not(:placeholder-shown) {
+    padding-top: 26px;
+    padding-bottom: 8px;
+}
+
+/* UNIT TASK 6: Labels & Helper Text */
+.pandit-register-body .form-text {
+    color: #64748B; /* Muted */
+    font-size: 13px;
+    margin-top: 0.5rem;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.pandit-register-body .text-danger {
+    color: #E11D48; /* Accent 10% for required * */
+}
+
+/* Ensure required asterisk doesn't overlap */
+.pandit-register-body .form-floating > label .text-danger {
+    margin-left: 2px;
+}
+
+/* UNIT TASK 7: Primary Action Buttons */
+.pandit-btn-register {
+    background: #E11D48; /* Accent 10% */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.pandit-btn-register:hover:not(:disabled) {
+    background: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.pandit-btn-register:disabled {
+    background: #FCA5A5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* UNIT TASK 8: Secondary Actions */
+.pandit-btn-secondary {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    color: #0F172A;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.pandit-btn-secondary:hover {
+    background: #F8FAFC;
+    border-color: #E5E7EB;
+}
+
+/* UNIT TASK 9: Alerts & Messages */
+.pandit-alert-success {
+    background: #F0FDF4;
+    border-left: 4px solid #22C55E; /* Success */
+    color: #166534;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.pandit-alert-warning {
+    background: #FFFBEB;
+    border-left: 4px solid #F59E0B; /* Warning */
+    color: #92400E;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.pandit-alert-danger {
+    background: #FEF2F2;
+    border-left: 4px solid #DC2626; /* Danger */
+    color: #991B1B;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.pandit-info-note {
+    background-color: #F8FAFC; /* Primary 60% */
+    border-left: 4px solid #E11D48; /* Accent 10% */
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.pandit-info-note h6 {
+    color: #0F172A; /* Secondary 30% */
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+.pandit-info-note ul,
+.pandit-info-note ol {
+    margin-bottom: 0.75rem;
+    color: #1E293B; /* Secondary 30% */
+}
+
+.pandit-info-note hr {
+    margin: 1rem 0;
+    border-color: #E5E7EB;
+    opacity: 0.5;
+}
+
+.pandit-info-note .text-muted {
+    color: #64748B; /* Muted */
+}
+
+/* UNIT TASK 10: Mobile Responsiveness */
+@media (max-width: 768px) {
+    .pandit-register-container {
+        padding: 1rem 0;
+    }
+    
+    .pandit-register-card {
+        border-radius: 12px;
+        margin: 0 1rem;
+    }
+    
+    .pandit-register-header {
+        padding: 24px 20px;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .pandit-register-header h2 {
+        font-size: 24px;
+    }
+    
+    .pandit-register-body {
+        padding: 1.5rem;
+    }
+    
+    .pandit-steps-indicator {
+        padding: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .pandit-step {
+        min-width: 80px;
+        flex-shrink: 0;
+    }
+    
+    .pandit-step-number {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+    
+    .pandit-step-label {
+        font-size: 0.75rem;
+    }
+    
+    .pandit-btn-register,
+    .pandit-btn-secondary {
+        width: 100%;
+    }
+}
+
+/* Password field wrapper compatibility */
+.pandit-register-body .password-field-wrapper {
+    position: relative;
+}
+
+.pandit-register-body .password-field-wrapper .form-floating {
+    margin-bottom: 1.5rem;
+}
+
+.pandit-register-body .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748B;
+    font-size: 16px;
+    padding: 4px 8px;
+    z-index: 15;
+}
+
+.pandit-register-body .password-toggle:hover {
+    color: #E11D48;
+}
+
+.pandit-register-body .password-field-wrapper .form-control {
+    padding-right: 50px;
+}
+
+/* Ensure password field label doesn't overlap with toggle button */
+.pandit-register-body .password-field-wrapper .form-floating > label {
+    right: 50px;
+}
+

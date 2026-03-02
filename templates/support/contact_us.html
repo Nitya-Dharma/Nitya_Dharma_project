@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if seo_title %}{{ seo_title }}{% else %}Contact Us - Nitya Dharma{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact_us.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contact-us-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <div class="contact-card">
+                    <div class="contact-header">
+                        <h1 class="contact-title">Contact Us</h1>
+                        <p class="contact-subtitle">We're here to help! Please fill out the form below and we'll get back to you soon.</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="contact-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email Address <span class="required">*</span></label>
+                            <input 
+                                type="email" 
+                                class="form-control" 
+                                id="email" 
+                                name="email" 
+                                value="{% if form_data %}{{ form_data.email }}{% elif user.is_authenticated %}{{ user.email }}{% endif %}"
+                                required
+                                placeholder="your.email@example.com"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobile_number" class="form-label">Mobile Number <span class="required">*</span></label>
+                            <input 
+                                type="tel" 
+                                class="form-control" 
+                                id="mobile_number" 
+                                name="mobile_number" 
+                                value="{% if form_data %}{{ form_data.mobile_number }}{% endif %}"
+                                required
+                                placeholder="+91 9876543210"
+                                maxlength="15"
+                            >
+                            <small class="form-text">Mobile number is mandatory for contact purposes.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subject <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="subject" 
+                                name="subject" 
+                                value="{% if form_data %}{{ form_data.subject }}{% endif %}"
+                                required
+                                placeholder="Brief description of your inquiry"
+                                maxlength="255"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Reason for Contact <span class="required">*</span></label>
+                            <div class="reasons-grid">
+                                {% for reason in allowed_reasons %}
+                                    <div class="reason-checkbox">
+                                        <input 
+                                            type="checkbox" 
+                                            id="reason_{{ forloop.counter }}" 
+                                            name="selected_reasons" 
+                                            value="{{ reason }}"
+                                            {% if form_data and reason in form_data.selected_reasons %}checked{% endif %}
+                                            class="reason-input"
+                                        >
+                                        <label for="reason_{{ forloop.counter }}" class="reason-label">
+                                            {{ reason }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text">You can select multiple reasons.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message" class="form-label">Message <span class="required">*</span></label>
+                            <textarea 
+                                class="form-control" 
+                                id="message" 
+                                name="message" 
+                                rows="6" 
+                                required
+                                placeholder="Please provide details about your inquiry..."
+                            >{% if form_data %}{{ form_data.message }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary-premium">
+                                <i class="bi bi-send me-2"></i>Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

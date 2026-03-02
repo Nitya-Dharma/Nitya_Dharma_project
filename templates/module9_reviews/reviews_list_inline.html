@@ -1,0 +1,49 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/reviews_ui.css' %}">
+
+{% if reviews %}
+    <div class="reviews-list-compact">
+        {% for review in reviews %}
+        <div class="review-item-compact">
+            <div class="review-item-header-compact">
+                <div class="review-item-author-compact">
+                    <span class="review-item-name-compact">{{ review.user.first_name|default:"User" }}</span>
+                    {% if review.rating %}
+                    <div class="review-item-stars-compact">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <span class="review-item-date-compact">{{ review.created_at|date:"F d, Y" }}</span>
+            </div>
+            
+            {% if review.title %}
+            <h4 class="review-item-title-compact">{{ review.title }}</h4>
+            {% endif %}
+            
+            <p class="review-item-message-compact">{{ review.review_text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- View All Link -->
+    <div class="reviews-view-all-wrapper">
+        <a href="{% url 'reviews_ui:pandit_reviews' pandit_public_id=pandit.user.public_id %}" class="reviews-view-all-btn">
+            <i class="bi bi-list-ul me-2"></i>View All Reviews
+        </a>
+    </div>
+{% else %}
+    <div class="reviews-empty-state-compact">
+        <div class="reviews-empty-state-icon-compact">
+            <i class="bi bi-star"></i>
+        </div>
+        <p class="reviews-empty-state-text-compact">No reviews yet. Be the first to review this Pandit!</p>
+    </div>
+{% endif %}
+

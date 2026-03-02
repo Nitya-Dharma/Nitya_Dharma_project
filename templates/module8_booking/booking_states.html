@@ -1,0 +1,72 @@
+
+
+{% if state_type == 'no_intents' %}
+    
+    <div class="text-center py-5" role="status" aria-live="polite">
+        <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;" aria-hidden="true"></i>
+        <h3 class="mt-3 mb-2">No Booking Intents Yet</h3>
+        <p class="text-muted mb-4">
+            {% if user_role == 'pandit' %}
+                You haven't received any booking intents yet.
+            {% else %}
+                There are no booking intents made by you.
+            {% endif %}
+        </p>
+        {% if user_role != 'pandit' %}
+            <a href="{% url 'search_ui:search_results' %}" class="btn btn-outline-primary" aria-label="Search for Pandits">
+                <i class="bi bi-search me-2"></i>Search for Pandits
+            </a>
+        {% endif %}
+    </div>
+
+{% elif state_type == 'all_closed' %}
+    
+    <div class="text-center py-5" role="status" aria-live="polite">
+        <i class="bi bi-check-circle" style="font-size: 4rem; color: #dee2e6;" aria-hidden="true"></i>
+        <h3 class="mt-3 mb-2">All Booking Intents Are Closed</h3>
+        <p class="text-muted">
+            All your booking intents have been closed or expired.
+        </p>
+    </div>
+
+{% elif state_type == 'service_unavailable' %}
+    
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">
+            <i class="bi bi-exclamation-triangle me-2"></i>Service Temporarily Unavailable
+        </h4>
+        <p>
+            {% if error_message %}
+                {{ error_message }}
+            {% else %}
+                The booking intent service is temporarily unavailable. Please try again later.
+            {% endif %}
+        </p>
+        
+    </div>
+
+{% elif state_type == 'error' %}
+    
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">
+            <i class="bi bi-exclamation-triangle me-2"></i>Error
+        </h4>
+        <p>
+            {% if error_message %}
+                {{ error_message }}
+            {% else %}
+                An error occurred. Please try again later.
+            {% endif %}
+        </p>
+    </div>
+
+{% elif state_type == 'loading' %}
+    
+    <div class="text-center py-5" role="status" aria-live="polite" aria-label="Loading booking intents">
+        <div class="spinner-border text-primary" role="status" aria-hidden="true">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading...</p>
+    </div>
+{% endif %}
+

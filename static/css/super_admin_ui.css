@@ -1,0 +1,591 @@
+/* ============================================
+   SUPER ADMIN UI PREMIUM REDESIGN
+   Aligned with End User + Pandit Design System
+   ============================================ */
+
+/* PART 1: Super Admin Login UI */
+.super-admin-auth-section {
+    background: #F8FAFC;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    padding: 48px 0;
+}
+
+.super-admin-auth-card {
+    background: #FFFFFF;
+    border-radius: 18px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    max-width: 440px;
+    margin: 0 auto;
+    transition: all 0.25s ease;
+}
+
+.super-admin-auth-card:hover {
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+}
+
+.super-admin-auth-header {
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 2rem;
+    text-align: center;
+}
+
+.super-admin-auth-header h2,
+.super-admin-auth-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.super-admin-auth-header p {
+    margin: 0.5rem 0 0 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.super-admin-auth-body {
+    padding: 2.5rem;
+}
+
+/* Input Styling */
+.super-admin-auth-body .form-floating > .form-control {
+    padding: 1rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    min-height: 56px;
+    transition: all 0.25s ease;
+}
+
+.super-admin-auth-body .form-floating > .form-control:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25);
+    outline: none;
+}
+
+.super-admin-auth-body .form-floating > label {
+    color: #64748B;
+    padding: 1rem 0.75rem;
+    font-weight: 500;
+}
+
+.super-admin-auth-body .form-floating > .form-control:focus ~ label,
+.super-admin-auth-body .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #E11D48;
+}
+
+/* Primary CTA */
+.super-admin-auth-body .btn-primary-cta {
+    background: #E11D48;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 600;
+    color: #FFFFFF;
+    width: 100%;
+    transition: all 0.25s ease;
+}
+
+.super-admin-auth-body .btn-primary-cta:hover {
+    background: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.super-admin-auth-body .btn-primary-cta:active {
+    transform: scale(0.98);
+}
+
+/* PART 2: Success/Error Messages */
+.super-admin-auth-body .alert-success {
+    background: #ECFDF5;
+    border: 1px solid #22C55E;
+    color: #065F46;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+.super-admin-auth-body .alert-danger {
+    background: #FEF2F2;
+    border: 1px solid #DC2626;
+    color: #991B1B;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+/* PART 3: Super Admin Dashboard Layout */
+.super-admin-page {
+    background-color: #F8FAFC;
+    min-height: 100vh;
+}
+
+.super-admin-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s ease;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.super-admin-card:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+    transform: translateY(-1px);
+}
+
+.super-admin-page h1,
+.super-admin-page h2,
+.super-admin-page h3,
+.super-admin-page h4,
+.super-admin-page h5,
+.super-admin-page h6 {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+.super-admin-page .text-muted,
+.super-admin-page .admin-muted {
+    color: #64748B;
+}
+
+/* PART 4: Sidebar (Super Admin) */
+.super-admin-sidebar {
+    background: #1E293B;
+    border-radius: 16px;
+    padding: 16px;
+    min-height: 100%;
+}
+
+.super-admin-sidebar .nav-link {
+    display: block;
+    padding: 12px 14px;
+    color: #FFFFFF !important; /* Pure white for maximum visibility */
+    border-radius: 10px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.super-admin-sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1) !important; /* Slightly brighter on hover */
+    color: #FFFFFF !important;
+}
+
+.super-admin-sidebar .nav-link.active {
+    background: rgba(225, 29, 72, 0.2) !important; /* More visible active state */
+    color: #FFFFFF !important;
+    border-left: 4px solid #E11D48;
+    font-weight: 600;
+}
+
+.super-admin-sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+    color: #FFFFFF !important; /* White icons */
+    font-size: 1.1rem;
+}
+
+/* Ensure all sidebar text and elements are white */
+.super-admin-sidebar,
+.super-admin-sidebar *,
+.super-admin-sidebar .nav-item,
+.super-admin-sidebar .nav-item *,
+.super-admin-sidebar a,
+.super-admin-sidebar span {
+    color: #FFFFFF !important;
+}
+
+/* Override any theme variables that might affect sidebar */
+[data-theme="dark"] .super-admin-sidebar .nav-link,
+[data-theme="dark"] .super-admin-sidebar .nav-link i,
+[data-theme="light"] .super-admin-sidebar .nav-link,
+[data-theme="light"] .super-admin-sidebar .nav-link i {
+    color: #FFFFFF !important;
+}
+
+/* Ensure active state is always visible */
+.super-admin-sidebar .nav-link.active,
+.super-admin-sidebar .nav-link.active i,
+.super-admin-sidebar .nav-link.active span {
+    color: #FFFFFF !important;
+}
+
+.super-admin-sidebar .badge {
+    background: #E11D48 !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    border: none;
+}
+
+/* PART 5: Tables (Core Admin UX) */
+.super-admin-page .table-container {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.super-admin-page .table {
+    margin-bottom: 0;
+}
+
+.super-admin-page .table thead {
+    background: #F8FAFC;
+}
+
+.super-admin-page .table thead th {
+    color: #0F172A;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #E5E7EB;
+    padding: 12px;
+}
+
+.super-admin-page .table tbody td {
+    color: #0F172A;
+    padding: 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.super-admin-page .table tbody tr:hover {
+    background: #F1F5F9;
+    transition: background-color 0.2s ease;
+}
+
+.super-admin-page .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.super-admin-page .badge-success,
+.super-admin-page .badge.bg-success {
+    background: #22C55E !important;
+    color: #FFFFFF !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.super-admin-page .badge-warning,
+.super-admin-page .badge.bg-warning {
+    background: #F59E0B !important;
+    color: #FFFFFF !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.super-admin-page .badge-danger,
+.super-admin-page .badge.bg-danger {
+    background: #DC2626 !important;
+    color: #FFFFFF !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.super-admin-page .badge-secondary,
+.super-admin-page .badge.bg-secondary {
+    background: #64748B !important;
+    color: #FFFFFF !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* PART 6: Forms & Modals */
+.super-admin-page .form-control,
+.super-admin-page .form-select {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    background: #FFFFFF;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .form-control:focus,
+.super-admin-page .form-select:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+.super-admin-page .form-label {
+    color: #0F172A;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.super-admin-page .modal-content {
+    border-radius: 20px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.super-admin-page .modal-header {
+    background: #F8FAFC;
+    border-bottom: 1px solid #E5E7EB;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem;
+}
+
+.super-admin-page .modal-header .modal-title {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+.super-admin-page .modal-body {
+    padding: 1.5rem;
+}
+
+.super-admin-page .modal-footer {
+    border-top: 1px solid #E5E7EB;
+    padding: 1.5rem;
+    border-radius: 0 0 20px 20px;
+}
+
+/* PART 7: Button System */
+.super-admin-page .btn-primary {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-primary:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.super-admin-page .btn-secondary {
+    background-color: #1E293B;
+    border-color: #1E293B;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-secondary:hover {
+    background-color: #0F172A;
+    border-color: #0F172A;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-success {
+    background-color: #22C55E;
+    border-color: #22C55E;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-success:hover {
+    background-color: #16A34A;
+    border-color: #16A34A;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-warning {
+    background-color: #F59E0B;
+    border-color: #F59E0B;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-warning:hover {
+    background-color: #D97706;
+    border-color: #D97706;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-danger {
+    background-color: #DC2626;
+    border-color: #DC2626;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-danger:hover {
+    background-color: #B91C1C;
+    border-color: #B91C1C;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-outline-primary {
+    border-color: #E11D48;
+    color: #E11D48;
+    background-color: transparent;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-outline-primary:hover {
+    background-color: #E11D48;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-outline-secondary {
+    border-color: #1E293B;
+    color: #1E293B;
+    background-color: transparent;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-outline-secondary:hover {
+    background-color: #1E293B;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+.super-admin-page .btn-outline-warning {
+    border-color: #F59E0B;
+    color: #F59E0B;
+    background-color: transparent;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .btn-outline-warning:hover {
+    background-color: #F59E0B;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* PART 8: Micro-Interactions */
+.super-admin-page * {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.super-admin-page button:active,
+.super-admin-page .btn:active {
+    transform: scale(0.97);
+}
+
+.super-admin-page button:disabled,
+.super-admin-page .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Dashboard Cards */
+.super-admin-page .dashboard-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    margin-bottom: 1.5rem;
+}
+
+.super-admin-page .dashboard-card-header {
+    background: #F8FAFC;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px 16px 0 0;
+}
+
+.super-admin-page .dashboard-card-body {
+    padding: 1.5rem;
+}
+
+/* Health Indicators */
+.super-admin-page .health-indicator {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.super-admin-page .health-indicator:hover {
+    background: #F8FAFC;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .super-admin-auth-section {
+        padding: 32px 0;
+    }
+    
+    .super-admin-auth-card {
+        max-width: 100%;
+        margin: 0 16px;
+    }
+    
+    .super-admin-auth-header {
+        padding: 1.5rem;
+    }
+    
+    .super-admin-auth-body {
+        padding: 1.5rem;
+    }
+    
+    .super-admin-sidebar {
+        margin-bottom: 16px;
+    }
+    
+    .super-admin-sidebar .nav-link {
+        color: #FFFFFF !important;
+    }
+    
+    .super-admin-sidebar .nav-link i {
+        color: #FFFFFF !important;
+    }
+    
+    .super-admin-page .table {
+        font-size: 13px;
+    }
+    
+    .super-admin-page .table th,
+    .super-admin-page .table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    .super-admin-page .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

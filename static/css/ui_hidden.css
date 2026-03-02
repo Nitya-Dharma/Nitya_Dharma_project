@@ -1,0 +1,32 @@
+/* UI Hidden - Safety Net for Hidden UI Elements */
+/* Non-destructive CSS fallback to ensure UI elements never leak */
+
+.ui-hidden {
+    display: none !important;
+}
+
+/* Specific classes for Trust/Brand/Social buttons */
+.trust-tab.ui-hidden,
+.brand-tab.ui-hidden,
+.social-tab.ui-hidden {
+    display: none !important;
+}
+
+/* Contact tab hidden state */
+.contact-tab-hidden {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

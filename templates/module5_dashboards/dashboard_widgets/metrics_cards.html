@@ -1,0 +1,32 @@
+
+<div class="row g-3 mb-4">
+    {% for metric in metrics %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="metric-card">
+                {% if metric.icon %}
+                    <div class="mb-2">
+                        <i class="{{ metric.icon }}" style="font-size: 2rem; color: var(--primary-color, #0d6efd);"></i>
+                    </div>
+                {% endif %}
+                <div class="metric-value" aria-label="Metric value: {{ metric.value|default:'0' }}">
+                    {{ metric.value|default:"0" }}
+                </div>
+                <div class="metric-label" id="metric-label-{{ forloop.counter }}">
+                    {{ metric.label|default:"Metric" }}
+                </div>
+                
+                {% if metric.description %}
+                    <div class="mt-2">
+                        <small class="text-muted">{{ metric.description }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        
+        <div class="col-12">
+            <p class="text-muted text-center">No metrics available.</p>
+        </div>
+    {% endfor %}
+</div>
+

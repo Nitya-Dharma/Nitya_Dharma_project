@@ -99,3 +99,50 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Archive of .md docs – do not push to GitHub
+_md_archive/
+
+# Cursor IDE (local)
+.cursor/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

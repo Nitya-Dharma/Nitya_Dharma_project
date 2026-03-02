@@ -1,0 +1,172 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/auth_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/password_toggle.css' %}">
+<script>
+    // Enhanced CSRF token handling - refresh before form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Function to update CSRF token in form
+        function updateCSRFToken() {
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken) {
+                const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+                if (csrfInput) {
+                    csrfInput.value = csrftoken;
+                    console.log('CSRF token updated');
+                } else {
+                    console.warn('CSRF token input not found');
+                }
+            } else {
+                console.warn('CSRF token cookie not found');
+            }
+        }
+        
+        // Update CSRF token on page load
+        updateCSRFToken();
+        
+        // Update CSRF token before form submission
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                // Refresh CSRF token right before submission
+                updateCSRFToken();
+                // Small delay to ensure token is updated
+                setTimeout(function() {
+                    // Form will submit normally
+                }, 10);
+            });
+        }
+        
+        // Also update token periodically (every 30 seconds) to keep it fresh
+        setInterval(updateCSRFToken, 30000);
+    });
+    </script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/password_toggle.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<!-- PART 1 & 3: Premium Generic Login Page -->
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-4">
+                <div class="auth-card">
+                    <!-- PART 1 & 3: Generic Login Header (No Admin Reference) -->
+                    <div class="auth-header">
+                        <h2 class="fw-bold mb-0">Welcome Back</h2>
+                        <p class="mb-0">Sign in to Nitya Dharma</p>
+                    </div>
+                    
+                    <!-- PART 3: Premium Login Body -->
+                    <div class="auth-body">
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'accounts:login' %}" id="login-form">
+                            {% csrf_token %}
+                            
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}">
+                            {% endif %}
+                            
+                            
+                            <!-- PART 4: Fixed Floating Labels (No Overlapping) -->
+                            <div class="form-floating mb-3">
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder=" "
+                                       value="{{ email|default:'' }}" 
+                                       required 
+                                       autofocus>
+                                <label for="email">Email Address</label>
+                            </div>
+                            
+                            
+                            <div class="form-floating mb-3 password-field-wrapper">
+                                <input type="password" 
+                                       class="form-control password-input" 
+                                       id="password" 
+                                       name="password" 
+                                       placeholder=" "
+                                       required>
+                                <label for="password">Password</label>
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        aria-label="Toggle password visibility"
+                                        tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
+                                    <label class="form-check-label small text-muted" for="remember_me">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <div>
+                                    <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none small">
+                                        Forgot Password?
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- PART 3: Primary CTA Button (Accent Color - 10%) -->
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary-cta">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- PART 3: Secondary Links -->
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                Don't have an account? 
+                                <a href="{% url 'accounts:register' %}" class="fw-bold">Register</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

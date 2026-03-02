@@ -1,0 +1,47 @@
+/* ============================================
+   CONTACT REQUESTS ADMIN - PREMIUM UI
+   ============================================ */
+
+.message-box,
+.reply-box {
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 16px;
+    color: #1E293B;
+    line-height: 1.6;
+    margin-top: 8px;
+}
+
+.reply-box {
+    background: #ECFDF5;
+    border-color: #22C55E;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

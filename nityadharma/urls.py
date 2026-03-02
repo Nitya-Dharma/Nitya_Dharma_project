@@ -1,0 +1,55 @@
+"""
+URL configuration for nityadharma project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from pages import views_static
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('core.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('profiles/', include('profiles.urls')),  # Profiles app URLs
+    path('referrals/', include('referrals.urls')),
+    path('dashboard/', include('dashboards.urls')),
+    path('dashboard/super-admin/advertisements/', include(('ads.urls', 'ads'))),
+    path('search/', include(('search.urls', 'search'), namespace='search_ui')),  # UI search pages
+    path('api/search/', include(('search.urls', 'search'), namespace='search_api')),  # API search endpoints
+    path('booking-intent/', include(('booking_intent.urls', 'booking_intent'), namespace='booking_intent_ui')),  # UI booking intent pages
+    path('api/booking-intent/', include(('booking_intent.urls', 'booking_intent'), namespace='booking_intent_api')),  # API booking intent endpoints
+    path('reviews/', include(('reviews.urls', 'reviews'), namespace='reviews_ui')),  # UI reviews pages
+    path('api/reviews/', include(('reviews.urls', 'reviews'), namespace='reviews_api')),  # API reviews endpoints
+    path('api/trust-display/', include('trust_display.urls')),
+    path('api/analytics/', include('analytics.urls')),
+    path('behavior/', include('behavior_engine.urls')),
+    path('notifications/', include('notifications.urls')),  # UI notifications pages
+    path('pages/', include('pages.urls')),  # Pages app URLs (Temple/Pandit Pages)
+    path('masterdata/', include('masterdata.urls')),  # Master data management (Super Admin only)
+    
+    # Static SEO pages (must be before catch-all patterns)
+    path('about-us/', views_static.about_us, name='about_us'),
+    path('terms-and-conditions/', views_static.terms_conditions, name='terms_conditions'),
+    path('privacy-policy/', views_static.privacy_policy, name='privacy_policy'),
+    
+    path('', include('support.urls')),  # Support app URLs (Contact Us)
+    path('branding/', include('branding.urls')),  # Branding management
+]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

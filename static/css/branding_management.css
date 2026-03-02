@@ -1,0 +1,268 @@
+/* Branding Management UI - Premium 60-30-10 Design System */
+
+/* Color System */
+:root {
+    --primary-bg: #FFFFFF;
+    --primary-bg-alt: #F8FAFC;
+    --secondary-text: #0F172A;
+    --secondary-text-alt: #1E293B;
+    --accent: #E11D48;
+    --accent-dark: #BE123C;
+    --border: #E5E7EB;
+    --muted: #64748B;
+    --success: #22C55E;
+}
+
+.branding-container {
+    padding: 24px 0;
+}
+
+/* Premium Card */
+.branding-card {
+    background: var(--primary-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.branding-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+}
+
+.card-header-premium {
+    background: var(--primary-bg-alt);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+}
+
+.card-header-premium h5 {
+    color: var(--secondary-text);
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-body-premium {
+    padding: 24px;
+}
+
+/* Form Styling */
+.branding-card .form-label {
+    color: var(--secondary-text-alt);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+}
+
+.branding-card .form-control,
+.branding-card .form-select {
+    border-radius: 10px;
+    min-height: 44px;
+    border: 1px solid var(--border);
+    padding: 0.625rem 1rem;
+    transition: all 0.2s ease;
+    color: var(--secondary-text-alt);
+}
+
+.branding-card .form-control:focus,
+.branding-card .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+.branding-card .form-control::file-selector-button {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--primary-bg-alt);
+    padding: 0.5rem 1rem;
+    margin-right: 0.75rem;
+    color: var(--secondary-text-alt);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.branding-card .form-control::file-selector-button:hover {
+    background: var(--border);
+}
+
+/* Primary Premium Button */
+.btn-primary-premium {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-premium:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    color: #FFFFFF;
+}
+
+/* Logo Cards */
+.logo-type-section {
+    margin-bottom: 32px;
+}
+
+.logo-type-title {
+    color: var(--secondary-text);
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+}
+
+.logo-card {
+    background: var(--primary-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.logo-card.logo-active {
+    border-color: var(--success);
+    border-width: 2px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%);
+}
+
+.logo-preview {
+    background: var(--primary-bg-alt);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    border: 1px solid var(--border);
+}
+
+.logo-img {
+    max-height: 80px;
+    max-width: 100%;
+    object-fit: contain;
+    width: auto;
+}
+
+.logo-placeholder {
+    color: var(--muted);
+    font-size: 2rem;
+}
+
+.logo-info {
+    flex-grow: 1;
+}
+
+.logo-name {
+    color: var(--secondary-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+}
+
+.logo-meta {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+}
+
+/* Active Badge */
+.badge-active {
+    background: var(--success);
+    color: #FFFFFF;
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Activate Button */
+.btn-activate {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-activate:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.3);
+    color: #FFFFFF;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+}
+
+.empty-text {
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .branding-container {
+        padding: 16px 0;
+    }
+    
+    .card-body-premium {
+        padding: 16px;
+    }
+    
+    .logo-card {
+        margin-bottom: 16px;
+    }
+    
+    .logo-preview {
+        min-height: 100px;
+    }
+    
+    .logo-img {
+        max-height: 60px;
+    }
+    
+    .btn-primary-premium {
+        width: 100%;
+    }
+}
+
+
+
+
+
+
+
+
+

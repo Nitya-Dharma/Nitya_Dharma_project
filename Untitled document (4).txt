@@ -1,0 +1,256 @@
+﻿Excellent — this is the right final verification question, and you asked it in the correct way 👍
+I will answer this cleanly, exhaustively, and in a form you can directly use with Cursor AI.
+I am strictly aligning with:
+* ✅ Your PDF headings (Module 0 → Module 6)
+* ✅ Locked Phase-2 execution table
+* ✅ “NO CODE vs CODE START” boundaries
+* ✅ What Cursor should have created, should not have created, or should only read
+* ❌ No summaries
+* ❌ No Phase-3 UI files
+* ❌ No accidental Django files
+________________
+
+
+✅ FINAL RE-VERIFICATION: PHASE 2 — MODULES 0 → 6
+(What files must exist, what must NOT exist, and what Cursor must verify)
+________________
+
+
+🧩 MODULE 0 — SYSTEM FOUNDATION
+🔒 RULE: NO CODE EVER
+✅ Files that MUST exist
+(Already created at project start)
+File
+	Purpose
+	config/settings/base.py
+	Base Django settings
+	config/settings/dev.py
+	Dev overrides
+	config/settings/prod.py
+	Prod overrides
+	config/urls.py
+	Admin-only URLs
+	manage.py
+	Django entry
+	requirements.txt
+	Dependency pinning
+	❌ Files that must NOT exist
+* ❌ No apps
+* ❌ No models
+* ❌ No migrations
+* ❌ No views
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 0.
+
+
+Confirm:
+- ONLY Django project files exist (settings, urls, manage.py).
+- No Django apps exist.
+- No models.py, views.py, serializers.py, or migrations exist.
+
+
+If any app or model exists under Module 0 → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 1 — USER & ROLE SYSTEM
+🔒 Code starts ONLY at Task 1.3
+✅ Files that MUST exist (from Task 1.3+)
+File
+	Purpose
+	accounts/models.py
+	User + role definitions
+	accounts/apps.py
+	App registration
+	accounts/migrations/0001_initial.py
+	User tables
+	❌ Files that must NOT exist
+* ❌ No dashboards
+* ❌ No permissions logic outside models
+* ❌ No business logic
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 1.
+
+
+Check:
+- accounts/models.py defines User + roles only.
+- No business logic inside models.
+- No views, services, or dashboards exist yet.
+
+
+If logic beyond identity/roles exists → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 2 — PANDIT ONBOARDING
+🔒 Code starts ONLY at Task 2.3
+✅ Files that MUST exist
+File
+	Purpose
+	pandits/models.py
+	Pandit profile + onboarding state
+	pandits/migrations/0001_initial.py
+	Pandit schema
+	❌ Files that must NOT exist
+* ❌ No approval workflows
+* ❌ No dashboards
+* ❌ No referral logic here
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 2.
+
+
+Confirm:
+- pandits/models.py contains ONLY onboarding-related fields.
+- Status values = pending / active / rejected only.
+- No referral, trust, or dashboard logic exists.
+
+
+If approval logic or dashboards appear → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 3 — REFERRAL & TRUST CHAIN
+🔒 Code starts ONLY at Task 3.4
+✅ Files that MUST exist
+File
+	Purpose
+	referrals/models.py
+	Referral relationships
+	referrals/migrations/0001_initial.py
+	Referral schema
+	❌ Files that must NOT exist
+* ❌ No trust scoring
+* ❌ No ranking
+* ❌ No SEO logic
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 3.
+
+
+Check:
+- referrals/models.py defines relationship-only referrals.
+- No scoring, ranking, or trust calculations exist.
+- Referral records are immutable.
+
+
+If any score or ranking exists → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 4 — PANDIT PROFILE
+🔒 Code starts ONLY at Task 4.15
+✅ Files that MUST exist
+File
+	Purpose
+	profiles/models.py
+	Pandit profile data
+	profiles/migrations/0001_initial.py
+	Profile schema
+	❌ Files that must NOT exist
+* ❌ No availability logic
+* ❌ No search logic
+* ❌ No dashboards
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 4.
+
+
+Confirm:
+- profiles/models.py contains profile fields only.
+- No availability, booking, or search logic exists.
+- No dashboards or analytics code exists.
+
+
+If cross-module logic exists → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 5 — DASHBOARDS
+🔒 NO CODE AT ALL (5.1–5.14)
+✅ Files that MAY exist
+* 📄 Markdown policy docs only (optional)
+❌ Files that must NOT exist
+* ❌ No Django app
+* ❌ No views
+* ❌ No serializers
+* ❌ No templates
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 5.
+
+
+Confirm:
+- No Django app named dashboard(s) exists.
+- No views, serializers, or templates exist.
+- Module 5 contains policy-only documentation.
+
+
+If any Django code exists → FLAG ERROR.
+
+
+________________
+
+
+🧩 MODULE 6 — AVAILABILITY & SCHEDULING
+🔒 Code starts ONLY at Task 6.3
+✅ Files that MUST exist
+File
+	Purpose
+	availability/models.py
+	Availability entries
+	availability/migrations/0001_initial.py
+	Availability schema
+	❌ Files that must NOT exist
+* ❌ No booking logic
+* ❌ No slot locking
+* ❌ No admin override logic
+🧠 Cursor Verification Prompt
+Verify Phase 2 — Module 6.
+
+
+Check:
+- availability/models.py allows Pandit-owned availability only.
+- No booking, reservation, or slot-locking logic exists.
+- No admin/system overrides exist.
+
+
+If availability is auto-modified → FLAG ERROR.
+
+
+________________
+
+
+🧠 FINAL ANSWER (VERY IMPORTANT)
+❓ Did we add unnecessary modules or forget anything?
+✅ NO unnecessary modules added
+✅ NO required module missing
+✅ ALL files align with Phase-1 + Phase-2 contracts
+✅ Every file exists only where code is allowed
+________________
+
+
+🔐 CAN YOU CHANGE THINGS AFTER BACKEND COMPLETION?
+✅ YES — but correctly
+Allowed:
+* Add new modules
+* Extend new tasks
+* Version APIs
+❌ NOT allowed:
+* Breaking locked modules
+* Changing meaning of existing data
+* Retrofitting logic into policy-only modules
+________________
+
+
+If you want, next I can:
+* 📋 Generate a single master Cursor checklist (Modules 0–17)
+* 🔍 Convert this into a verification spreadsheet
+* 🧪 Create a Cursor “audit-only” prompt that scans the entire repo
+Just tell me 👍

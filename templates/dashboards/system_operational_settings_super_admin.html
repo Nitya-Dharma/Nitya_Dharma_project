@@ -1,0 +1,70 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}System Operational Settings - Super Admin{% endblock %}
+
+{% block dashboard_heading %}System Operational Settings{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Edit only the 6 approved operational values. All changes are audit-logged. Security-critical settings are not exposed here.</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Operational Settings</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>Current Value</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for setting in settings_data %}
+                            <tr>
+                                <td>{{ setting.label }}</td>
+                                <td>
+                                    <input type="number"
+                                           name="{{ setting.key }}"
+                                           value="{{ setting.current }}"
+                                           min="{{ setting.min }}"
+                                           max="{{ setting.max }}"
+                                           class="form-control">
+                                </td>
+                                <td>{{ setting.default }}</td>
+                                <td>{{ setting.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
+                    <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

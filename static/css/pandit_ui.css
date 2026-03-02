@@ -1,0 +1,597 @@
+/* ============================================
+   PANDIT UI PREMIUM REDESIGN - PART 1
+   Global Foundation & Dashboard
+   ============================================ */
+
+/* UNIT 18: Global Motion & Transitions */
+.pandit-page *,
+.pandit-page *::before,
+.pandit-page *::after,
+.pandit-profile-edit *,
+.pandit-profile-edit *::before,
+.pandit-profile-edit *::after,
+.pandit-public-profile *,
+.pandit-public-profile *::before,
+.pandit-public-profile *::after {
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+/* UNIT 1: Pandit UI Global Foundation */
+
+/* Premium Card Foundation */
+.pandit-page .premium-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    transition: all 0.25s ease;
+}
+
+/* UNIT 19: Card Micro-Interactions */
+.pandit-page .premium-card:hover,
+.pandit-profile-edit .premium-card:hover,
+.pandit-public-profile .premium-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* Section Spacing */
+.pandit-page .section-padding {
+    padding: 48px 0;
+}
+
+/* Accent Border */
+.pandit-page .border-accent {
+    border-left: 4px solid #E11D48;
+}
+
+/* Muted Text */
+.pandit-page .muted {
+    color: #64748B;
+}
+
+/* Background Colors */
+.pandit-page .bg-slate-50 {
+    background-color: #F8FAFC;
+}
+
+/* UNIT 3: Pandit Sidebar Styling */
+.pandit-page .dashboard-sidebar .card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.pandit-page .dashboard-sidebar .nav-link {
+    padding: 12px 16px;
+    display: block;
+    color: #0F172A;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.pandit-page .dashboard-sidebar .nav-link:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.pandit-page .dashboard-sidebar .nav-link.active {
+    background: #F8FAFC;
+    border-left: 4px solid #E11D48;
+    font-weight: 600;
+    color: #E11D48;
+}
+
+.pandit-page .dashboard-sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+/* UNIT 4: Pandit Dashboard Cards (Stats/Info) */
+.pandit-page .dashboard-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s ease;
+    margin-bottom: 1.5rem;
+}
+
+.pandit-page .dashboard-card:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+    transform: translateY(-2px);
+}
+
+.pandit-page .dashboard-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #E5E7EB;
+    background: #F8FAFC;
+    border-radius: 16px 16px 0 0;
+}
+
+.pandit-page .dashboard-card-header h3,
+.pandit-page .dashboard-card-header h5 {
+    color: #0F172A;
+    font-weight: 600;
+    margin: 0;
+}
+
+.pandit-page .dashboard-card-body {
+    padding: 1.5rem;
+}
+
+/* Metric Cards */
+.pandit-page .metric-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pandit-page .metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+    border-color: #E11D48;
+}
+
+.pandit-page .metric-card.border-accent {
+    border-left: 4px solid #E11D48;
+}
+
+.pandit-page .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0.5rem 0;
+}
+
+.pandit-page .metric-label {
+    font-size: 0.875rem;
+    color: #64748B;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.pandit-page .metric-card i {
+    color: #E11D48;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Typography */
+.pandit-page h1,
+.pandit-page h2,
+.pandit-page h3,
+.pandit-page h4,
+.pandit-page h5,
+.pandit-page h6 {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+.pandit-page .text-muted {
+    color: #64748B;
+}
+
+/* Buttons */
+.pandit-page .btn-primary {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.625rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+/* UNIT 20: Button Interaction States */
+.pandit-page .btn-primary:hover,
+.pandit-profile-edit .btn-danger:hover,
+.pandit-public-profile .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.pandit-page .btn-success:hover,
+.pandit-public-profile .btn-success:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+}
+
+.pandit-page button:active,
+.pandit-profile-edit button:active,
+.pandit-public-profile button:active,
+.pandit-page .btn:active,
+.pandit-profile-edit .btn:active,
+.pandit-public-profile .btn:active {
+    transform: scale(0.97);
+}
+
+/* Alerts */
+.pandit-page .alert {
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.pandit-page .alert-warning {
+    background-color: #FEF3C7;
+    border-color: #FCD34D;
+    color: #92400E;
+}
+
+.pandit-page .alert-info {
+    background-color: #DBEAFE;
+    border-color: #60A5FA;
+    color: #1E40AF;
+}
+
+.pandit-page .alert-success {
+    background-color: #D1FAE5;
+    border-color: #34D399;
+    color: #065F46;
+}
+
+/* Tabs */
+.pandit-page .nav-tabs {
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.pandit-page .nav-tabs .nav-link {
+    color: #64748B;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-page .nav-tabs .nav-link:hover {
+    color: #0F172A;
+    border-bottom-color: #E5E7EB;
+}
+
+.pandit-page .nav-tabs .nav-link.active {
+    color: #E11D48;
+    border-bottom-color: #E11D48;
+    font-weight: 600;
+    background: transparent;
+}
+
+/* UNIT 7: Form Field UX Improvements */
+.pandit-profile-edit .form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #0F172A;
+}
+
+.pandit-profile-edit .form-control,
+.pandit-profile-edit .form-select {
+    border-radius: 12px;
+    min-height: 44px;
+    border: 1px solid #E5E7EB;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-profile-edit .form-control:focus,
+.pandit-profile-edit .form-select:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+/* UNIT 21: Form Focus & Accessibility */
+.pandit-profile-edit input:focus-visible,
+.pandit-profile-edit select:focus-visible,
+.pandit-profile-edit textarea:focus-visible,
+.pandit-page input:focus-visible,
+.pandit-page select:focus-visible,
+.pandit-page textarea:focus-visible,
+.pandit-public-profile input:focus-visible,
+.pandit-public-profile select:focus-visible,
+.pandit-public-profile textarea:focus-visible {
+    outline: 2px solid #E11D48;
+    outline-offset: 2px;
+}
+
+.pandit-profile-edit .form-control::placeholder,
+.pandit-page .form-control::placeholder,
+.pandit-public-profile .form-control::placeholder,
+.pandit-profile-edit ::placeholder,
+.pandit-page ::placeholder,
+.pandit-public-profile ::placeholder {
+    color: #94A3B8;
+}
+
+.pandit-profile-edit textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* UNIT 8: Contact Numbers Styling */
+.pandit-profile-edit .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 6px;
+    border: 2px solid #E5E7EB;
+    cursor: pointer;
+}
+
+.pandit-profile-edit .form-check-input:checked {
+    background-color: #E11D48;
+    border-color: #E11D48;
+}
+
+.pandit-profile-edit .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+/* UNIT 10: Button Styling */
+.pandit-profile-edit .btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-profile-edit .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.pandit-profile-edit .btn-outline-secondary {
+    border-color: #E5E7EB;
+    color: #64748B;
+    font-weight: 500;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-profile-edit .btn-outline-secondary:hover {
+    background-color: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #0F172A;
+}
+
+/* UNIT 9: Availability Summary Styling */
+.pandit-page .availability-summary-section {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    padding: 1.5rem;
+}
+
+.pandit-page .availability-summary-section h2 {
+    color: #0F172A;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* UNIT 14: Pooja & Language Chips */
+.pooja-chip {
+    background: #F1F5F9;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #0F172A;
+    font-weight: 500;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* UNIT 12: Public Profile Hero Styling */
+.pandit-public-profile .premium-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s ease;
+}
+
+.pandit-public-profile .premium-card:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+/* UNIT 16: CTA Sidebar Styling */
+.pandit-public-profile .sticky-top {
+    position: sticky;
+    top: 20px;
+}
+
+.pandit-public-profile .btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-public-profile .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.pandit-public-profile .btn-success {
+    background-color: #16A34A;
+    border-color: #16A34A;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-public-profile .btn-success:hover {
+    background-color: #15803D;
+    border-color: #15803D;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.pandit-public-profile .btn-outline-success {
+    border-color: #22C55E;
+    color: #22C55E;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.pandit-public-profile .btn-outline-success:hover {
+    background-color: #22C55E;
+    border-color: #22C55E;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* UNIT 23: Visual Consistency Audit - Enforce Design System */
+/* All cards must use .premium-card */
+.pandit-page .card,
+.pandit-profile-edit .card,
+.pandit-public-profile .card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+/* Consistent section spacing */
+.pandit-page .section-padding,
+.pandit-profile-edit .section-padding,
+.pandit-public-profile .section-padding {
+    padding: 48px 0;
+}
+
+/* Accent color usage - ONLY for primary CTAs, active nav, focus */
+.pandit-page .nav-link.active,
+.pandit-profile-edit .nav-link.active,
+.pandit-public-profile .nav-link.active {
+    color: #E11D48;
+    border-color: #E11D48;
+}
+
+/* Muted text for metadata only */
+.pandit-page .muted,
+.pandit-profile-edit .muted,
+.pandit-public-profile .muted,
+.pandit-page .text-muted,
+.pandit-profile-edit .text-muted,
+.pandit-public-profile .text-muted {
+    color: #64748B;
+}
+
+/* Ensure no hard-coded colors - use palette variables */
+.pandit-page h1,
+.pandit-page h2,
+.pandit-page h3,
+.pandit-page h4,
+.pandit-page h5,
+.pandit-page h6,
+.pandit-profile-edit h1,
+.pandit-profile-edit h2,
+.pandit-profile-edit h3,
+.pandit-profile-edit h4,
+.pandit-profile-edit h5,
+.pandit-profile-edit h6,
+.pandit-public-profile h1,
+.pandit-public-profile h2,
+.pandit-public-profile h3,
+.pandit-public-profile h4,
+.pandit-public-profile h5,
+.pandit-public-profile h6 {
+    color: #0F172A;
+}
+
+/* Consistent border radius */
+.pandit-page .premium-card,
+.pandit-profile-edit .premium-card,
+.pandit-public-profile .premium-card {
+    border-radius: 16px;
+}
+
+.pandit-page .btn,
+.pandit-profile-edit .btn,
+.pandit-public-profile .btn {
+    border-radius: 12px;
+}
+
+/* UNIT 22: Mobile-First Final Tuning */
+@media (max-width: 768px) {
+    .pandit-page .section-padding,
+    .pandit-profile-edit .section-padding,
+    .pandit-public-profile .section-padding {
+        padding: 32px 0;
+    }
+    
+    .pandit-page .dashboard-card,
+    .pandit-profile-edit .premium-card,
+    .pandit-public-profile .premium-card {
+        margin-bottom: 16px;
+    }
+    
+    .pandit-profile-edit .premium-card {
+        padding: 1.5rem !important;
+    }
+    
+    .pandit-page .metric-card {
+        padding: 1rem;
+    }
+    
+    .pandit-page .metric-value {
+        font-size: 1.5rem;
+    }
+    
+    /* Touch-friendly buttons */
+    .pandit-page button,
+    .pandit-page .btn,
+    .pandit-profile-edit button,
+    .pandit-profile-edit .btn,
+    .pandit-public-profile button,
+    .pandit-public-profile .btn {
+        min-height: 48px;
+    }
+    
+    .pandit-profile-edit .btn-danger,
+    .pandit-profile-edit .btn-outline-secondary {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* UNIT 17: Mobile UX for Public Profile */
+    .pandit-public-profile .sticky-top {
+        position: static;
+    }
+    
+    .pandit-public-profile .btn-danger,
+    .pandit-public-profile .btn-success,
+    .pandit-public-profile .btn-outline-success {
+        width: 100%;
+        margin-bottom: 0.75rem;
+    }
+}
+

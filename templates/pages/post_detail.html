@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - {{ page.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'pages:page_detail' page_public_id=page.public_id %}">{{ page.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Post Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-warning text-dark me-2">
+                        {% if post.is_pinned %}
+                        <i class="bi bi-pin-angle-fill"></i> Pinned
+                        {% endif %}
+                    </span>
+                    <span class="badge bg-info">{{ post.get_post_type_display }}</span>
+                </div>
+                <small>{{ post.created_at|date:"M d, Y" }}</small>
+            </div>
+        </div>
+        <div class="card-body">
+            <h2 class="card-title mb-3">{{ post.title }}</h2>
+            <div class="card-text">
+                {{ post.content|linebreaks }}
+            </div>
+            
+            {% if post.post_type == 'EVENT' %}
+            <div class="mt-4 p-3 bg-light rounded">
+                <h5 class="mb-3"><i class="bi bi-calendar-event me-2"></i>Event Details</h5>
+                {% if post.event_date %}
+                <p class="mb-2">
+                    <strong><i class="bi bi-calendar me-2"></i>Date & Time:</strong>
+                    {{ post.event_date|date:"F d, Y" }} at {{ post.event_date|time:"g:i A" }}
+                </p>
+                {% endif %}
+                {% if post.event_location %}
+                <p class="mb-0">
+                    <strong><i class="bi bi-geo-alt me-2"></i>Location:</strong>
+                    {{ post.event_location }}
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="mt-4 pt-3 border-top">
+                <small class="text-muted">
+                    <i class="bi bi-person me-1"></i>Posted by {{ post.created_by.get_full_name|default:post.created_by.email }}
+                    {% if post.updated_at != post.created_at %}
+                    <span class="ms-3">
+                        <i class="bi bi-clock me-1"></i>Updated {{ post.updated_at|timesince }} ago
+                    </span>
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Page Button -->
+    <div class="text-center mb-4">
+        <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to {{ page.title }}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

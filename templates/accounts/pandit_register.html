@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pandit Registration - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/password_toggle.css' %}">
+<link rel="stylesheet" href="{% static 'css/pandit_register_ui.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pandit-register-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                <div class="pandit-register-card">
+                    
+                    <div class="pandit-register-header">
+                        <h2>Pandit Registration</h2>
+                        <p>Join Nitya Dharma as a Pandit</p>
+                    </div>
+                    
+                    <div class="pandit-register-body">
+                        
+                        {% if registration_success %}
+                            <div class="pandit-alert-success">
+                                <h5><i class="bi bi-check-circle me-2"></i>Registration Successful!</h5>
+                                <p class="mb-0">Your Pandit account has been created. Please check your email (<strong>{{ user_email }}</strong>) to verify your address. Your account is pending admin approval.</p>
+                            </div>
+                            
+                            <div class="pandit-info-note">
+                                <h6><i class="bi bi-info-circle me-2"></i>What's Next?</h6>
+                                <ol class="mb-0">
+                                    <li><strong>Verify Your Email:</strong> Check your inbox and click the verification link</li>
+                                    <li><strong>Wait for Approval:</strong> An Admin Pandit will review your profile</li>
+                                    <li><strong>Get Access:</strong> Once approved, you can log in and access your dashboard</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="{% url 'accounts:login' %}" class="pandit-btn-register">Go to Login</a>
+                            </div>
+                            
+                        {% elif referral_error %}
+                            <div class="pandit-alert-danger" role="alert">
+                                <h5 class="mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Invalid Referral Link</h5>
+                                <p>{{ referral_error }}</p>
+                                <hr style="border-color: #DC2626; opacity: 0.3;">
+                                <p class="mb-2"><strong>How to get a valid referral link:</strong></p>
+                                <ol class="mb-0">
+                                    <li>Contact an <strong>Admin Pandit</strong> or <strong>Super Admin</strong></li>
+                                    <li>They need to log in to their dashboard</li>
+                                    <li>Go to <strong>"Referral Management"</strong> tab</li>
+                                    <li>Click <strong>"Generate New Link"</strong> button</li>
+                                    <li>Copy the generated referral URL and share it with you</li>
+                                </ol>
+                            </div>
+                            
+                        {% else %}
+                            <!-- Registration Steps Indicator -->
+                            <div class="pandit-steps-indicator">
+                                <div class="pandit-step active">
+                                    <div class="pandit-step-number">1</div>
+                                    <div class="pandit-step-label">Enter Details</div>
+                                </div>
+                                <div class="pandit-step">
+                                    <div class="pandit-step-number">2</div>
+                                    <div class="pandit-step-label">Verify Email</div>
+                                </div>
+                                <div class="pandit-step">
+                                    <div class="pandit-step-number">3</div>
+                                    <div class="pandit-step-label">Profile Review</div>
+                                </div>
+                                <div class="pandit-step">
+                                    <div class="pandit-step-number">4</div>
+                                    <div class="pandit-step-label">Dashboard Access</div>
+                                </div>
+                            </div>
+                            
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="pandit-alert-{% if message.tags == 'error' or message.tags == 'danger' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <form method="post" action="{% url 'accounts:pandit_register' referral_token=referral_token %}" id="panditRegisterForm">
+                                {% csrf_token %}
+                                
+                                <!-- Referral Code (Pre-filled, hidden) -->
+                                {% if referral_code %}
+                                    <input type="hidden" name="referral_code" value="{{ referral_code }}" id="referral_code">
+                                {% else %}
+                                    <div class="form-floating mb-3">
+                                        <input type="text" 
+                                               class="form-control {% if referral_error %}is-invalid{% endif %}" 
+                                               id="referral_code" 
+                                               name="referral_code" 
+                                               placeholder=" " 
+                                               value="{{ form_data.referral_code|default:referral_code|default:'' }}"
+                                               required>
+                                        <label for="referral_code">Referral Code <span class="text-danger">*</span></label>
+                                        {% if referral_error %}
+                                            <div class="invalid-feedback">{{ referral_error }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- First Name -->
+                                <div class="form-floating mb-3">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="first_name" 
+                                           name="first_name" 
+                                           placeholder=" " 
+                                           value="{{ form_data.first_name|default:'' }}"
+                                           required>
+                                    <label for="first_name">First Name <span class="text-danger">*</span></label>
+                                </div>
+                                
+                                <!-- Last Name -->
+                                <div class="form-floating mb-3">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="last_name" 
+                                           name="last_name" 
+                                           placeholder=" " 
+                                           value="{{ form_data.last_name|default:'' }}"
+                                           required>
+                                    <label for="last_name">Last Name <span class="text-danger">*</span></label>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="form-floating mb-3">
+                                    <input type="email" 
+                                           class="form-control" 
+                                           id="email" 
+                                           name="email" 
+                                           placeholder=" " 
+                                           value="{{ form_data.email|default:'' }}"
+                                           required>
+                                    <label for="email">Email Address <span class="text-danger">*</span></label>
+                                    <div class="form-text">We'll send a verification email to this address</div>
+                                </div>
+                                
+                                <!-- Password -->
+                                <div class="form-floating mb-3 password-field-wrapper">
+                                    <input type="password" 
+                                           class="form-control password-input" 
+                                           id="password" 
+                                           name="password" 
+                                           placeholder=" " 
+                                           minlength="8"
+                                           required>
+                                    <label for="password">Password <span class="text-danger">*</span></label>
+                                    <button type="button" 
+                                            class="password-toggle" 
+                                            aria-label="Toggle password visibility"
+                                            tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <div class="form-text">Must be at least 8 characters long</div>
+                                </div>
+                                
+                                <!-- Register Button -->
+                                <div class="d-grid">
+                                    <button type="submit" class="pandit-btn-register btn-lg" id="registerBtn">
+                                        <i class="bi bi-person-plus me-2"></i>Register as Pandit
+                                    </button>
+                                </div>
+                                
+                            </form>
+                            
+                            <!-- Information Note -->
+                            <div class="pandit-info-note">
+                                <h6><i class="bi bi-info-circle me-2"></i>Registration Process</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Step 1:</strong> Enter your details above and submit the form</li>
+                                    <li><strong>Step 2:</strong> Check your email and verify your email address</li>
+                                    <li><strong>Step 3:</strong> Wait for Admin Pandit to review and approve your profile</li>
+                                    <li><strong>Step 4:</strong> Once approved, you can log in and access your Pandit Dashboard</li>
+                                </ul>
+                                <hr>
+                                <p class="mb-0 small text-muted">
+                                    <i class="bi bi-shield-check me-1"></i>
+                                    Your account will be created with <strong>pending</strong> status until email verification and admin approval are complete.
+                                </p>
+                            </div>
+                            
+                        {% endif %}
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/password_toggle.js' %}" defer></script>
+<script>
+// Form submission handler
+document.getElementById('panditRegisterForm')?.addEventListener('submit', function(e) {
+    const btn = document.getElementById('registerBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+    }
+});
+</script>
+{% endblock %}
+

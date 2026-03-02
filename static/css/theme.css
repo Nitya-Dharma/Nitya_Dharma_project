@@ -1,0 +1,663 @@
+/* 
+    Phase 3 - Module 4 - Task 4.UI.9
+    Theme CSS - Colors, buttons, navbar styling
+    No logic, styling only
+*/
+
+/* ===========================
+   THEME VARIABLES - LIGHT/DARK MODE
+   Premium Animated Theme Toggle System
+=========================== */
+
+/* LIGHT THEME (Default) */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    
+    /* Premium Design Tokens - End User Profile Redesign */
+    --bg-primary: #F9FAF7;
+    --bg-secondary: #FFFFFF;
+    --bg-section: #F2F4EF;
+    
+    --secondary-main: #3F4E4F;
+    --secondary-light: #7D8F8A;
+    --secondary-border: #D6DED9;
+    
+    --accent-main: #C84B31;
+    --accent-hover: #A63A25;
+    --accent-soft: #F3D1C7;
+    
+    --text-primary: #1F2933;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+    --shadow-md: 0 10px 30px rgba(0,0,0,0.06);
+    
+    /* Theme System Variables - 60-30-10 Design System */
+    --bg-primary-theme: #FFFFFF;
+    --bg-secondary-theme: #F8FAFC;
+    --text-primary-theme: #0F172A;
+    --text-secondary-theme: #1E293B;
+    --accent-theme: #E11D48;
+    --border-color-theme: #E5E7EB;
+    --text-muted-theme: #64748B;
+    --success-theme: #22C55E;
+    --warning-theme: #F59E0B;
+    --danger-theme: #DC2626;
+    --card-bg-theme: #FFFFFF;
+    --navbar-bg-theme: #FFFFFF;
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+    --bg-primary-theme: #0F172A;
+    --bg-secondary-theme: #1E293B;
+    --text-primary-theme: #FFFFFF;
+    --text-secondary-theme: #CBD5E1;
+    --accent-theme: #E11D48;
+    --border-color-theme: #334155;
+    --text-muted-theme: #94A3B8;
+    --success-theme: #22C55E;
+    --warning-theme: #F59E0B;
+    --danger-theme: #DC2626;
+    --card-bg-theme: #1E293B;
+    --navbar-bg-theme: #0F172A;
+    
+    /* Override existing variables for dark mode */
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+    --bg-section: #1E293B;
+    --text-primary: #FFFFFF;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --secondary-border: #334155;
+    --light-color: #1E293B;
+    --dark-color: #FFFFFF;
+}
+
+/* Smooth Global Transitions */
+* {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease;
+}
+
+/* Body Theme Support */
+body {
+    background-color: var(--bg-primary-theme);
+    color: var(--text-primary-theme);
+}
+
+/* ===========================
+   COMPREHENSIVE DARK MODE FIXES
+   Force all components to use theme variables
+=========================== */
+
+/* Navbar Dark Mode Override - COMPREHENSIVE */
+.navbar,
+.navbar-light,
+.navbar-expand-lg,
+.navbar-premium {
+    background-color: var(--navbar-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+}
+
+/* All navbar links and text */
+.navbar a,
+.navbar-brand,
+.navbar-premium a,
+.navbar-premium .navbar-brand,
+.navbar-premium .nav-link,
+.navbar-premium .navbar-nav .nav-link,
+.navbar-premium .navbar-nav .nav-item .nav-link,
+.navbar-premium .poojas-trigger,
+.navbar-premium .dropdown-toggle {
+    color: var(--text-primary-theme) !important;
+}
+
+.navbar a:hover,
+.navbar-premium a:hover,
+.navbar-premium .nav-link:hover,
+.navbar-premium .poojas-trigger:hover {
+    color: var(--accent-theme) !important;
+}
+
+/* Force override Bootstrap navbar-light */
+.navbar-light .navbar-brand,
+.navbar-light .navbar-nav .nav-link,
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link:focus {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Navbar Icons Dark Mode */
+.navbar i,
+.navbar-premium i,
+.navbar-premium .nav-link i,
+.navbar-premium .bi-bell,
+.navbar-premium .bi-gear,
+.navbar-premium .bi-person-circle,
+.navbar-premium .bi-box-arrow-in-right,
+.navbar-premium .bi-chevron-down,
+.navbar-premium .bi-chevron-right,
+.navbar-premium .bi-circle-fill,
+.navbar-premium .poojas-trigger i,
+.navbar-premium .dropdown-toggle::after {
+    color: var(--text-primary-theme) !important;
+}
+
+.navbar a:hover i,
+.navbar-premium a:hover i,
+.navbar-premium .nav-link:hover i,
+.navbar-premium .poojas-trigger:hover i {
+    color: var(--accent-theme) !important;
+}
+
+/* Dropdown Toggle Arrow */
+.navbar-premium .dropdown-toggle::after,
+.navbar-premium .nav-link.dropdown-toggle::after {
+    border-top-color: var(--text-primary-theme) !important;
+}
+
+.navbar-premium .dropdown-toggle:hover::after,
+.navbar-premium .nav-link.dropdown-toggle:hover::after {
+    border-top-color: var(--accent-theme) !important;
+}
+
+/* Dropdown Items */
+.navbar-premium .dropdown-item,
+.navbar-premium .dropdown-item-text {
+    color: var(--text-primary-theme) !important;
+}
+
+.navbar-premium .dropdown-item:hover {
+    color: var(--accent-theme) !important;
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+/* Poojas Dropdown */
+.navbar-premium .pooja-category-header,
+.navbar-premium .pooja-item {
+    color: var(--text-primary-theme) !important;
+}
+
+.navbar-premium .pooja-category-header:hover,
+.navbar-premium .pooja-item:hover {
+    color: var(--accent-theme) !important;
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+/* Additional comprehensive navbar fixes */
+.navbar-premium * {
+    color: inherit;
+}
+
+.navbar-premium .nav-item,
+.navbar-premium .nav-item > *,
+.navbar-premium .navbar-nav > li > a {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Ensure all text in navbar is visible */
+.navbar-premium,
+.navbar-premium .container,
+.navbar-premium .navbar-collapse,
+.navbar-premium .navbar-nav {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Override any Bootstrap default text colors */
+.navbar-premium .text-dark,
+.navbar-premium .text-muted {
+    color: var(--text-primary-theme) !important;
+}
+
+[data-theme="dark"] .navbar-premium .text-dark,
+[data-theme="dark"] .navbar-premium .text-muted {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Cards Dark Mode */
+.card,
+.dashboard-card,
+.notification-card,
+.custom-card {
+    background-color: var(--card-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border: 1px solid var(--border-color-theme) !important;
+}
+
+.card-header {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-bottom: 1px solid var(--border-color-theme) !important;
+}
+
+.card-body {
+    background-color: var(--card-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+}
+
+/* Tabs Dark Mode */
+.nav-tabs {
+    border-bottom: 1px solid var(--border-color-theme) !important;
+}
+
+.nav-tabs .nav-link {
+    color: var(--text-muted-theme) !important;
+    border-color: transparent !important;
+    background-color: transparent !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--accent-theme) !important;
+    border-color: transparent !important;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--accent-theme) !important;
+    border-bottom: 2px solid var(--accent-theme) !important;
+    background-color: transparent !important;
+}
+
+/* Empty States Dark Mode */
+.empty-state,
+.no-data,
+.text-muted {
+    color: var(--text-muted-theme) !important;
+}
+
+/* Buttons Dark Mode */
+.btn-primary {
+    background-color: var(--accent-theme) !important;
+    border-color: var(--accent-theme) !important;
+    color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-theme) !important;
+    opacity: 0.9;
+}
+
+.btn-outline-primary {
+    color: var(--accent-theme) !important;
+    border-color: var(--accent-theme) !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--accent-theme) !important;
+    color: #FFFFFF !important;
+}
+
+.btn-secondary {
+    background-color: var(--bg-secondary-theme) !important;
+    border-color: var(--border-color-theme) !important;
+    color: var(--text-primary-theme) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-secondary-theme) !important;
+    opacity: 0.9;
+}
+
+/* Forms Dark Mode */
+.form-control,
+.form-select,
+textarea {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-color: var(--border-color-theme) !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-color: var(--accent-theme) !important;
+    box-shadow: 0 0 0 0.25rem rgba(225, 29, 72, 0.25) !important;
+}
+
+.form-label {
+    color: var(--text-primary-theme) !important;
+}
+
+/* Dropdowns Dark Mode */
+.dropdown-menu {
+    background-color: var(--card-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border: 1px solid var(--border-color-theme) !important;
+}
+
+.dropdown-item {
+    color: var(--text-primary-theme) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--accent-theme) !important;
+}
+
+.dropdown-divider {
+    border-top-color: var(--border-color-theme) !important;
+}
+
+/* Badges Dark Mode */
+.badge {
+    background-color: var(--accent-theme) !important;
+    color: #FFFFFF !important;
+}
+
+/* Alerts Dark Mode */
+.alert {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-color: var(--border-color-theme) !important;
+}
+
+.alert-success {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    color: var(--success-theme) !important;
+    border-color: var(--success-theme) !important;
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+    color: var(--warning-theme) !important;
+    border-color: var(--warning-theme) !important;
+}
+
+.alert-danger {
+    background-color: rgba(220, 38, 38, 0.1) !important;
+    color: var(--danger-theme) !important;
+    border-color: var(--danger-theme) !important;
+}
+
+/* Tables Dark Mode */
+.table {
+    color: var(--text-primary-theme) !important;
+}
+
+.table thead th {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-color: var(--border-color-theme) !important;
+}
+
+.table tbody td {
+    border-color: var(--border-color-theme) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+/* List Groups Dark Mode */
+.list-group-item {
+    background-color: var(--card-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border-color: var(--border-color-theme) !important;
+}
+
+.list-group-item:hover {
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+/* Modals Dark Mode */
+.modal-content {
+    background-color: var(--card-bg-theme) !important;
+    color: var(--text-primary-theme) !important;
+    border: 1px solid var(--border-color-theme) !important;
+}
+
+.modal-header {
+    background-color: var(--bg-secondary-theme) !important;
+    border-bottom: 1px solid var(--border-color-theme) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color-theme) !important;
+}
+
+/* Strong Override Layer for Dark Theme */
+[data-theme="dark"] * {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary-theme) !important;
+}
+
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-white {
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+[data-theme="dark"] .border {
+    border-color: var(--border-color-theme) !important;
+}
+
+/* Navbar Styling */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: var(--primary-color) !important;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* Card Styling */
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.card-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+/* Profile Image Styling */
+.profile-image img {
+    border: 3px solid var(--light-color);
+}
+
+/* Premium Animated Theme Toggle Switch */
+.theme-toggle {
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-slider {
+    width: 48px;
+    height: 24px;
+    background: var(--border-color-theme, #E5E7EB);
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    position: relative;
+}
+
+.toggle-circle {
+    width: 18px;
+    height: 18px;
+    background: var(--bg-primary-theme, #FFFFFF);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#themeToggle:checked + .toggle-slider {
+    background: var(--accent-theme, #E11D48);
+}
+
+#themeToggle:checked + .toggle-slider .toggle-circle {
+    transform: translateX(24px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .theme-toggle {
+        margin-left: 0.5rem;
+    }
+    
+    .toggle-slider {
+        width: 44px;
+        height: 22px;
+    }
+    
+    .toggle-circle {
+        width: 16px;
+        height: 16px;
+    }
+    
+    #themeToggle:checked + .toggle-slider .toggle-circle {
+        transform: translateX(22px);
+    }
+}
+
+/* Dashboard Theme Extensions */
+.dashboard-container {
+    background-color: var(--bg-primary-theme) !important;
+}
+
+.dashboard-header {
+    background-color: var(--card-bg-theme) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    color: var(--text-primary-theme) !important;
+}
+
+/* Login Page Enhancements */
+.login-container {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.login-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.login-header h2 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.login-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+.login-body {
+    padding: 2.5rem;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 0.75rem;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.info-note {
+    background-color: var(--bg-secondary-theme) !important;
+    border-left: 4px solid #667eea;
+    padding: 1.25rem;
+    border-radius: 0.25rem;
+    margin-top: 1.5rem;
+    color: var(--text-primary-theme) !important;
+}
+.info-note h6 {
+    color: #667eea;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+.info-note ul {
+    margin-bottom: 0.75rem;
+    color: var(--text-primary-theme) !important;
+}
+.info-note hr {
+    margin: 1rem 0;
+    opacity: 0.3;
+    border-color: var(--border-color-theme) !important;
+}
+
+/* ===========================
+   Advertisement containers
+   Responsive script + image ads
+=========================== */
+.ad-container {
+    text-align: center;
+    margin: 10px 0;
+    width: 100%;
+    overflow: hidden;
+}
+.ad-container img,
+.ad-container-img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+

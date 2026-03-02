@@ -7,5 +7,20 @@ mysqlclient>=2.2.0
 # Environment Variables
 python-decouple>=3.8
 
+# Image validation for ad banners (dimensions, format)
+Pillow>=10.0.0
+
 # Additional packages will be added as needed in future modules
+
+
+
+
+
+
+
+
+
+
+
+
 

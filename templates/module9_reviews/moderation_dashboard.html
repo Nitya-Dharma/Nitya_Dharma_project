@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Moderation - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/reviews_advanced.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="moderation-dashboard">
+                <div class="moderation-header">
+                    <h1 style="color: #0F172A; font-weight: 700; margin: 0;">Review Moderation</h1>
+                    <div>
+                        <a href="{% url 'reviews:moderation_dashboard' %}" class="btn btn-outline-secondary">Refresh</a>
+                    </div>
+                </div>
+                
+                <!-- Statistics -->
+                <div class="moderation-stats">
+                    <div class="moderation-stat-card">
+                        <div class="moderation-stat-value" style="color: #DC2626;">{{ stats.total_reported }}</div>
+                        <div class="moderation-stat-label">Reported Reviews</div>
+                    </div>
+                    <div class="moderation-stat-card">
+                        <div class="moderation-stat-value" style="color: #F59E0B;">{{ stats.total_hidden }}</div>
+                        <div class="moderation-stat-label">Hidden Reviews</div>
+                    </div>
+                    <div class="moderation-stat-card">
+                        <div class="moderation-stat-value" style="color: #64748B;">{{ stats.total_reviews }}</div>
+                        <div class="moderation-stat-label">Total Reviews</div>
+                    </div>
+                    <div class="moderation-stat-card">
+                        <div class="moderation-stat-value" style="color: #E11D48;">{{ stats.pending_reports }}</div>
+                        <div class="moderation-stat-label">Pending Reports</div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="mb-4">
+                    <form method="get" class="d-flex gap-2 align-items-center">
+                        <select name="filter" class="form-select" style="max-width: 200px;">
+                            <option value="reported" {% if filter_type == 'reported' %}selected{% endif %}>Reported</option>
+                            <option value="hidden" {% if filter_type == 'hidden' %}selected{% endif %}>Hidden</option>
+                            <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Reviews</option>
+                        </select>
+                        <input type="text" name="search" class="form-control" placeholder="Search reviews..." value="{{ search_query }}" style="max-width: 300px;">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <a href="{% url 'reviews:moderation_dashboard' %}" class="btn btn-outline-secondary">Clear</a>
+                    </form>
+                </div>
+                
+                <!-- Reviews List -->
+                {% if reviews %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Reviewer</th>
+                                <th>Pandit</th>
+                                <th>Rating</th>
+                                <th>Helpful</th>
+                                <th>Reports</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews %}
+                            <tr>
+                                <td>{{ review.id }}</td>
+                                <td>{{ review.user.email }}</td>
+                                <td>{{ review.pandit.email }}</td>
+                                <td>
+                                    {% if review.rating %}
+                                        {{ review.rating }}/5
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ review.helpful_count }}</td>
+                                <td>
+                                    <span class="badge {% if review.reported_count > 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ review.reported_count }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if review.is_hidden %}
+                                        <span class="badge bg-warning">Hidden</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Visible</span>
+                                    {% endif %}
+                                    {% if review.is_verified %}
+                                        <span class="badge bg-info">Verified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="moderation-actions">
+                                        {% if review.is_hidden %}
+                                        <form method="post" action="{% url 'reviews:moderate_review' review.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="unhide">
+                                            <button type="submit" class="moderation-btn moderation-btn-unhide">Unhide</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{% url 'reviews:moderate_review' review.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="hide">
+                                            <button type="submit" class="moderation-btn moderation-btn-hide">Hide</button>
+                                        </form>
+                                        {% endif %}
+                                        
+                                        {% if review.is_verified %}
+                                        <form method="post" action="{% url 'reviews:moderate_review' review.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="unverify">
+                                            <button type="submit" class="moderation-btn moderation-btn-unverify">Unverify</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{% url 'reviews:moderate_review' review.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="verify">
+                                            <button type="submit" class="moderation-btn moderation-btn-verify">Verify</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if pagination.total_pages > 1 %}
+                <nav aria-label="Moderation pagination">
+                    <ul class="pagination">
+                        {% if pagination.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.previous_page_number }}&filter={{ filter_type }}&search={{ search_query }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for i in pagination.total_pages|make_list %}
+                            {% with page_num=forloop.counter %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_num }}&filter={{ filter_type }}&search={{ search_query }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.next_page_number }}&filter={{ filter_type }}&search={{ search_query }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <p class="text-muted">No reviews found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

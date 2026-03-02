@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% load static %}
+{% load review_filters %}
+
+{% block title %}Reviews - {{ pandit.display_name|default:pandit_user.get_full_name }} - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/reviews_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/reviews_advanced.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="mb-2" style="color: #0F172A; font-weight: 700;">Reviews for {{ pandit.display_name|default:pandit_user.get_full_name }}</h1>
+                <p class="text-muted" style="color: #64748B;">What others are saying</p>
+            </div>
+            
+            <!-- Premium Rating Summary with Star Breakdown -->
+            {% if star_breakdown and star_breakdown.total > 0 %}
+            <div class="rating-summary-card">
+                <div class="rating-summary-header">
+                    <div class="rating-summary-average">
+                        {{ star_breakdown.average }} ⭐
+                    </div>
+                    <div class="rating-summary-stars">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= star_breakdown.average %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="rating-summary-count">
+                        Based on {{ star_breakdown.total }} review{{ star_breakdown.total|pluralize }}
+                    </div>
+                </div>
+                
+                <!-- Star Breakdown -->
+                <div class="star-breakdown">
+                    {% for rating in "54321" %}
+                        {% with breakdown=star_breakdown.breakdown|get_item:rating %}
+                        <div class="star-breakdown-item">
+                            <div class="star-breakdown-label">
+                                <span>{{ rating }}</span>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <div class="star-breakdown-bar">
+                                <div class="star-breakdown-bar-fill" style="width: {{ breakdown.percentage }}%"></div>
+                            </div>
+                            <div class="star-breakdown-percentage">
+                                {{ breakdown.count }} ({{ breakdown.percentage }}%)
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif rating_aggregation %}
+            <div class="rating-summary">
+                <div class="rating-summary-average">
+                    {{ rating_aggregation.average_rating|floatformat:1 }} ⭐
+                </div>
+                <div class="rating-summary-count">
+                    Based on {{ rating_aggregation.total_reviews }} review{{ rating_aggregation.total_reviews|pluralize }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Submit Review Button (End Users Only) -->
+            {% if can_submit %}
+            <div class="mb-4">
+                <a href="{% url 'reviews_ui:submit_review' pandit_public_id=pandit_user.public_id %}" class="review-btn-submit" style="display: inline-block; text-decoration: none; text-align: center;">
+                    <i class="bi bi-pencil-square me-2"></i>Write a Review
+                </a>
+            </div>
+            {% elif not user.is_authenticated %}
+            <div class="mb-4">
+                <a href="{% url 'accounts:login' %}?next={% url 'reviews_ui:pandit_reviews' pandit_public_id=pandit_user.public_id %}" class="review-btn-submit" style="display: inline-block; text-decoration: none; text-align: center; background: #1E293B;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Write Review
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Sort Dropdown -->
+            {% if reviews %}
+            <div class="review-sort">
+                <label class="review-sort-label">Sort by:</label>
+                <select class="review-sort-select" id="reviewSort">
+                    <option value="newest">Newest First</option>
+                    <option value="highest">Highest Rating</option>
+                    <option value="lowest">Lowest Rating</option>
+                    <option value="most_helpful">Most Helpful</option>
+                </select>
+            </div>
+            {% endif %}
+            
+            <!-- Reviews List -->
+            {% if reviews %}
+                <div id="reviewsList">
+                    {% for review in reviews %}
+                    <div class="review-card-premium {% if review.is_hidden %}is-hidden{% endif %}" data-rating="{{ review.rating|default:0 }}" data-helpful="{{ review.helpful_count }}" data-date="{{ review.created_at|date:'U' }}">
+                        {% if review.is_hidden %}
+                        <div class="review-hidden-message">
+                            <i class="bi bi-shield-exclamation"></i>
+                            This review is under moderation
+                        </div>
+                        {% endif %}
+                        
+                        <div class="review-header-premium">
+                            <div class="review-author-premium">
+                                <div class="review-author-info">
+                                    <div class="review-author-name">
+                                        {{ review.user.first_name|default:"User" }}
+                                        {% if review.is_verified %}
+                                        <span class="verified-badge">
+                                            <i class="bi bi-check-circle-fill"></i>Verified
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="review-date-premium">{{ review.created_at|date:"F d, Y" }}</div>
+                                </div>
+                            </div>
+                            {% if review.rating %}
+                            <div class="review-rating-premium">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if review.title %}
+                        <h3 class="review-title-premium">{{ review.title }}</h3>
+                        {% endif %}
+                        
+                        <p class="review-message-premium">{{ review.review_text }}</p>
+                        
+                        <div class="review-actions-premium">
+                            {% if user.is_authenticated and review.user_id != user.id %}
+                            <button type="button" 
+                                    class="review-helpful-btn {% if review.id in user_helpful_votes %}is-voted{% endif %}"
+                                    data-review-id="{{ review.id }}"
+                                    onclick="voteHelpful({{ review.id }})">
+                                <i class="bi bi-hand-thumbs-up{% if review.id in user_helpful_votes %}-fill{% endif %}"></i>
+                                <span>Helpful</span>
+                                {% if review.helpful_count > 0 %}
+                                <span class="review-helpful-count">({{ review.helpful_count }})</span>
+                                {% endif %}
+                            </button>
+                            
+                            <button type="button" 
+                                    class="review-report-btn"
+                                    onclick="reportReview('{{ review.public_id }}')">
+                                <i class="bi bi-flag"></i>
+                                <span>Report</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if pagination.total_pages > 1 %}
+                <nav aria-label="Reviews pagination">
+                    <ul class="pagination reviews-pagination">
+                        {% if pagination.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for i in pagination.total_pages|make_list %}
+                            {% with page_num=forloop.counter %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="reviews-empty-state">
+                    <div class="reviews-empty-state-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <p class="reviews-empty-state-text">No reviews yet. Be the first to review this Pandit!</p>
+                    {% if can_submit %}
+                    <a href="{% url 'reviews_ui:submit_review' pandit_public_id=pandit_user.public_id %}" class="review-btn-submit" style="display: inline-block; text-decoration: none; text-align: center; max-width: 300px;">
+                        <i class="bi bi-pencil-square me-2"></i>Write First Review
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle';
+    toast.innerHTML = `
+        <i class="bi bi-${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Vote helpful
+function voteHelpful(reviewId) {
+    const btn = document.querySelector(`[data-review-id="${reviewId}"]`);
+    if (!btn) return;
+    
+    if (btn.classList.contains('is-voted')) {
+        showToast('You have already marked this review as helpful', 'info');
+        return;
+    }
+    
+    fetch(`/api/reviews/review/${reviewId}/helpful/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.classList.add('is-voted');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'bi bi-hand-thumbs-up-fill';
+            const countSpan = btn.querySelector('.review-helpful-count');
+            if (countSpan) {
+                countSpan.textContent = `(${data.helpful_count})`;
+            } else {
+                const count = document.createElement('span');
+                count.className = 'review-helpful-count';
+                count.textContent = `(${data.helpful_count})`;
+                btn.appendChild(count);
+            }
+            showToast('Review marked as helpful', 'success');
+        } else {
+            showToast(data.error || 'An error occurred', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while voting', 'error');
+    });
+}
+
+// Report review
+function reportReview(publicId) {
+    if (!confirm('Are you sure you want to report this review?')) {
+        return;
+    }
+    
+    const reason = prompt('Please select a reason:\n1. Spam\n2. Inappropriate Content\n3. Fake Review\n4. Offensive Language\n5. Other\n\nEnter number (1-5):');
+    if (!reason) return;
+    
+    const reasonMap = {
+        '1': 'spam',
+        '2': 'inappropriate',
+        '3': 'fake',
+        '4': 'offensive',
+        '5': 'other'
+    };
+    
+    fetch(`/api/reviews/${publicId}/report-advanced/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            reason: reasonMap[reason] || 'other',
+            reason_text: ''
+        }),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Review reported successfully', 'success');
+        } else {
+            showToast(data.error || 'An error occurred', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while reporting', 'error');
+    });
+}
+
+// Sort reviews
+document.addEventListener('DOMContentLoaded', function() {
+    const sortSelect = document.getElementById('reviewSort');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const reviews = Array.from(document.querySelectorAll('.review-card-premium'));
+            const container = document.getElementById('reviewsList');
+            if (!container) return;
+            
+            reviews.sort((a, b) => {
+                switch(this.value) {
+                    case 'newest':
+                        return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                    case 'highest':
+                        return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+                    case 'lowest':
+                        return parseInt(a.dataset.rating) - parseInt(b.dataset.rating);
+                    case 'most_helpful':
+                        return parseInt(b.dataset.helpful) - parseInt(a.dataset.helpful);
+                    default:
+                        return 0;
+                }
+            });
+            
+            reviews.forEach(review => container.appendChild(review));
+        });
+    }
+});
+</script>
+{% endblock %}
+

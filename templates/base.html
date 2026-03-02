@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Favicon -->
+    {% if active_favicon and active_favicon.favicon_image %}
+    <link rel="icon" type="image/png" href="{{ active_favicon.favicon_image.url }}">
+    {% elif active_favicon and active_favicon.logo_image %}
+    <link rel="icon" type="image/png" href="{{ active_favicon.logo_image.url }}">
+    {% elif site_branding and site_branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ site_branding.favicon.url }}">
+    {% endif %}
+    
+    <title>{% block title %}{% if seo_title %}{{ seo_title }}{% else %}Nitya Dharma - Find Your Perfect Pandit{% endif %}{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    {% if seo_description %}
+    <meta name="description" content="{{ seo_description }}">
+    {% endif %}
+    {% if seo_keywords %}
+    <meta name="keywords" content="{{ seo_keywords }}">
+    {% endif %}
+    {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    {% endif %}
+    
+    <!-- Open Graph Meta Tags -->
+    {% if og_title %}
+    <meta property="og:title" content="{{ og_title }}">
+    {% endif %}
+    {% if og_description %}
+    <meta property="og:description" content="{{ og_description }}">
+    {% endif %}
+    {% if og_type %}
+    <meta property="og:type" content="{{ og_type }}">
+    {% endif %}
+    {% if og_image %}
+    <meta property="og:image" content="{{ og_image }}">
+    <meta name="robots" content="max-image-preview:large">
+    {% endif %}
+    {% if canonical_url %}
+    <meta property="og:url" content="{{ canonical_url }}">
+    {% endif %}
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    {% if og_title %}
+    <meta name="twitter:title" content="{{ og_title }}">
+    {% endif %}
+    {% if og_description %}
+    <meta name="twitter:description" content="{{ og_description }}">
+    {% endif %}
+    {% if og_image %}
+    <meta name="twitter:image" content="{{ og_image }}">
+    {% endif %}
+    
+    <!-- Global Organization Schema -->
+    {% load static %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "{% if site_branding and site_branding.site_name %}{{ site_branding.site_name }}{% else %}Nitya Dharma{% endif %}",
+      "url": "{% if request %}{{ request.build_absolute_uri|slice:':-1' }}{% else %}https://nityadharma.com{% endif %}",
+      "logo": "{% if site_branding and site_branding.primary_logo %}{% if request %}{{ request.build_absolute_uri|slice:':-1' }}{{ site_branding.primary_logo.url }}{% else %}https://nityadharma.com{{ site_branding.primary_logo.url }}{% endif %}{% else %}{% if request %}{{ request.build_absolute_uri|slice:':-1' }}{% static 'images/logo.png' %}{% else %}https://nityadharma.com{% static 'images/logo.png' %}{% endif %}{% endif %}",
+      "description": "Nitya Dharma - Connecting devotees with verified pandits for authentic religious ceremonies and poojas",
+      "sameAs": []
+    }
+    </script>
+    
+    <!-- Extra head content (additional SEO meta tags, etc.) -->
+    {% block extra_head %}{% endblock %}
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar_premium.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer_premium.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar_dark_mode_fix.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
+    {% if tracking and tracking.head %}
+        {{ tracking.head|safe }}
+    {% endif %}
+    
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        main {
+            flex: 1;
+        }
+        
+        .messages-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+        
+        @media (max-width: 768px) {
+            .messages-container {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                max-width: 100%;
+            }
+        }
+        
+        {# Premium Multi-level Poojas Dropdown - No Scrolling, All Visible #}
+        /* Main dropdown container */
+        .poojas-multilevel-dropdown {
+            position: relative;
+        }
+        
+        /* Trigger link styling */
+        .poojas-trigger {
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .poojas-trigger {
+            color: var(--text-primary-theme, #1E293B) !important;
+        }
+        
+        .poojas-trigger:hover {
+            color: var(--accent-theme, #E11D48) !important;
+        }
+        
+        .poojas-trigger i {
+            color: var(--text-primary-theme, #1E293B) !important;
+        }
+        
+        .poojas-trigger:hover i {
+            color: var(--accent-theme, #E11D48) !important;
+        }
+        
+        /* Main dropdown menu - NO SCROLLING, ALL VISIBLE */
+        .poojas-dropdown-menu {
+            min-width: 320px;
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            padding: 0.75rem 0;
+            background-color: var(--card-bg-theme, #FFFFFF);
+            border: 1px solid var(--border-color-theme, rgba(0,0,0,.15));
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+            /* NO max-height, NO overflow - show everything */
+        }
+        
+        /* Show main dropdown on hover */
+        .poojas-multilevel-dropdown:hover > .poojas-dropdown-menu,
+        .poojas-multilevel-dropdown:focus-within > .poojas-dropdown-menu {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Submenu container */
+        .dropdown-submenu {
+            position: relative;
+        }
+        
+        /* Category header styling */
+        .pooja-category-header {
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            color: var(--text-secondary-theme, #495057);
+            background-color: transparent;
+            text-decoration: none;
+            padding: 0.5rem 1.25rem;
+            display: block;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .pooja-category-header:hover,
+        .pooja-category-header:focus {
+            background-color: var(--bg-secondary-theme, #f8f9fa);
+            color: var(--accent-theme, #E11D48);
+            text-decoration: none;
+            border-left-color: var(--accent-theme, #E11D48);
+            padding-left: 1.5rem;
+        }
+        
+        /* Prevent click navigation on category */
+        .pooja-category-header {
+            pointer-events: auto;
+        }
+        
+        /* Submenu (sub-poojas) - NO SCROLLING, ALL VISIBLE */
+        .pooja-submenu {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 0.5rem;
+            min-width: 280px;
+            display: none;
+            padding: 0.75rem 0;
+            background-color: var(--card-bg-theme, #FFFFFF);
+            border: 1px solid var(--border-color-theme, rgba(0,0,0,.15));
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            z-index: 1051;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+            /* NO max-height, NO overflow - show everything */
+        }
+        
+        /* Show submenu on category hover - smooth transition */
+        .dropdown-submenu:hover > .pooja-submenu,
+        .dropdown-submenu:focus-within > .pooja-submenu {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Keep submenu open when hovering over the submenu itself */
+        .pooja-submenu:hover {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        
+        /* Keep submenu open when hovering over category header */
+        .pooja-category-header:hover + .pooja-submenu,
+        .pooja-category-header:hover ~ .pooja-submenu {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Pooja item styling */
+        .pooja-item {
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            color: var(--text-primary-theme, #212529);
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .pooja-item:hover {
+            background-color: var(--bg-secondary-theme, #f8f9fa);
+            color: var(--accent-theme, #E11D48);
+            text-decoration: none;
+            border-left-color: var(--accent-theme, #E11D48);
+            padding-left: 2.75rem;
+        }
+        
+        .pooja-item i {
+            transition: transform 0.2s ease;
+        }
+        
+        .pooja-item:hover i {
+            transform: scale(1.2);
+        }
+        
+        /* Smooth transitions for all elements */
+        .poojas-dropdown-menu * {
+            transition: all 0.2s ease;
+        }
+        
+        /* Mobile: Touch to expand */
+        @media (max-width: 991.98px) {
+            .poojas-dropdown-menu {
+                position: static;
+                display: none;
+                box-shadow: none;
+                border: none;
+                margin-top: 0;
+                padding: 0;
+                opacity: 1;
+                transform: none;
+            }
+            
+            .poojas-multilevel-dropdown.active > .poojas-dropdown-menu {
+                display: block;
+            }
+            
+            .pooja-submenu {
+                position: static;
+                display: none;
+                box-shadow: none;
+                border: none;
+                margin-left: 0;
+                padding-left: 1rem;
+                opacity: 1;
+                transform: none;
+            }
+            
+            .dropdown-submenu.active > .pooja-submenu {
+                display: block;
+            }
+            
+            .pooja-category-header {
+                cursor: pointer;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
+    {% if tracking and tracking.body %}
+        {{ tracking.body|safe }}
+    {% endif %}
+    
+    <!-- Navbar -->
+    {% include 'partials/navbar.html' %}
+    {% if ads_top %}
+    {% include 'partials/ad_unit.html' with ad=ads_top %}
+    {% endif %}
+    
+    <!-- Messages/Alerts -->
+    {% include 'partials/alerts.html' %}
+    
+    <!-- Main Content -->
+    <main>
+        {% if ads_sidebar %}
+        {{ ads_sidebar.script_code|safe }}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% include 'partials/footer.html' %}
+    
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- Share modal (reusable on any public page) -->
+    {% include 'partials/share_modal.html' %}
+    <script src="{% static 'js/share.js' %}"></script>
+    
+    <!-- Custom JavaScript -->
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Theme Toggle JavaScript -->
+    <script>
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggle = document.getElementById("themeToggle");
+            if (!toggle) return;
+
+            // 1. Load saved theme (prioritize DB preference for authenticated users)
+            let savedTheme = localStorage.getItem("theme");
+            
+            {% if user.is_authenticated %}
+            // If user is authenticated, check DB preference first
+            const dbTheme = "{{ user.theme_preference|default:'' }}";
+            if (dbTheme) {
+                savedTheme = dbTheme;
+            }
+            {% endif %}
+
+            if (savedTheme) {
+                document.documentElement.setAttribute("data-theme", savedTheme);
+                toggle.checked = savedTheme === "dark";
+            } else {
+                // 2. System detection
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                if (prefersDark) {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                    toggle.checked = true;
+                } else {
+                    document.documentElement.setAttribute("data-theme", "light");
+                    toggle.checked = false;
+                }
+            }
+
+            // 3. Toggle handler
+            toggle.addEventListener("change", function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                    localStorage.setItem("theme", "dark");
+                    // Optional: Save to DB if user is authenticated
+                    {% if user.is_authenticated %}
+                    fetch("{% url 'accounts:update_theme_preference' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken")
+                        },
+                        body: JSON.stringify({ theme: "dark" })
+                    }).catch(function(error) {
+                        console.log("Theme preference save failed:", error);
+                    });
+                    {% endif %}
+                } else {
+                    document.documentElement.setAttribute("data-theme", "light");
+                    localStorage.setItem("theme", "light");
+                    // Optional: Save to DB if user is authenticated
+                    {% if user.is_authenticated %}
+                    fetch("{% url 'accounts:update_theme_preference' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken")
+                        },
+                        body: JSON.stringify({ theme: "light" })
+                    }).catch(function(error) {
+                        console.log("Theme preference save failed:", error);
+                    });
+                    {% endif %}
+                }
+            });
+        });
+    </script>
+    
+    <!-- Behavior Engine (first-party, non-blocking) -->
+    <script src="{% static 'js/behavior_engine.js' %}"></script>
+    
+    <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
+    {% if tracking and tracking.footer %}
+        {{ tracking.footer|safe }}
+    {% endif %}
+    {% if ads_footer %}
+    {% include 'partials/ad_unit.html' with ad=ads_footer %}
+    {% endif %}
+    
+    {# Premium Multi-level Poojas Dropdown JavaScript #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+            const poojasDropdown = document.querySelector('.poojas-multilevel-dropdown');
+            const poojasTrigger = document.querySelector('.poojas-trigger');
+            const categoryHeaders = document.querySelectorAll('.pooja-category-header');
+            
+            // Mobile: Toggle dropdown on click
+            if (isMobile && poojasTrigger) {
+                poojasTrigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    poojasDropdown.classList.toggle('active');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!poojasDropdown.contains(e.target)) {
+                        poojasDropdown.classList.remove('active');
+                    }
+                });
+                
+                // Mobile: Toggle category submenu on tap
+                categoryHeaders.forEach(function(header) {
+                    header.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const submenu = this.closest('.dropdown-submenu');
+                        if (submenu) {
+                            submenu.classList.toggle('active');
+                        }
+                    });
+                });
+            }
+            
+            // Desktop: Prevent category click navigation (hover-only)
+            if (!isMobile) {
+                categoryHeaders.forEach(function(header) {
+                    header.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+            }
+            
+            // Smooth hover behavior - ensure submenu stays open when moving from category to submenu
+            if (!isMobile) {
+                const submenus = document.querySelectorAll('.pooja-submenu');
+                submenus.forEach(function(submenu) {
+                    submenu.addEventListener('mouseenter', function() {
+                        this.style.display = 'block';
+                        this.style.opacity = '1';
+                        this.style.transform = 'translateX(0)';
+                    });
+                    
+                    submenu.addEventListener('mouseleave', function() {
+                        this.style.display = 'none';
+                        this.style.opacity = '0';
+                        this.style.transform = 'translateX(-10px)';
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+

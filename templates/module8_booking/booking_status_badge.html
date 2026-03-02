@@ -1,0 +1,18 @@
+{% comment %}
+Booking Status Badge Component
+
+Displays a status badge for booking intents.
+Status values: submitted, viewed, expired, cancelled
+{% endcomment %}
+
+{% if status == 'submitted' %}
+    <span class="badge bg-primary">Sent</span>
+{% elif status == 'viewed' %}
+    <span class="badge bg-info">Viewed</span>
+{% elif status == 'expired' %}
+    <span class="badge bg-warning">Expired</span>
+{% elif status == 'cancelled' %}
+    <span class="badge bg-secondary">Cancelled</span>
+{% else %}
+    <span class="badge bg-light text-dark">{{ status|title }}</span>
+{% endif %}

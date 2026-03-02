@@ -1,0 +1,922 @@
+/* 
+    Home Page UI Redesign - PART 1
+    ListingHub-style Premium Red Theme
+    UI-only changes, no backend logic
+*/
+
+/* ============================================
+   UNIT 1: GLOBAL FOUNDATION STYLING
+   ============================================ */
+
+:root {
+    /* Primary (60%) - Brand Power */
+    --home-primary-red: #E11D48;
+    --home-primary-red-dark: #BE123C;
+    
+    /* Secondary (30%) - Structure & Calm */
+    --home-white: #FFFFFF;
+    --home-light-gray: #F8FAFC;
+    
+    /* Accent (10%) - Depth & Contrast */
+    --home-dark-gray: #0F172A;
+    --home-muted-gray: #475569;
+    
+    /* Neutral borders */
+    --home-border: #E2E8F0;
+}
+
+/* Base font smoothing and spacing */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Generous padding and margins */
+.container {
+    max-width: 1200px;
+}
+
+/* Consistent border-radius */
+:root {
+    --home-radius-sm: 8px;
+    --home-radius-md: 12px;
+    --home-radius-lg: 16px;
+}
+
+/* Soft shadows only */
+:root {
+    --home-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --home-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --home-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Minimum button height for touch targets */
+.btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   UNIT 2: NAVBAR REDESIGN (VISUAL ONLY)
+   ============================================ */
+
+.navbar {
+    background: var(--home-white) !important;
+    border-bottom: 1px solid var(--home-border);
+    box-shadow: var(--home-shadow-sm);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--home-primary-red) !important;
+    text-decoration: none;
+}
+
+.navbar-brand:hover {
+    color: var(--home-primary-red-dark) !important;
+}
+
+.navbar-nav .nav-link {
+    color: var(--home-dark-gray);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--home-primary-red);
+}
+
+/* Add Listing Button - Strong CTA */
+.navbar .btn-primary,
+.navbar .btn[href*="add"] {
+    background-color: var(--home-primary-red);
+    color: var(--home-white);
+    border: none;
+    border-radius: var(--home-radius-md);
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-left: 1rem;
+}
+
+.navbar .btn-primary:hover,
+.navbar .btn[href*="add"]:hover {
+    background-color: var(--home-primary-red-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--home-shadow-md);
+}
+
+/* Navbar focus states */
+.navbar .nav-link:focus-visible,
+.navbar .btn:focus-visible {
+    outline: 2px solid var(--home-primary-red);
+    outline-offset: 2px;
+    border-radius: var(--home-radius-sm);
+}
+
+/* ============================================
+   UNIT 3: HERO SECTION (PREMIUM FIRST IMPRESSION)
+   ============================================ */
+
+.hero-section {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23E11D48" opacity="0.1" width="1200" height="600"/></svg>');
+    background-size: cover;
+    background-position: center;
+    color: var(--home-white);
+    padding: 6rem 0 5rem 0;
+    margin-bottom: 0;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 0;
+}
+
+.hero-section > .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--home-white);
+    line-height: 1.2;
+}
+
+.hero-section .lead {
+    font-size: 1.375rem;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-bottom: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+}
+
+/* ============================================
+   UNIT 4: SEARCH BAR (CRITICAL CONVERSION AREA)
+   ============================================ */
+
+.search-hero-form {
+    background: var(--home-white);
+    padding: 2.5rem;
+    border-radius: var(--home-radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    margin-top: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.search-hero-form .form-label {
+    color: var(--home-dark-gray);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.search-hero-form .form-select-lg,
+.search-hero-form .form-control-lg {
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--home-border);
+    border-radius: var(--home-radius-md);
+    transition: all 0.2s ease;
+    color: var(--home-dark-gray);
+}
+
+.search-hero-form .form-select-lg:focus,
+.search-hero-form .form-control-lg:focus {
+    border-color: var(--home-primary-red);
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+    outline: none;
+}
+
+/* Search Button - Red CTA (Ensure it's visible and styled) */
+.search-hero-form .btn-primary,
+.search-hero-form .btn-primary.btn-lg,
+.search-hero-form .btn[type="submit"],
+.search-hero-form button[type="submit"],
+.search-hero-form button.btn-primary {
+    background-color: var(--home-primary-red) !important;
+    color: var(--home-white) !important;
+    border: none !important;
+    border-radius: var(--home-radius-md);
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.875rem 2.5rem;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.search-hero-form .btn-primary:hover,
+.search-hero-form .btn-primary.btn-lg:hover,
+.search-hero-form .btn[type="submit"]:hover,
+.search-hero-form button[type="submit"]:hover,
+.search-hero-form button.btn-primary:hover {
+    background-color: var(--home-primary-red-dark) !important;
+    color: var(--home-white) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(225, 29, 72, 0.3);
+}
+
+.search-hero-form .btn-primary:focus-visible,
+.search-hero-form .btn-primary.btn-lg:focus-visible,
+.search-hero-form .btn[type="submit"]:focus-visible,
+.search-hero-form button[type="submit"]:focus-visible,
+.search-hero-form button.btn-primary:focus-visible {
+    outline: 2px solid var(--home-primary-red);
+    outline-offset: 2px;
+}
+
+/* Ensure button row is visible */
+.search-hero-form .row .col-12.text-center,
+.search-hero-form .row .col-12.mt-4 {
+    display: block !important;
+    margin-top: 1.5rem !important;
+    visibility: visible !important;
+}
+
+/* Search form inputs alignment */
+.search-hero-form .row {
+    align-items: end;
+}
+
+/* Ensure button appears below inputs, not beside */
+.search-hero-form .row .col-12.text-center,
+.search-hero-form .row .col-12.mt-4 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin-top: 1.5rem !important;
+    text-align: center !important;
+    clear: both;
+}
+
+/* Force button to new line */
+.search-hero-form form.row > .col-12 {
+    flex-basis: 100% !important;
+    max-width: 100% !important;
+}
+
+
+/* ============================================
+   UNIT 5: RESPONSIVE BEHAVIOR (PART 1)
+   ============================================ */
+
+/* Mobile (≤768px) */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 4rem 0 3rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+    
+    .search-hero-form {
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    /* Stack inputs on mobile */
+    .search-hero-form .row > div {
+        margin-bottom: 1rem;
+    }
+    
+    .search-hero-form .row > div:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Full-width buttons on mobile */
+    .search-hero-form .btn-primary,
+    .search-hero-form .btn[type="submit"] {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+    }
+    
+    /* Touch-friendly spacing */
+    .search-hero-form .form-select-lg,
+    .search-hero-form .form-control-lg {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 0.875rem 1rem;
+    }
+    
+    /* Navbar adjustments */
+    .navbar {
+        padding: 0.75rem 0;
+    }
+    
+    .navbar .btn-primary,
+    .navbar .btn[href*="add"] {
+        width: 100%;
+        margin: 0.5rem 0 0 0;
+    }
+}
+
+/* Tablet (769px - 991px) */
+@media (min-width: 769px) and (max-width: 991px) {
+    .hero-section {
+        padding: 5rem 0 4rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 3rem;
+    }
+    
+    .search-hero-form {
+        padding: 2rem;
+    }
+}
+
+/* Desktop (≥992px) */
+@media (min-width: 992px) {
+    .hero-section {
+        padding: 6rem 0 5rem 0;
+    }
+    
+    .search-hero-form {
+        padding: 2.5rem;
+    }
+    
+    /* Horizontal layout for search inputs, but button wraps to new line */
+    .search-hero-form .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    /* Ensure button column takes full width and appears on new line */
+    .search-hero-form .row .col-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* First three columns (inputs) stay horizontal */
+    .search-hero-form .row .col-md-4 {
+        flex: 0 0 calc(33.333% - 0.67rem);
+        max-width: calc(33.333% - 0.67rem);
+    }
+}
+
+/* ============================================
+   HOME PAGE REDESIGN - PART 2
+   Categories, Search Results, Cards, CTAs
+   ============================================ */
+
+/* UNIT 6: Category Quick Filter Section (Pill-style chips) */
+.page-type-btn {
+    background: var(--home-white) !important;
+    border: 1px solid var(--home-border) !important;
+    color: var(--home-dark-gray) !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 2rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    text-decoration: none !important;
+}
+
+.page-type-btn:hover {
+    background: var(--home-primary-red) !important;
+    border-color: var(--home-primary-red) !important;
+    color: var(--home-white) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(225, 29, 72, 0.2);
+}
+
+.page-type-btn:focus-visible {
+    outline: 2px solid var(--home-primary-red);
+    outline-offset: 2px;
+}
+
+/* UNIT 7: Search Results Grid Layout - FIXED */
+.sample-listings-section {
+    padding: 3rem 0;
+}
+
+.sample-listings-section .row.g-4 {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Ensure consistent card heights and proper grid */
+.sample-listings-section .col-12,
+.sample-listings-section .col-sm-6,
+.sample-listings-section .col-lg-4 {
+    display: flex;
+    margin-bottom: 0;
+}
+
+.sample-listings-section .listing-card,
+.sample-listings-section .pandit-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* UNIT 8: Pandit Card Visual Redesign - FIXED */
+.listing-card,
+.pandit-card {
+    background: var(--home-white);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--home-border);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    max-width: 100%;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.listing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--home-primary-red);
+}
+
+.listing-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Avatar styling - FIXED */
+.listing-card .profile-image {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    min-height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--home-border);
+    display: block;
+    margin: 0 auto;
+}
+
+.listing-card .rounded-circle.bg-secondary {
+    background-color: var(--home-light-gray) !important;
+    border: 3px solid var(--home-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.listing-card .rounded-circle.bg-secondary i {
+    color: var(--home-muted-gray) !important;
+    font-size: 2rem;
+}
+
+/* Card title - FIXED */
+.listing-card .card-title-link,
+.listing-card h6 a {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--home-dark-gray);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.listing-card .card-title-link:hover,
+.listing-card h6 a:hover {
+    color: var(--home-primary-red);
+    text-decoration: none;
+}
+
+/* Experience text */
+.listing-card .text-muted.small {
+    color: var(--home-muted-gray);
+    font-size: 0.875rem;
+}
+
+/* UNIT 9: Pooja Tags (Chips) - FIXED */
+.pooja-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pooja-tag {
+    background: #F1F5F9;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    border: 1px solid var(--home-border);
+    color: var(--home-dark-gray);
+}
+
+.listing-card .badge.bg-secondary,
+.listing-card .pooja-tag {
+    background-color: #F1F5F9 !important;
+    color: var(--home-dark-gray) !important;
+    border: 1px solid var(--home-border);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.listing-card .badge.bg-light {
+    background-color: #F1F5F9 !important;
+    color: var(--home-muted-gray) !important;
+    border: 1px solid var(--home-border);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* UNIT 10: Primary CTA - Send Booking Intent - FIXED */
+.listing-card .btn-danger.primary-cta,
+.listing-card .btn-primary.primary-cta {
+    background-color: #E11D48 !important;
+    color: var(--home-white) !important;
+    border: none !important;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+    width: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.listing-card .btn-danger.primary-cta:hover,
+.listing-card .btn-primary.primary-cta:hover {
+    background-color: #BE123C !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.listing-card .btn-primary.primary-cta:focus-visible {
+    outline: 2px solid var(--home-primary-red);
+    outline-offset: 2px;
+}
+
+.listing-card .btn-primary.primary-cta:disabled {
+    background-color: var(--home-border) !important;
+    color: var(--home-muted-gray) !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* UNIT 11: Secondary CTA - Call & WhatsApp */
+.listing-card .row.g-2 {
+    margin-top: 0.75rem;
+}
+
+.listing-card .btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: var(--home-white) !important;
+    border-radius: 12px;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+    width: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.listing-card .btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.listing-card .btn[style*="#25D366"] {
+    background-color: #25D366 !important;
+    border-color: #25D366 !important;
+    color: var(--home-white) !important;
+    border-radius: 12px;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+    width: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.listing-card .btn[style*="#25D366"]:hover {
+    background-color: #20ba5a !important;
+    border-color: #1da851 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.listing-card .btn-outline-secondary:disabled {
+    background-color: var(--home-light-gray) !important;
+    border-color: var(--home-border) !important;
+    color: var(--home-muted-gray) !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* UNIT 12: Empty State */
+.empty-state-search {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--home-white);
+    border-radius: 16px;
+    border: 1px solid var(--home-border);
+}
+
+.empty-state-search i {
+    font-size: 4rem;
+    color: var(--home-muted-gray);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-search h3 {
+    color: var(--home-dark-gray);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state-search p {
+    color: var(--home-muted-gray);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-search .btn {
+    background-color: var(--home-primary-red);
+    color: var(--home-white);
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    min-height: 44px;
+}
+
+.empty-state-search .btn:hover {
+    background-color: var(--home-primary-red-dark);
+}
+
+/* Responsive adjustments for cards */
+@media (max-width: 768px) {
+    .listing-card .card-body {
+        padding: 1rem;
+    }
+    
+    .listing-card .profile-image {
+        width: 64px;
+        height: 64px;
+        min-width: 64px;
+        min-height: 64px;
+    }
+    
+    .listing-card .card-title-link,
+    .listing-card h6 {
+        font-size: 0.95rem;
+    }
+    
+    .pandit-card {
+        min-height: 380px;
+    }
+    
+    .empty-state-search {
+        padding: 3rem 1.5rem;
+    }
+    
+    .empty-state-search i {
+        font-size: 3rem;
+    }
+    
+    .empty-state-search h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Ensure no horizontal scroll */
+    .sample-listings-section .row.g-4 {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .sample-listings-section .row.g-4 > [class*="col-"] {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Mobile button adjustments */
+    .listing-card .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .listing-card .d-flex.gap-2 > div {
+        width: 100% !important;
+    }
+}
+
+/* ============================================
+   HOME PAGE REDESIGN - PART 3
+   How It Works, Trust, Footer
+   ============================================ */
+
+/* TASK 1: How It Works Section - Premium Step Flow */
+.how-it-works-section {
+    padding: 4rem 0;
+}
+
+.step-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #E11D48;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0 auto 16px;
+}
+
+.how-it-works-section .bi {
+    color: #6B7280;
+}
+
+.how-it-works-section h4 {
+    color: #0F172A;
+}
+
+.how-it-works-section p {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* TASK 2: Trust Section */
+.trust-section {
+    padding: 4rem 0;
+}
+
+.trust-section .bg-white {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trust-section .bg-white:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.trust-section .bi {
+    color: #E11D48;
+}
+
+.trust-section h5 {
+    color: #0F172A;
+}
+
+.trust-section p {
+    color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* TASK 3: CTA Bridge Section */
+.cta-bridge-section {
+    padding: 4rem 0;
+}
+
+.cta-bridge-section h4 {
+    color: #0F172A;
+}
+
+/* TASK 4: Footer Premium Redesign */
+.footer-premium {
+    background: #0F172A;
+    color: #CBD5E1;
+}
+
+.footer-premium h5,
+.footer-premium h6 {
+    color: #FFFFFF;
+}
+
+.footer-link {
+    color: #CBD5E1;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.footer-link:hover {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.footer-social-link {
+    color: #CBD5E1;
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-block;
+}
+
+.footer-social-link:hover {
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.footer-premium .text-light {
+    color: #94A3B8 !important;
+}
+
+/* Responsive adjustments for PART 3 */
+@media (max-width: 768px) {
+    .how-it-works-section {
+        padding: 3rem 0;
+    }
+    
+    .how-it-works-section .step-badge {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+    
+    .how-it-works-section .bi {
+        font-size: 2.5rem !important;
+    }
+    
+    .trust-section {
+        padding: 3rem 0;
+    }
+    
+    .trust-section .bg-white {
+        margin-bottom: 1rem;
+    }
+    
+    .cta-bridge-section {
+        padding: 3rem 0;
+    }
+    
+    .cta-bridge-section .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .footer-premium {
+        padding: 3rem 0 !important;
+    }
+    
+    .footer-premium .col-md-4 {
+        margin-bottom: 2rem;
+    }
+    
+    .footer-premium .col-md-4:last-child {
+        margin-bottom: 0;
+    }
+}
+

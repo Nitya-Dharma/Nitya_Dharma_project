@@ -1,0 +1,301 @@
+{% extends "account/account_base.html" %}
+{% load static %}
+
+{% block title %}Profile Settings - My Account - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/end_user_ui.css' %}">
+    <style>
+        /* Override account-content for profile page - Force styles to show */
+        .account-content .user-profile-page {
+            background: #F9FAF7 !important;
+            padding: 2rem !important;
+            margin: -2rem !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        .account-content .profile-header {
+            background: linear-gradient(135deg, #3F4E4F, #7D8F8A) !important;
+            color: #fff !important;
+            padding: 32px !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+            margin-bottom: 24px !important;
+        }
+        
+        .account-content .profile-header h1 {
+            color: #fff !important;
+            font-size: 26px !important;
+            font-weight: 600 !important;
+        }
+        
+        .account-content .profile-header-subtitle {
+            color: rgba(255,255,255,0.85) !important;
+        }
+        
+        .account-content .btn-primary {
+            background-color: #C84B31 !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        
+        .account-content .btn-primary:hover {
+            background-color: #A63A25 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block account_content %}
+<a href="#profile-main-content" class="skip-link">Skip to main content</a>
+<section class="section-padding bg-slate-50 end-user-page" id="profile-main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="row g-4">
+            <!-- Profile Summary Card (Left) -->
+            <div class="col-lg-4">
+                <div class="premium-card border-accent p-4">
+                    <div class="text-center mb-3">
+                        <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}" 
+                             alt="Profile Picture" 
+                             id="previewImg"
+                             class="rounded-circle {% if not user.profile_picture %}d-none{% endif %}" 
+                             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #F1F5F9;">
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto {% if user.profile_picture %}d-none{% endif %}" 
+                             id="placeholderImg"
+                             style="width: 100px; height: 100px;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-center">
+                        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}
+                    </h5>
+                    <p class="text-muted small mb-3 text-center">{{ user.email }}</p>
+                    {% if user.is_active %}
+                        <span class="badge bg-success d-block text-center">Active Account</span>
+                    {% else %}
+                        <span class="badge bg-secondary d-block text-center">Inactive Account</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Details (Right) -->
+            <div class="col-lg-8">
+                <form method="post" action="{% if user_id %}{% url 'accounts:profile_settings_with_id' user_id=user_id %}{% else %}{% url 'accounts:profile_settings' %}{% endif %}" id="profileForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Profile Picture Section -->
+                    <div class="premium-card p-4 mb-4">
+                        <h6 class="fw-semibold mb-3">Profile Picture</h6>
+                            <div class="d-flex align-items-center">
+                            <div class="position-relative">
+                                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}" 
+                                     alt="Profile Picture" 
+                                     id="previewImgForm"
+                                     class="rounded-circle {% if not user.profile_picture %}d-none{% endif %}" 
+                                     style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #dee2e6;">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center {% if user.profile_picture %}d-none{% endif %}" 
+                                     id="placeholderImgForm"
+                                     style="width: 80px; height: 80px;">
+                                    <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <div class="mb-2">
+                                    <label for="profile_picture" class="btn btn-sm btn-outline-primary mb-2">
+                                        <i class="bi bi-upload me-1"></i>Choose Photo
+                                    </label>
+                                    <input type="file" 
+                                           class="form-control form-control-sm d-none" 
+                                           id="profile_picture" 
+                                           name="profile_picture" 
+                                           accept="image/jpeg,image/jpg,image/png,image/gif"
+                                           onchange="previewImage(this)">
+                                    <div id="fileName" class="small text-muted mb-1"></div>
+                                    <small class="form-text text-muted d-block">JPG, PNG or GIF. Max size: 2MB</small>
+                                </div>
+                                {% if user.profile_picture %}
+                                    <div>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                id="deletePictureBtn"
+                                                onclick="if(confirm('Are you sure you want to delete your profile picture?')) { document.getElementById('delete_picture').value = '1'; document.getElementById('profile_picture').value = ''; document.getElementById('previewImgForm').style.display = 'none'; this.closest('form').submit(); }">
+                                            <i class="bi bi-trash me-1"></i>Delete Picture
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <input type="hidden" id="delete_picture" name="delete_picture" value="0">
+                    </div>
+                    
+                    <!-- Personal Information -->
+                    <div class="premium-card p-4 mb-4">
+                        <h6 class="fw-semibold mb-3">Personal Information</h6>
+                        
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="first_name" 
+                                   name="first_name" 
+                                   value="{{ user.first_name|default:'' }}"
+                                   required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="last_name" 
+                                   name="last_name" 
+                                   value="{{ user.last_name|default:'' }}"
+                                   required>
+                        </div>
+                        
+                        <!-- Email (Read-only) -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ user.email }}"
+                                   readonly
+                                   style="background-color: #e9ecef;">
+                            <small class="form-text text-muted">Email cannot be changed. Contact support if you need to update your email.</small>
+                        </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Preferences -->
+                    <div class="premium-card p-4 mb-4">
+                        <h6 class="fw-semibold mb-3">Contact Preferences</h6>
+                        
+                        <!-- Phone Number -->
+                        <div class="form-group mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="phone_number" 
+                                   name="phone_number" 
+                                   value="{{ user.phone_number|default:'' }}"
+                                   placeholder="+91 9876543210">
+                            <small class="form-text text-muted">This number will be shown to Pandits for contact.</small>
+                        </div>
+                        
+                        <!-- WhatsApp Number -->
+                        <div class="form-group mb-3">
+                            <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="whatsapp_number" 
+                                   name="whatsapp_number" 
+                                   value="{{ user.whatsapp_number|default:'' }}"
+                                   placeholder="+91 9876543210">
+                            <small class="form-text text-muted">This number will be shown to Pandits for WhatsApp communication.</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'accounts:profile_settings' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-4" id="saveBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="loadingSpinner"></span>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+    
+    <script>
+        // Preview image before upload
+        function previewImage(input) {
+            const fileNameDiv = document.getElementById('fileName');
+            const previewImg = document.getElementById('previewImg');
+            const previewImgForm = document.getElementById('previewImgForm');
+            const placeholderImg = document.getElementById('placeholderImg');
+            const placeholderImgForm = document.getElementById('placeholderImgForm');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB. Please choose a smaller image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Invalid file type. Please upload JPG, PNG, or GIF image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Show file name
+                if (fileNameDiv) {
+                    fileNameDiv.textContent = 'Selected: ' + file.name;
+                }
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Update header avatar
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.classList.remove('d-none');
+                    }
+                    if (placeholderImg) {
+                        placeholderImg.classList.add('d-none');
+                    }
+                    // Update form avatar
+                    if (previewImgForm) {
+                        previewImgForm.src = e.target.result;
+                        previewImgForm.classList.remove('d-none');
+                    }
+                    if (placeholderImgForm) {
+                        placeholderImgForm.classList.add('d-none');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // If no file selected, restore original state
+                if (previewImg && !previewImg.src.includes('data:')) {
+                    // Only hide if it was a preview (data URL), not the original image
+                    const originalSrc = '{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}';
+                    if (!originalSrc) {
+                        previewImg.classList.add('d-none');
+                        if (placeholderImg) {
+                            placeholderImg.classList.remove('d-none');
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Form submission handler
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            const saveBtn = document.getElementById('saveBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            saveBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
+    </script>
+{% endblock %}
+

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<!-- FAQ Schema for PAA Optimization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nitya Dharma is India's premier digital platform connecting devotees with verified and trusted pandits for authentic religious ceremonies, poojas, and spiritual services. We ensure quality, transparency, and cultural authenticity in every service."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Nitya Dharma help users?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nitya Dharma helps users discover verified pandits, book religious ceremonies, find temple information, and access authentic spiritual services. Our platform provides transparent reviews, verified credentials, and easy booking management."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I find a pandit on Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can search for pandits by location, pooja type, availability, and ratings. Browse verified pandit profiles, read reviews, check availability, and book directly through our secure platform."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are all pandits on Nitya Dharma verified?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, all pandits on Nitya Dharma undergo a verification process. We verify credentials, experience, and authenticity to ensure users connect with trusted and qualified spiritual guides."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I register as a pandit on Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, qualified pandits can register on Nitya Dharma. Visit our registration page, complete your profile with credentials and experience, and undergo our verification process to start serving devotees."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Article Schema for Google Discover -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "About Nitya Dharma - Connecting You with Trusted Pandits",
+  "description": "Learn about Nitya Dharma, India's premier platform connecting devotees with verified pandits for authentic religious ceremonies.",
+  "author": {
+    "@type": "Organization",
+    "name": "Nitya Dharma"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Nitya Dharma"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="static-page-container">
+        <div class="static-page-content">
+            <!-- Hero Section -->
+            <div class="static-hero-section">
+                <h1>About Nitya Dharma</h1>
+                <p class="hero-subtitle">Connecting devotees with verified pandits for authentic religious ceremonies and spiritual services</p>
+            </div>
+
+            <!-- Main Content -->
+            <div class="static-content-section">
+                <section class="content-block">
+                    <h2>Our Mission</h2>
+                    <p>Nitya Dharma is dedicated to preserving and promoting authentic religious traditions by connecting devotees with verified, experienced pandits. We believe that every spiritual ceremony deserves authenticity, respect, and genuine devotion. Our mission is to make quality religious services accessible while maintaining the highest standards of cultural integrity and spiritual authenticity.</p>
+                </section>
+
+                <section class="content-block">
+                    <h2>What We Offer</h2>
+                    <p>Nitya Dharma provides a comprehensive platform for:</p>
+                    <ul>
+                        <li><strong>Pandit Discovery:</strong> Search and find verified pandits by location, specialization, and availability</li>
+                        <li><strong>Pooja Booking:</strong> Easily book religious ceremonies and poojas with trusted pandits</li>
+                        <li><strong>Temple Information:</strong> Access detailed information about temples, their history, and services</li>
+                        <li><strong>Verified Reviews:</strong> Read authentic reviews from devotees who have used our services</li>
+                        <li><strong>Transparent Pricing:</strong> Clear pricing information with no hidden costs</li>
+                    </ul>
+                </section>
+
+                <section class="content-block">
+                    <h2>Why Choose Us</h2>
+                    <p>Nitya Dharma stands out through:</p>
+                    <ul>
+                        <li><strong>Verification Process:</strong> All pandits undergo thorough verification of credentials and experience</li>
+                        <li><strong>Quality Assurance:</strong> We maintain high standards through reviews and ratings</li>
+                        <li><strong>Cultural Authenticity:</strong> We respect and preserve traditional practices and rituals</li>
+                        <li><strong>User Trust:</strong> Transparent reviews and ratings help you make informed decisions</li>
+                        <li><strong>Easy Access:</strong> Simple booking process and clear communication channels</li>
+                    </ul>
+                </section>
+
+                <section class="content-block">
+                    <h2>Our Vision</h2>
+                    <p>We envision a future where authentic religious services are easily accessible to all devotees, regardless of location. We aim to become the most trusted platform for connecting devotees with qualified pandits while preserving the rich cultural heritage of religious ceremonies. Through technology and tradition, we bridge the gap between devotees and spiritual guides.</p>
+                </section>
+
+                <!-- FAQ Section for PAA Optimization -->
+                <section class="content-block faq-section">
+                    <h2>Frequently Asked Questions</h2>
+                    
+                    <div class="faq-item">
+                        <h3>What is Nitya Dharma?</h3>
+                        <p>Nitya Dharma is India's premier digital platform connecting devotees with verified and trusted pandits for authentic religious ceremonies, poojas, and spiritual services. We ensure quality, transparency, and cultural authenticity in every service.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How does Nitya Dharma help users?</h3>
+                        <p>Nitya Dharma helps users discover verified pandits, book religious ceremonies, find temple information, and access authentic spiritual services. Our platform provides transparent reviews, verified credentials, and easy booking management.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How do I find a pandit on Nitya Dharma?</h3>
+                        <p>You can search for pandits by location, pooja type, availability, and ratings. Browse verified pandit profiles, read reviews, check availability, and book directly through our secure platform. <a href="{% url 'search_ui:search_results' %}" style="color: #E11D48;">Find a Pandit</a></p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Are all pandits on Nitya Dharma verified?</h3>
+                        <p>Yes, all pandits on Nitya Dharma undergo a verification process. We verify credentials, experience, and authenticity to ensure users connect with trusted and qualified spiritual guides.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Can I register as a pandit on Nitya Dharma?</h3>
+                        <p>Yes, qualified pandits can register on Nitya Dharma. Visit our registration page, complete your profile with credentials and experience, and undergo our verification process to start serving devotees. <a href="{% url 'support:contact_us' %}" style="color: #E11D48;">Register as Pandit</a></p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How do I book a pooja or ceremony?</h3>
+                        <p>Browse pandit profiles, check their availability, and use our booking system to schedule your ceremony. You can communicate directly with pandits and manage your bookings through your dashboard.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Is Nitya Dharma free to use?</h3>
+                        <p>Creating an account and searching for pandits is free. Service fees are set by individual pandits and are clearly displayed on their profiles. There are no hidden charges.</p>
+                    </div>
+                </section>
+
+                <!-- Internal Linking Section -->
+                <section class="content-block cta-section">
+                    <h2>Get Started</h2>
+                    <p>Ready to find your perfect pandit or start offering your services?</p>
+                    <div class="cta-buttons">
+                        <a href="{% url 'search_ui:search_results' %}" class="btn btn-primary">Find a Pandit</a>
+                        <a href="{% url 'support:contact_us' %}" class="btn btn-outline-primary">Register as Pandit</a>
+                        <a href="{% url 'pages:page_list' %}" class="btn btn-outline-secondary">Browse Temples</a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
+

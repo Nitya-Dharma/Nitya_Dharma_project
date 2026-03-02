@@ -1,0 +1,11 @@
+/* Dashboard ad slots - responsive, layout-safe */
+.dashboard-ad-sidebar img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.dashboard-ad-top img {
+    max-height: 120px;
+    object-fit: contain;
+}

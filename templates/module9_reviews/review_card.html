@@ -1,0 +1,82 @@
+
+
+<div class="card mb-3 review-card">
+    <div class="card-body">
+        
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+                
+                <h6 class="card-title mb-1">
+                    <strong>
+                        {% if review.reviewer_name %}
+                            {{ review.reviewer_name }}
+                        {% elif review.reviewer %}
+                            {{ review.reviewer.get_full_name|default:review.reviewer.email }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                    </strong>
+                </h6>
+                
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-calendar me-1"></i>
+                    {{ review.created_at|date:"F d, Y" }}
+                </p>
+            </div>
+            <div>
+                
+                {% if review.status %}
+                    {% include "module9_reviews/review_status_badge.html" with status=review.status %}
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="mb-2">
+            {% if review.rating %}
+                <div class="rating-display" aria-label="Rating: {{ review.rating }} out of 5 stars">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <i class="bi bi-star-fill text-warning" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="bi bi-star text-muted" aria-hidden="true"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span class="ms-2 small text-muted">({{ review.rating }}/5)</span>
+                </div>
+                
+            {% endif %}
+        </div>
+
+        
+        {% if review.comment %}
+            <p class="card-text mb-0">{{ review.comment|linebreaks }}</p>
+        {% endif %}
+
+        
+        {% if review.tags %}
+            <div class="mt-2">
+                {% for tag in review.tags %}
+                    <span class="badge bg-secondary me-1">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        
+        {% if is_pandit_owner and review.status == 'active' %}
+            <div class="mt-3 pt-3 border-top">
+                <button type="button" 
+                        class="btn btn-sm btn-outline-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#reportReviewModal{{ review.id }}"
+                        aria-label="Report this review">
+                    <i class="bi bi-flag me-1"></i>Report Review
+                </button>
+                
+                
+                {% include "module9_reviews/review_report_modal.html" with review=review report_reasons=report_reasons form=report_form %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+

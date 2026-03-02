@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% block dashboard_title %}Dashboard{% endblock %} - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    {% block super_admin_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container {% block dashboard_page_class %}pandit-page{% endblock %}">
+    <!-- PART 3: Premium Super Admin Layout Structure -->
+    <section class="admin-section">
+        <div class="container-fluid">
+            <!-- Mobile Sidebar Toggle Button -->
+            <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Sidebar Overlay for Mobile -->
+            <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+            
+            <div class="dashboard-header mb-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-8">
+                        <h1 class="h2 mb-0 fw-bold" id="dashboard-heading">{% block dashboard_heading %}Dashboard{% endblock %}</h1>
+                        {% block dashboard_subtitle %}{% endblock %}
+                    </div>
+                    <div class="col-12 col-md-4 text-end">
+                        {% block dashboard_actions %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- PART 4: Super Admin Sidebar -->
+                <div class="col-12 col-lg-2 dashboard-sidebar {% block sidebar_class %}admin-sidebar{% endblock %}">
+                    <div class="{% block sidebar_wrapper_class %}admin-card{% endblock %}">
+                        <div class="p-3">
+                            {% if ads.dashboard_sidebar %}
+                            <div class="dashboard-ad-sidebar mb-3">
+                                {% if ads.dashboard_sidebar.ad_type == 'image' and ads.dashboard_sidebar.image %}
+                                <a href="{{ ads.dashboard_sidebar.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
+                                    <img src="{{ ads.dashboard_sidebar.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                                </a>
+                                {% else %}
+                                {{ ads.dashboard_sidebar.script_code|safe }}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <nav class="dashboard-nav" aria-label="Dashboard navigation">
+                                <ul class="nav flex-column" role="list">
+                                    {% block dashboard_nav_links %}
+                                    {% endblock %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-12 col-lg-10 dashboard-main" role="main" aria-label="Dashboard main content">
+                    {% if ads.dashboard_top %}
+                    <div class="dashboard-ad-top text-center my-3">
+                        {% if ads.dashboard_top.ad_type == 'image' and ads.dashboard_top.image %}
+                        <a href="{{ ads.dashboard_top.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
+                            <img src="{{ ads.dashboard_top.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                        </a>
+                        {% else %}
+                        {{ ads.dashboard_top.script_code|safe }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if dashboard_error %}
+                        {% include "module5_dashboards/dashboard_states.html" with state_type="error" error_message=dashboard_error %}
+                    {% elif dashboard_loading %}
+                        {% include "module5_dashboards/dashboard_states.html" with state_type="loading" %}
+                    {% elif not dashboard_has_data %}
+                        {% include "module5_dashboards/dashboard_states.html" with state_type="empty" %}
+                    {% else %}
+                        {% block dashboard_content %}{% endblock %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/ui.js' %}"></script>
+    <script>
+        // Enhanced CSRF token handling for dashboard forms
+        // Refresh CSRF token before form submission to prevent CSRF errors after login
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get CSRF token from cookie
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
+            // Function to update CSRF token in all forms
+            function updateAllCSRFTokens() {
+                const csrftoken = getCookie('csrftoken');
+                if (csrftoken) {
+                    // Update all CSRF token inputs in all forms
+                    const csrfInputs = document.querySelectorAll('input[name="csrfmiddlewaretoken"]');
+                    csrfInputs.forEach(function(input) {
+                        input.value = csrftoken;
+                    });
+                    if (csrfInputs.length > 0) {
+                        console.log('CSRF tokens updated in ' + csrfInputs.length + ' form(s)');
+                    }
+                } else {
+                    console.warn('CSRF token cookie not found');
+                }
+            }
+            
+            // Update CSRF tokens on page load
+            updateAllCSRFTokens();
+            
+            // Update CSRF tokens before any form submission
+            const forms = document.querySelectorAll('form[method="post"]');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    // Refresh CSRF token right before submission
+                    updateAllCSRFTokens();
+                });
+            });
+            
+            // Also update tokens periodically (every 30 seconds) to keep them fresh
+            setInterval(updateAllCSRFTokens, 30000);
+        });
+        
+        // Mobile Sidebar Toggle Function
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.dashboard-sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.dashboard-sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.sidebar-toggle');
+            
+            if (window.innerWidth <= 992) {
+                if (sidebar && overlay && sidebar.classList.contains('active')) {
+                    if (!sidebar.contains(event.target) && 
+                        !toggle.contains(event.target) && 
+                        overlay.contains(event.target)) {
+                        toggleSidebar();
+                    }
+                }
+            }
+        });
+        
+        // Close sidebar on window resize if > 992px
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                const sidebar = document.querySelector('.dashboard-sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (sidebar) sidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+            }
+        });
+    </script>
+{% endblock %}
+

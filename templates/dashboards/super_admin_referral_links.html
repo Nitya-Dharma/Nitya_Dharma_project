@@ -1,0 +1,186 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Referral Management - Super Admin{% endblock %}
+
+{% block dashboard_heading %}Referral Management{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">View and manage all referral links. Create and revoke via same policy as Admin Pandit.</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Referral Links</h5>
+            <a href="{% url 'module5_dashboards:super_admin_create_referral_link' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Create Referral Link
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'module5_dashboards:super_admin_referral_links' %}" class="row g-2 mb-3">
+                <div class="col-auto">
+                    <label for="status" class="form-label mb-0">Status</label>
+                    <select name="status" id="status" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label for="date_from" class="form-label mb-0">From date</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+                </div>
+                <div class="col-auto">
+                    <label for="date_to" class="form-label mb-0">To date</label>
+                    <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+                </div>
+                <div class="col-auto d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Created by</th>
+                            <th>Max uses</th>
+                            <th>Used</th>
+                            <th>Expires at</th>
+                            <th>Active</th>
+                            <th>Status</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in referral_links_with_urls %}
+                        {% with link=item.link %}
+                        <tr>
+                            <td><code>{% with t=link.token|default:link.referral_code|default:"" %}{{ t|slice:":12" }}{% if t|length > 12 %}...{% endif %}{% endwith %}</code></td>
+                            <td>{{ link.created_by.get_full_name|default:link.created_by.email }}</td>
+                            <td>{{ link.max_uses }}</td>
+                            <td>{{ link.used_count }}</td>
+                            <td>{{ link.expires_at|date:"Y-m-d H:i" }}</td>
+                            <td>{% if link.is_active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                            <td><span class="badge bg-{% if link.status == 'active' %}success{% elif link.status == 'revoked' %}danger{% else %}secondary{% endif %}">{{ link.get_status_display|default:link.status }}</span></td>
+                            <td>
+                                <span class="text-truncate d-inline-block" style="max-width: 12rem;" title="{{ item.referral_url }}">{{ item.referral_url|truncatechars:24 }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary copy-ref ms-1" data-link="{{ item.referral_url }}" title="Copy link">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary share-ref" data-link="{{ item.referral_url }}" title="Share link">
+                                    <i class="bi bi-share"></i> Share
+                                </button>
+                            </td>
+                            <td>
+                                {% if link.is_active %}
+                                <form method="post" action="{% url 'module5_dashboards:super_admin_revoke_referral_link' link.id %}" class="d-inline" onsubmit="return confirm('Revoke this referral link?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Revoke</button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">No referral links found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Referral links pagination" class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+(function() {
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+        }
+        var fallback = document.createElement('textarea');
+        fallback.value = text;
+        fallback.setAttribute('readonly', '');
+        fallback.style.position = 'absolute';
+        fallback.style.left = '-9999px';
+        document.body.appendChild(fallback);
+        fallback.select();
+        try {
+            document.execCommand('copy');
+            return Promise.resolve();
+        } finally {
+            document.body.removeChild(fallback);
+        }
+    }
+    document.querySelectorAll('.copy-ref').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var link = this.getAttribute('data-link');
+            if (!link) return;
+            copyToClipboard(link).then(function() {
+                alert('Referral link copied!');
+            }).catch(function() {
+                alert('Could not copy. Please copy the link manually.');
+            });
+        });
+    });
+    document.querySelectorAll('.share-ref').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var link = this.getAttribute('data-link');
+            if (!link) return;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join Nitya Dharma',
+                    url: link
+                }).catch(function() {
+                    copyToClipboard(link).then(function() {
+                        alert('Link copied (sharing not available).');
+                    });
+                });
+            } else {
+                copyToClipboard(link).then(function() {
+                    alert('Link copied (sharing not supported on this browser).');
+                });
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

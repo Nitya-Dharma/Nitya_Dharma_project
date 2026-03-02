@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+{% if page.page_type == 'about' %}
+<!-- FAQ Schema for PAA Optimization (About Us only) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nitya Dharma is India's premier digital platform connecting devotees with verified and trusted pandits for authentic religious ceremonies, poojas, and spiritual services. We ensure quality, transparency, and cultural authenticity in every service."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Nitya Dharma help users?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nitya Dharma helps users discover verified pandits, book religious ceremonies, find temple information, and access authentic spiritual services. Our platform provides transparent reviews, verified credentials, and easy booking management."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I find a pandit on Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can search for pandits by location, pooja type, availability, and ratings. Browse verified pandit profiles, read reviews, check availability, and book directly through our secure platform."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are all pandits on Nitya Dharma verified?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, all pandits on Nitya Dharma undergo a verification process. We verify credentials, experience, and authenticity to ensure users connect with trusted and qualified spiritual guides."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I register as a pandit on Nitya Dharma?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, qualified pandits can register on Nitya Dharma. Visit our registration page, complete your profile with credentials and experience, and undergo our verification process to start serving devotees."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Article Schema for Google Discover (About Us only) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ page.seo_title|default:page.title }}",
+  "description": "{{ page.seo_description }}",
+  "author": {
+    "@type": "Organization",
+    "name": "Nitya Dharma"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Nitya Dharma"
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="static-page-container">
+        <div class="static-page-content">
+            <!-- Hero Section -->
+            <div class="static-hero-section">
+                <h1>{{ page.title }}</h1>
+                {% if page.page_type == 'about' %}
+                <p class="hero-subtitle">Connecting devotees with verified pandits for authentic religious ceremonies and spiritual services</p>
+                {% elif page.page_type == 'terms' %}
+                <p class="hero-subtitle">Please read these terms carefully before using Nitya Dharma</p>
+                {% elif page.page_type == 'privacy' %}
+                <p class="hero-subtitle">Your privacy is important to us. Learn how we collect, use, and protect your information.</p>
+                {% endif %}
+                {% if page.published_at %}
+                <p class="last-updated">Last Updated: {{ page.published_at|date:"F d, Y" }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="static-content-section">
+                <!-- CMS Content (HTML safe) -->
+                <div class="cms-content">
+                    {{ page.content|safe }}
+                </div>
+
+                <!-- Internal Links (About Us only) -->
+                {% if page.page_type == 'about' %}
+                <section class="content-block cta-section">
+                    <h2>Get Started</h2>
+                    <p>Ready to find your perfect pandit or start offering your services?</p>
+                    <div class="cta-buttons">
+                        <a href="{% url 'search_ui:search_results' %}" class="btn btn-primary">Find a Pandit</a>
+                        <a href="{% url 'support:contact_us' %}" class="btn btn-outline-primary">Register as Pandit</a>
+                        <a href="{% url 'pages:page_list' %}" class="btn btn-outline-secondary">Browse Temples</a>
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Contact Link (Terms and Privacy) -->
+                {% if page.page_type == 'terms' or page.page_type == 'privacy' %}
+                <section class="content-block">
+                    <h2>Contact Information</h2>
+                    <p>If you have questions about this page, please <a href="{% url 'support:contact_us' %}" style="color: #E11D48;">contact us</a>.</p>
+                </section>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+

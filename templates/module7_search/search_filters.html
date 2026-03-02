@@ -1,0 +1,210 @@
+{% load static %}
+
+<div class="search-filters">
+    <form method="get" action="{% url 'search_ui:search_results' %}" class="row g-3 align-items-end">
+        <div class="col-12">
+            <label for="keyword" class="form-label">Search Keyword or Pooja Type</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="keyword" 
+                   name="keyword" 
+                   placeholder="e.g., Satyanarayana Pooja"
+                   value="{{ request.GET.keyword|default:'' }}"
+                   aria-label="Search keyword or pooja type">
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="city" class="form-label">City</label>
+            <select class="form-select" 
+                    id="city" 
+                    name="city" 
+                    aria-label="Select city">
+                <option value="">All Cities</option>
+                {% if cities %}
+                    {% for city in cities %}
+                        <option value="{{ city.id }}" 
+                                {% if request.GET.city == city.id|stringformat:"s" %}selected{% endif %}>
+                            {{ city.name }}
+                        </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="area" class="form-label">Local Area</label>
+            <select class="form-select" 
+                    id="area" 
+                    name="area" 
+                    aria-label="Select local area">
+                <option value="">All Areas</option>
+                {% if areas %}
+                    {% for area in areas %}
+                        <option value="{{ area.id }}" 
+                                {% if request.GET.area == area.id|stringformat:"s" %}selected{% endif %}>
+                            {{ area.name }}
+                        </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="pooja" class="form-label">Pooja</label>
+            <select class="form-select" 
+                    id="pooja" 
+                    name="pooja" 
+                    aria-label="Select pooja">
+                <option value="">All Poojas</option>
+                {% if poojas %}
+                    {% for pooja in poojas %}
+                        <option value="{{ pooja.id }}" 
+                                {% if request.GET.pooja == pooja.id|stringformat:"s" %}selected{% endif %}>
+                            {{ pooja.name }}
+                        </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="available_date" class="form-label">Availability (Display Only)</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="available_date" 
+                   value="Check profile for availability"
+                   readonly
+                   aria-label="Availability information">
+            <small class="form-text text-muted">Availability shown on profile</small>
+        </div>
+
+        <!-- Page-Specific Filters (Only shown when result_type=pages) -->
+        {% if request.GET.result_type == 'pages' %}
+        <div class="col-12">
+            <hr class="my-3">
+            <h6 class="mb-3">Page Filters</h6>
+            
+            <div class="form-check mb-2">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="has_announcements" 
+                       name="has_announcements" 
+                       value="1"
+                       {% if request.GET.has_announcements %}checked{% endif %}>
+                <label class="form-check-label" for="has_announcements">
+                    <i class="bi bi-megaphone me-1"></i>Has Announcements
+                </label>
+            </div>
+            
+            <div class="form-check mb-2">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="has_events" 
+                       name="has_events" 
+                       value="1"
+                       {% if request.GET.has_events %}checked{% endif %}>
+                <label class="form-check-label" for="has_events">
+                    <i class="bi bi-calendar-event me-1"></i>Has Upcoming Events
+                </label>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="recently_updated" 
+                       name="recently_updated" 
+                       value="1"
+                       {% if request.GET.recently_updated %}checked{% endif %}>
+                <label class="form-check-label" for="recently_updated">
+                    <i class="bi bi-clock-history me-1"></i>Updated Recently
+                </label>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Preserve result_type in form -->
+        {% if request.GET.result_type %}
+            <input type="hidden" name="result_type" value="{{ request.GET.result_type }}">
+        {% endif %}
+        
+        {% if request.GET.page_type %}
+            <input type="hidden" name="page_type" value="{{ request.GET.page_type }}">
+        {% endif %}
+
+        <div class="col-12 d-lg-block d-none">
+            <button type="submit" class="btn w-100" style="background: #E11D48; color: #FFFFFF; border: none; border-radius: 12px; padding: 0.75rem; font-weight: 600;" aria-label="Submit search">
+                <i class="bi bi-search me-1" aria-hidden="true"></i> 
+                {% if request.GET.result_type == 'pages' %}Search Pages{% else %}Search Pandits{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Smart Default Filters (localStorage) for search filters page
+document.addEventListener('DOMContentLoaded', function() {
+    const citySelect = document.getElementById('city');
+    const areaSelect = document.getElementById('area');
+    
+    // Restore last selected city and area from localStorage (only if not already set)
+    if (citySelect && !citySelect.value) {
+        const savedCity = localStorage.getItem('search_last_city');
+        if (savedCity) {
+            citySelect.value = savedCity;
+            // Trigger change to filter areas
+            citySelect.dispatchEvent(new Event('change'));
+        }
+    }
+    
+    if (areaSelect && !areaSelect.value) {
+        const savedArea = localStorage.getItem('search_last_area');
+        if (savedArea) {
+            areaSelect.value = savedArea;
+        }
+    }
+    
+    // Save city selection to localStorage
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            const selectedCityId = this.value;
+            
+            if (selectedCityId) {
+                localStorage.setItem('search_last_city', selectedCityId);
+            } else {
+                localStorage.removeItem('search_last_city');
+            }
+            
+            // Filter areas based on selected city
+            if (areaSelect) {
+                const areaOptions = areaSelect.querySelectorAll('option');
+                
+                // Reset area selection if city changed
+                const savedArea = localStorage.getItem('search_last_area');
+                if (savedArea) {
+                    const savedAreaOption = Array.from(areaOptions).find(opt => opt.value === savedArea);
+                    if (!savedAreaOption || savedAreaOption.getAttribute('data-city') !== selectedCityId) {
+                        areaSelect.value = '';
+                        localStorage.removeItem('search_last_area');
+                    }
+                } else {
+                    areaSelect.value = '';
+                }
+            }
+        });
+    }
+    
+    // Save area selection to localStorage
+    if (areaSelect) {
+        areaSelect.addEventListener('change', function() {
+            const selectedAreaId = this.value;
+            
+            if (selectedAreaId) {
+                localStorage.setItem('search_last_area', selectedAreaId);
+            } else {
+                localStorage.removeItem('search_last_area');
+            }
+        });
+    }
+});
+</script>
+

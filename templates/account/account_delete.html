@@ -1,0 +1,136 @@
+{% extends "account/account_base.html" %}
+
+{% block title %}Delete Account - My Account - Nitya Dharma{% endblock %}
+
+{% block account_content %}
+    <h2 class="h4 mb-4 text-danger">Delete Account</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Warning Section -->
+    <div class="alert alert-danger" role="alert">
+        <h5 class="alert-heading">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Warning: Permanent Action
+        </h5>
+        <p class="mb-0">
+            <strong>Deleting your account is permanent and cannot be undone.</strong>
+        </p>
+        <hr>
+        <p class="mb-0">
+            This action will:
+        </p>
+        <ul class="mb-0 mt-2">
+            <li>Permanently delete your account and all associated data</li>
+            <li>Remove all your booking intents and reviews</li>
+            <li>Cancel any pending bookings</li>
+            <li>Remove your access to the platform</li>
+        </ul>
+    </div>
+    
+    <!-- Confirmation Form -->
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Confirm Account Deletion</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'accounts:account_delete' %}" id="deleteAccountForm">
+                {% csrf_token %}
+                
+                <!-- Password Confirmation -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">Enter Your Password to Confirm</label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           required
+                           autocomplete="current-password"
+                           placeholder="Enter your password">
+                    <small class="form-text text-muted">You must enter your current password to delete your account.</small>
+                </div>
+                
+                <!-- Confirmation Checkbox -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               id="confirmDelete" 
+                               name="confirm_delete"
+                               required>
+                        <label class="form-check-label" for="confirmDelete">
+                            I understand this action is <strong>irreversible</strong> and will permanently delete my account and all associated data.
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Delete Button -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'accounts:profile_settings' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" 
+                            class="btn btn-danger" 
+                            id="deleteBtn"
+                            onclick="return confirm('Are you absolutely sure you want to delete your account? This cannot be undone!');">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="deleteSpinner"></span>
+                        <i class="bi bi-trash me-1"></i>Delete My Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('deleteAccountForm').addEventListener('submit', function(e) {
+            const confirmCheckbox = document.getElementById('confirmDelete');
+            const password = document.getElementById('password').value;
+            
+            if (!confirmCheckbox.checked) {
+                e.preventDefault();
+                alert('You must confirm that you understand this action is irreversible.');
+                return false;
+            }
+            
+            if (!password) {
+                e.preventDefault();
+                alert('You must enter your password to delete your account.');
+                return false;
+            }
+            
+            const deleteBtn = document.getElementById('deleteBtn');
+            const spinner = document.getElementById('deleteSpinner');
+            deleteBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

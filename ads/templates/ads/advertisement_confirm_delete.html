@@ -1,0 +1,36 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Delete advertisement{% endblock %}
+{% block dashboard_heading %}Delete advertisement{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:advertisement_list' %}">
+            <i class="bi bi-megaphone me-2"></i>Advertisements
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Delete</a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <p>Are you sure you want to delete <strong>{{ ad.name }}</strong> ({{ ad.get_placement_display }})?</p>
+            <form method="post" action="">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <a href="{% url 'ads:advertisement_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

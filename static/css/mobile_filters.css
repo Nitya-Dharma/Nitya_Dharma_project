@@ -1,0 +1,169 @@
+/* Mobile Search Filters - 60-30-10 Design System
+   Offcanvas slide drawer (no modal). UI only; no backend changes. */
+
+/* Mobile Filter Trigger Button (full width, above results) */
+.mobile-filter-trigger-btn {
+    background-color: #E11D48; /* Accent 10% */
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+.mobile-filter-trigger-btn:hover {
+    background-color: #BE123C;
+    color: #FFFFFF !important;
+}
+.mobile-filter-trigger-btn:active {
+    background-color: #9F1239;
+    color: #FFFFFF !important;
+}
+
+/* Mobile Filter Offcanvas (slide drawer from left) */
+.mobile-filter-offcanvas.offcanvas {
+    max-width: 320px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+@media (min-width: 400px) {
+    .mobile-filter-offcanvas.offcanvas {
+        max-width: 360px;
+    }
+}
+
+.mobile-filter-offcanvas-header {
+    background-color: #F8FAFC; /* Primary 60% */
+    border-bottom: 1px solid #E5E7EB;
+    padding: 1rem 1.25rem;
+    flex-shrink: 0;
+}
+.mobile-filter-offcanvas-header .offcanvas-title {
+    color: #0F172A; /* Secondary 30% */
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+.mobile-filter-offcanvas-header .btn-close {
+    color: #64748B;
+    opacity: 1;
+}
+.mobile-filter-offcanvas-header .btn-close:hover {
+    color: #0F172A;
+}
+
+.mobile-filter-offcanvas-body {
+    background-color: #FFFFFF;
+    padding: 1.25rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Filter form inside offcanvas - 60-30-10 */
+#mobileFilterDrawer .search-filters {
+    background: transparent;
+}
+#mobileFilterDrawer .form-label {
+    color: #0F172A;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+#mobileFilterDrawer .form-control,
+#mobileFilterDrawer .form-select {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-size: 1rem;
+    min-height: 44px;
+}
+#mobileFilterDrawer .form-control:focus,
+#mobileFilterDrawer .form-select:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+#mobileFilterDrawer .form-text {
+    color: #64748B;
+    font-size: 0.85rem;
+}
+#mobileFilterDrawer .btn-outline-secondary {
+    border: 1px solid #E5E7EB;
+    color: #64748B;
+    background: #FFFFFF;
+}
+#mobileFilterDrawer .btn-outline-secondary:hover {
+    border-color: #E11D48;
+    color: #E11D48;
+}
+#mobileFilterDrawer .form-check-label {
+    color: #1E293B;
+}
+#mobileFilterDrawer .form-check-input:checked {
+    background-color: #E11D48;
+    border-color: #E11D48;
+}
+
+.mobile-filter-apply-btn {
+    background-color: #E11D48;
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    min-height: 48px;
+}
+.mobile-filter-apply-btn:hover {
+    background-color: #BE123C;
+    color: #FFFFFF !important;
+}
+#mobileFilterDrawer .border-top {
+    border-color: #E5E7EB !important;
+}
+
+/* Mobile spacing */
+@media (max-width: 991.98px) {
+    .search-results-container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .filter-section {
+        margin-bottom: 15px;
+    }
+}
+@media (max-width: 575.98px) {
+    .search-results-container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* Desktop: sidebar visible, offcanvas not used (Bootstrap hides .d-lg-none) */
+@media (min-width: 992px) {
+    .filters-sidebar-desktop {
+        display: block !important;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,739 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
+<style>
+    /* Pandit Profile Edit Page - Premium Styling */
+    .pandit-profile-edit {
+        background-color: #F8FAFC;
+        min-height: 100vh;
+    }
+    
+    /* Categorized Poojas Styling */
+    .pooja-category-card {
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .pooja-category-card:hover {
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+    
+    .pooja-category-card .card-header {
+        background-color: #F8FAFC !important;
+        border-bottom: 1px solid #E5E7EB;
+        padding: 0.75rem 1rem;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .pooja-category-card .card-header h6 {
+        color: #0F172A;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .pooja-category-card .card-body {
+        padding: 1rem;
+    }
+    
+    .category-select-all {
+        cursor: pointer;
+    }
+    
+    .category-select-all:indeterminate {
+        background-color: #E11D48;
+        border-color: #E11D48;
+    }
+    
+    .pooja-checkbox {
+        cursor: pointer;
+    }
+    
+    .pooja-checkbox:checked + label {
+        color: #E11D48;
+        font-weight: 500;
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .form-check-label:hover {
+        color: #E11D48;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Edit Profile - Nitya Dharma{% endblock %}
+
+{% block content %}
+<!-- UNIT 5: Premium Profile Edit Page Foundation -->
+<section class="section-padding bg-slate-50 pandit-profile-edit">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h1 class="h2 mb-4 fw-bold">Edit Profile</h1>
+            
+            
+            {% if not user.is_authenticated or not is_profile_owner %}
+                <div class="alert alert-warning" role="alert">
+                    You don't have permission to edit this profile.
+                </div>
+            {% endif %}
+            
+            
+            {% include "partials/alerts.html" %}
+            
+            <form method="post" action="{% url 'profiles:profile_edit' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- UNIT 6: Personal Information Section -->
+                <div class="premium-card p-4 mb-4">
+                    <h6 class="fw-semibold mb-3">Personal Information</h6>
+                        
+                        <div class="mb-3">
+                            <label for="about_description" class="form-label">
+                                About / Bio
+                            </label>
+                            <textarea class="form-control" 
+                                      id="about_description" 
+                                      name="about_description" 
+                                      rows="5"
+                                      placeholder="Tell us about yourself, your experience, and services...">{{ current_profile.about_description|default:'' }}</textarea>
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label for="experience_years" class="form-label">
+                                Years of Experience
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="experience_years" 
+                                   name="experience_years" 
+                                   value="{{ current_profile.experience_years|default:'' }}"
+                                   min="0"
+                                   max="100"
+                                   placeholder="e.g., 10">
+                            <small class="form-text text-muted">Number of years of experience as a Pandit</small>
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label for="languages" class="form-label">
+                                <strong>Languages Spoken</strong>
+                                <small class="text-muted d-block">Select the languages you speak</small>
+                            </label>
+                            
+                            {% if available_languages %}
+                                <div class="row">
+                                    {% for language in available_languages %}
+                                        <div class="col-12 col-md-4 col-lg-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       name="languages" 
+                                                       value="{{ language.id }}" 
+                                                       id="language_{{ language.id }}"
+                                                       {% if language.id in selected_language_ids %}checked{% endif %}>
+                                                <label class="form-check-label" for="language_{{ language.id }}">
+                                                    {{ language.name }}{% if language.native_name %} ({{ language.native_name }}){% endif %}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {# Fallback to text input if no languages in master data #}
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="languages_spoken" 
+                                       name="languages_spoken" 
+                                       value="{% if current_profile.languages.exists %}{{ current_profile.languages.all|join:', ' }}{% else %}{{ current_profile.languages_spoken|default:'' }}{% endif %}"
+                                       placeholder="e.g., Hindi, English, Marathi">
+                                <small class="form-text text-muted">Separate languages with commas (fallback mode - no master data available)</small>
+                            {% endif %}
+                        </div>
+                </div>
+                
+                <!-- UNIT 6 & 8: Contact Information Section -->
+                <div class="premium-card p-4 mb-4">
+                    <h6 class="fw-semibold mb-3">Contact Information</h6>
+                        <!-- UNIT 8: Contact Numbers (Call & WhatsApp UI) -->
+                        <div class="mb-4">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="use_same_number_for_call_and_whatsapp" 
+                                       name="use_same_number_for_call_and_whatsapp"
+                                       {% if current_profile.use_same_number_for_call_and_whatsapp|default:True %}checked{% endif %}>
+                                <label class="form-check-label fw-medium" for="use_same_number_for_call_and_whatsapp">
+                                    Use same number for Call & WhatsApp
+                                </label>
+                            </div>
+                            <small class="muted d-block mb-3">
+                                If checked, your calling number will be used for both calls and WhatsApp. If unchecked, you can set separate numbers.
+                            </small>
+                            
+                            <!-- Calling Mobile Number -->
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="flex-grow-1">
+                                    <label for="call_mobile_number" class="form-label fw-medium">
+                                        Calling Mobile Number <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="tel" 
+                                           class="form-control" 
+                                           id="call_mobile_number" 
+                                           name="call_mobile_number" 
+                                           value="{{ current_profile.call_mobile_number|default:current_profile.primary_mobile_number|default:current_profile.phone_number|default:'' }}"
+                                           placeholder="+919876543210"
+                                           pattern="[+]?[0-9]{10,15}"
+                                           maxlength="15"
+                                           required>
+                                    <small class="muted d-block mt-1">
+                                        Used for direct contact by users via phone calls.
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- WhatsApp Mobile Number -->
+                            <div class="d-flex align-items-center gap-3 mb-3" id="whatsapp_number_container" style="display: {% if current_profile.use_same_number_for_call_and_whatsapp|default:True %}none{% else %}flex{% endif %};">
+                                <div class="flex-grow-1">
+                                    <label for="whatsapp_mobile_number" class="form-label fw-medium">
+                                        WhatsApp Mobile Number <span class="muted">(Optional)</span>
+                                    </label>
+                                    <input type="tel" 
+                                           class="form-control" 
+                                           id="whatsapp_mobile_number" 
+                                           name="whatsapp_mobile_number" 
+                                           value="{% if not current_profile.use_same_number_for_call_and_whatsapp|default:True %}{{ current_profile.whatsapp_mobile_number|default:'' }}{% else %}{{ current_profile.call_mobile_number|default:current_profile.primary_mobile_number|default:'' }}{% endif %}"
+                                           placeholder="+919876543210"
+                                           pattern="[+]?[0-9]{10,15}"
+                                           maxlength="15">
+                                    <small class="muted d-block mt-1">
+                                        Used for direct contact by users via WhatsApp.
+                                    </small>
+                                </div>
+                            </div>
+                        
+                        <!-- Secondary Mobile Number (Optional) -->
+                        <div class="mb-3">
+                            <label for="secondary_mobile_number" class="form-label">
+                                <strong>Secondary Mobile Number</strong> <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="secondary_mobile_number" 
+                                   name="secondary_mobile_number" 
+                                   value="{{ current_profile.secondary_mobile_number|default:'' }}"
+                                   placeholder="+919876543211"
+                                   pattern="[+]?[0-9]{10,15}"
+                                   maxlength="15">
+                            <small class="form-text text-muted">
+                                Additional mobile number (informational only, not used for Call/WhatsApp buttons).
+                            </small>
+                        </div>
+                        
+                        <!-- Legacy fields (hidden, for backward compatibility) -->
+                        <input type="hidden" 
+                               name="primary_mobile_number" 
+                               id="primary_mobile_number_hidden"
+                               value="{{ current_profile.primary_mobile_number|default:current_profile.phone_number|default:'' }}">
+                        <input type="hidden" 
+                               name="phone_number" 
+                               value="{{ current_profile.primary_mobile_number|default:current_profile.phone_number|default:'' }}">
+                        <input type="hidden" 
+                               name="allow_call" 
+                               value="{% if current_profile.enable_call or current_profile.allow_call %}1{% else %}0{% endif %}">
+                        <input type="hidden" 
+                               name="allow_whatsapp" 
+                               value="{% if current_profile.enable_whatsapp or current_profile.allow_whatsapp %}1{% else %}0{% endif %}">
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Services & Location</h3>
+                    </div>
+                    <div class="card-body">
+                        
+                        <div class="mb-3">
+                            <label class="form-label" for="poojas">
+                                <strong>Poojas Performed</strong>
+                                <small class="text-muted d-block">Select the poojas you perform. Use "Select All" to quickly select all poojas in a category.</small>
+                            </label>
+                            
+                            {% if pooja_categories %}
+                                {% for category, poojas in pooja_categories.items %}
+                                    <div class="card mb-3 pooja-category-card">
+                                        <div class="card-header bg-light">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0 fw-bold">{{ category }}</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input category-select-all" 
+                                                           type="checkbox" 
+                                                           id="select_all_{{ forloop.counter }}"
+                                                           data-category="{{ forloop.counter }}">
+                                                    <label class="form-check-label small" for="select_all_{{ forloop.counter }}">
+                                                        Select All
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for pooja in poojas %}
+                                                    <div class="col-12 col-md-4 col-lg-3 mb-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input pooja-checkbox category-{{ forloop.parentloop.counter }}" 
+                                                                   type="checkbox" 
+                                                                   name="poojas" 
+                                                                   value="{{ pooja.id }}" 
+                                                                   id="pooja_{{ pooja.id }}"
+                                                                   data-category="{{ forloop.parentloop.counter }}"
+                                                                   {% if pooja.id in selected_pooja_ids %}checked{% endif %}>
+                                                            <label class="form-check-label" for="pooja_{{ pooja.id }}">
+                                                                {{ pooja.name }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                {# Fallback to flat list if categories not available #}
+                                <div class="row">
+                                    {% for pooja in available_poojas %}
+                                        <div class="col-12 col-md-4 col-lg-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       name="poojas" 
+                                                       value="{{ pooja.id }}" 
+                                                       id="pooja_{{ pooja.id }}"
+                                                       {% if pooja.id in selected_pooja_ids %}checked{% endif %}>
+                                                <label class="form-check-label" for="pooja_{{ pooja.id }}">
+                                                    {{ pooja.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label for="city" class="form-label" id="city-label">City</label>
+                            <select class="form-select" id="city" name="city" aria-labelledby="city-label">
+                                <option value="">Select City</option>
+                                {% for city in available_cities %}
+                                    <option value="{{ city.id }}" 
+                                            {% if current_profile.cities_served.all|length > 0 and city in current_profile.cities_served.all %}selected{% endif %}>
+                                        {{ city.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label for="area" class="form-label" id="area-label">Area</label>
+                            <select class="form-select" id="area" name="area" aria-labelledby="area-label">
+                                <option value="">Select Area</option>
+                                {% for area in available_areas %}
+                                    <option value="{{ area.id }}" 
+                                            {% if current_profile.areas_served.all|length > 0 and area in current_profile.areas_served.all %}selected{% endif %}>
+                                        {{ area.name }}
+                                    </option>
+                                {% endfor %}
+                                <option value="other">Others</option>
+                            </select>
+                            <div id="custom-area-field" style="display:none; margin-top: 10px;">
+                                <input type="text"
+                                       name="custom_local_area"
+                                       id="custom_local_area"
+                                       class="form-control"
+                                       placeholder="Enter your local area name"
+                                       style="border-color: var(--border-color-theme, #E5E7EB); background-color: var(--bg-primary-theme, #FFFFFF); color: var(--text-primary-theme, #0F172A);">
+                                <small class="form-text text-muted">Enter the name of your local area. It will be added to the system.</small>
+                            </div>
+                        </div>
+                </div>
+                
+                <!-- UNIT 6: Documents / Media Section -->
+                <div class="premium-card p-4 mb-4">
+                    <h6 class="fw-semibold mb-3">Documents / Media</h6>
+                        
+                        <!-- Cover Image Upload -->
+                        <div class="mb-4">
+                            <label for="cover_image" class="form-label" id="cover_image-label">
+                                <strong>Cover Image</strong>
+                                <small class="text-muted d-block">Cover photo for your profile hero section (recommended: 1920x600px, max 5MB)</small>
+                            </label>
+                            <div class="mb-2">
+                                <div id="coverImagePreviewContainer" class="position-relative" style="max-width: 100%; height: 200px; overflow: hidden; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <img id="coverImagePreview" 
+                                         src="{% if current_profile.has_cover_image %}{{ current_profile.get_cover_image_url }}{% endif %}" 
+                                         alt="Cover Image Preview" 
+                                         style="width: 100%; height: 100%; object-fit: cover; {% if not current_profile.has_cover_image %}display: none;{% endif %}" 
+                                         class="rounded">
+                                    <div class="position-absolute top-50 start-50 translate-middle text-white text-center {% if current_profile.has_cover_image %}d-none{% endif %}" 
+                                         id="coverImagePlaceholder">
+                                        <i class="bi bi-image" style="font-size: 3rem;"></i>
+                                        <p class="mt-2 mb-0">No cover image</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="cover_image" 
+                                   name="cover_image" 
+                                   accept="image/*"
+                                   aria-labelledby="cover_image-label"
+                                   onchange="previewCoverImage(this)">
+                            <small class="text-muted" id="coverImageFileName"></small>
+                        </div>
+                        
+                        <!-- Profile Image Upload -->
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label" id="profile_image-label">Profile Image</label>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="position-relative me-3">
+                                    <img src="{% if current_profile.has_profile_image %}{{ current_profile.get_profile_image_url }}{% endif %}" 
+                                         alt="Profile Image Preview" 
+                                         id="profileImagePreview"
+                                         class="rounded {% if not current_profile.has_profile_image %}d-none{% endif %}" 
+                                         style="width: 120px; height: 120px; object-fit: cover; border: 2px solid #dee2e6;">
+                                    <div class="rounded bg-secondary d-flex align-items-center justify-content-center {% if current_profile.has_profile_image %}d-none{% endif %}" 
+                                         id="profileImagePlaceholder"
+                                         style="width: 120px; height: 120px;">
+                                        <i class="bi bi-image text-white" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="profile_image" 
+                                           name="profile_image" 
+                                           accept="image/*"
+                                           aria-labelledby="profile_image-label"
+                                           onchange="previewProfileImage(this)">
+                                    <small class="form-text text-muted">Upload your profile picture</small>
+                                    <div id="profileImageFileName" class="small text-muted mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+                
+                <!-- SEO & Search Visibility Section -->
+                <div class="premium-card p-4 mb-4">
+                    <h6 class="fw-semibold mb-3">SEO & Search Visibility (Optional)</h6>
+                        <p class="text-muted small mb-3">
+                            These fields help search engines find and display your profile. They are auto-generated from your profile data, but you can customize them.
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label for="seo_title" class="form-label">
+                                SEO Title
+                                <span class="badge bg-secondary ms-2" id="seo_title_counter">0/60</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="seo_title" 
+                                   name="seo_title" 
+                                   value="{{ current_profile.seo_title|default:'' }}"
+                                   maxlength="60"
+                                   placeholder="Auto-generated from your name, poojas, and city">
+                            <small class="form-text text-muted">SEO title for search engines (max 60 characters)</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="seo_description" class="form-label">
+                                SEO Description
+                                <span class="badge bg-secondary ms-2" id="seo_description_counter">0/160</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="seo_description" 
+                                      name="seo_description" 
+                                      rows="3"
+                                      maxlength="160"
+                                      placeholder="Auto-generated from your profile information">{{ current_profile.seo_description|default:'' }}</textarea>
+                            <small class="form-text text-muted">SEO description for search engines (max 160 characters)</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="seo_keywords" class="form-label">
+                                SEO Keywords
+                            </label>
+                            <textarea class="form-control" 
+                                      id="seo_keywords" 
+                                      name="seo_keywords" 
+                                      rows="3"
+                                      placeholder="Auto-generated keywords (comma-separated, unlimited length)">{{ current_profile.seo_keywords|default:'' }}</textarea>
+                            <small class="form-text text-muted">SEO keywords (comma-separated, unlimited length)</small>
+                        </div>
+                </div>
+                
+                <!-- UNIT 10: Save / Action Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-danger px-5">Save Changes</button>
+                    <a href="{% url 'profiles:profile_private' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Category-wise Select All functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all "Select All" checkboxes
+            const selectAllCheckboxes = document.querySelectorAll('.category-select-all');
+            
+            selectAllCheckboxes.forEach(function(selectAll) {
+                const categoryNum = selectAll.getAttribute('data-category');
+                const categoryCheckboxes = document.querySelectorAll('.pooja-checkbox.category-' + categoryNum);
+                
+                // When "Select All" is clicked
+                selectAll.addEventListener('change', function() {
+                    categoryCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = selectAll.checked;
+                    });
+                });
+                
+                // When individual checkbox changes, update "Select All" state
+                categoryCheckboxes.forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
+                        const someChecked = Array.from(categoryCheckboxes).some(cb => cb.checked);
+                        selectAll.checked = allChecked;
+                        selectAll.indeterminate = someChecked && !allChecked;
+                    });
+                });
+                
+                // Initialize "Select All" state on page load
+                const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(categoryCheckboxes).some(cb => cb.checked);
+                selectAll.checked = allChecked;
+                selectAll.indeterminate = someChecked && !allChecked;
+            });
+        });
+        
+        // Preview cover image before upload
+        function previewCoverImage(input) {
+            const fileNameDiv = document.getElementById('coverImageFileName');
+            const previewImg = document.getElementById('coverImagePreview');
+            const placeholderImg = document.getElementById('coverImagePlaceholder');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB. Please choose a smaller image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Invalid file type. Please upload JPG, PNG, GIF, or WEBP image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Show file name
+                if (fileNameDiv) {
+                    fileNameDiv.textContent = 'Selected: ' + file.name;
+                }
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                    }
+                    if (placeholderImg) {
+                        placeholderImg.classList.add('d-none');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // No file selected, show placeholder
+                if (previewImg) {
+                    previewImg.style.display = 'none';
+                }
+                if (placeholderImg) {
+                    placeholderImg.classList.remove('d-none');
+                }
+                if (fileNameDiv) {
+                    fileNameDiv.textContent = '';
+                }
+            }
+        }
+        
+        // Original script continues...
+        // Preview profile image before upload
+        function previewProfileImage(input) {
+            const fileNameDiv = document.getElementById('profileImageFileName');
+            const previewImg = document.getElementById('profileImagePreview');
+            const placeholderImg = document.getElementById('profileImagePlaceholder');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (5MB - reasonable for profile images)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB. Please choose a smaller image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Invalid file type. Please upload JPG, PNG, GIF, or WEBP image.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Show file name
+                if (fileNameDiv) {
+                    fileNameDiv.textContent = 'Selected: ' + file.name;
+                }
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.classList.remove('d-none');
+                    }
+                    if (placeholderImg) {
+                        placeholderImg.classList.add('d-none');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // If no file selected, restore original state
+                if (previewImg && !previewImg.src.includes('data:')) {
+                    // Only hide if it was a preview (data URL), not the original image
+                    const originalSrc = '{% if current_profile.profile_image %}{{ current_profile.profile_image.url }}{% endif %}';
+                    if (!originalSrc) {
+                        previewImg.classList.add('d-none');
+                        if (placeholderImg) {
+                            placeholderImg.classList.remove('d-none');
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Scroll to top on page load if there are messages (validation errors or success)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there are any alert messages
+            const alerts = document.querySelectorAll('.alert');
+            if (alerts.length > 0) {
+                // Scroll to top smoothly to show messages
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        
+        // SEO field character counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const seoTitleInput = document.getElementById('seo_title');
+            const seoTitleCounter = document.getElementById('seo_title_counter');
+            const seoDescInput = document.getElementById('seo_description');
+            const seoDescCounter = document.getElementById('seo_description_counter');
+            
+            function updateCounter(input, counter, maxLength) {
+                if (input && counter) {
+                    const length = input.value.length;
+                    counter.textContent = `${length}/${maxLength}`;
+                    if (length > maxLength * 0.9) {
+                        counter.className = 'badge bg-warning ms-2';
+                    } else if (length > maxLength) {
+                        counter.className = 'badge bg-danger ms-2';
+                    } else {
+                        counter.className = 'badge bg-secondary ms-2';
+                    }
+                }
+            }
+            
+            if (seoTitleInput && seoTitleCounter) {
+                seoTitleInput.addEventListener('input', function() {
+                    updateCounter(seoTitleInput, seoTitleCounter, 60);
+                });
+                updateCounter(seoTitleInput, seoTitleCounter, 60); // Initial update
+            }
+            
+            if (seoDescInput && seoDescCounter) {
+                seoDescInput.addEventListener('input', function() {
+                    updateCounter(seoDescInput, seoDescCounter, 160);
+                });
+                updateCounter(seoDescInput, seoDescCounter, 160); // Initial update
+            }
+        });
+        
+        // Toggle WhatsApp number field based on checkbox
+        document.addEventListener('DOMContentLoaded', function() {
+            const useSameNumberCheckbox = document.getElementById('use_same_number_for_call_and_whatsapp');
+            const whatsappNumberContainer = document.getElementById('whatsapp_number_container');
+            const whatsappNumberInput = document.getElementById('whatsapp_mobile_number');
+            const callNumberInput = document.getElementById('call_mobile_number');
+            
+            if (useSameNumberCheckbox && whatsappNumberContainer && whatsappNumberInput && callNumberInput) {
+                // Toggle WhatsApp field visibility based on checkbox
+                function toggleWhatsAppField() {
+                    if (useSameNumberCheckbox.checked) {
+                        // Hide WhatsApp field when checkbox is checked
+                        whatsappNumberContainer.style.display = 'none';
+                        // Clear WhatsApp number value (will be synced from call number on save)
+                        whatsappNumberInput.value = '';
+                    } else {
+                        // Show WhatsApp field when checkbox is unchecked
+                        whatsappNumberContainer.style.display = 'block';
+                    }
+                }
+                
+                // Initial state
+                toggleWhatsAppField();
+                
+                // Custom Local Area Field Toggle
+                const areaSelect = document.getElementById('area');
+                const customAreaField = document.getElementById('custom-area-field');
+                const customAreaInput = document.getElementById('custom_local_area');
+                
+                if (areaSelect && customAreaField) {
+                    areaSelect.addEventListener('change', function() {
+                        if (this.value === 'other') {
+                            customAreaField.style.display = 'block';
+                            customAreaInput.required = true;
+                        } else {
+                            customAreaField.style.display = 'none';
+                            customAreaInput.required = false;
+                            customAreaInput.value = '';
+                        }
+                    });
+                }
+                
+                // Listen for checkbox changes
+                useSameNumberCheckbox.addEventListener('change', toggleWhatsAppField);
+            }
+        });
+    </script>
+{% endblock %}
+

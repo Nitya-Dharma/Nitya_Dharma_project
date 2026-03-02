@@ -1,0 +1,26 @@
+{% comment %}
+Responsive ad unit: supports script (AdSense/HTML) and image banners.
+Expects variable: ad (Advertisement instance).
+{% endcomment %}
+{% if ad.ad_type == "image" and ad.image %}
+<div class="ad-container text-center my-3">
+    <a href="{{ ad.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
+        {% if ad.mobile_image %}
+            <picture>
+                <source media="(max-width: 768px)" srcset="{{ ad.mobile_image.url }}">
+                <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy">
+            </picture>
+        {% else %}
+            <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy">
+        {% endif %}
+    </a>
+</div>
+{% elif ad.script_code %}
+<div class="ad-container text-center my-3">
+    {% if ad.is_responsive %}
+        <div class="ad-script-responsive" style="width:100%;max-width:100%;">{{ ad.script_code|safe }}</div>
+    {% else %}
+        <div class="ad-script-fixed" style="width:{{ ad.banner_width|default:728 }}px;height:{{ ad.banner_height|default:90 }}px;margin:0 auto;">{{ ad.script_code|safe }}</div>
+    {% endif %}
+</div>
+{% endif %}

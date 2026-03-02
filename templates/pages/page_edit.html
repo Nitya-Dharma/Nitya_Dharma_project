@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit {{ page.title }} - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-edit-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    .page-edit-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .page-edit-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-edit-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                <div class="card page-edit-card">
+                    <div class="page-edit-header">
+                        <h2 class="mb-0">
+                            <i class="bi bi-pencil me-2"></i>Edit Page
+                        </h2>
+                        <p class="mb-0 mt-2 opacity-75">{{ page.title }}</p>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.tags != 'error' or form.errors %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Please correct the errors below:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field|title }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% if form.non_field_errors %}
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'pages:page_edit' page_public_id=page.public_id %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="bi bi-tag me-2"></i>Page Type
+                                </label>
+                                <input type="text" class="form-control" value="{{ page.get_page_type_display }}" disabled>
+                                <!-- Hidden field to submit page_type value since the visible field is disabled -->
+                                <input type="hidden" name="page_type" value="{{ page.page_type }}">
+                                <small class="form-text text-muted">Page type cannot be changed after creation</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-type me-2"></i>Page Title <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control" id="title" name="title" 
+                                          rows="2" required
+                                          placeholder="Enter page title">{{ page.title }}</textarea>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="slug" class="form-label">
+                                    <i class="bi bi-link-45deg me-2"></i>URL Slug
+                                    <span class="badge bg-secondary ms-2">Locked</span>
+                                </label>
+                                <input type="text" class="form-control {% if form.slug.errors %}is-invalid{% endif %} bg-light" id="slug" name="slug" 
+                                       value="{{ form.slug.value|default:page.slug }}" maxlength="255"
+                                       pattern="[a-z0-9-]+" 
+                                       placeholder="my-page-slug"
+                                       readonly>
+                                {% if form.slug.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.slug.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-lock-fill text-muted"></i> Slug cannot be modified after creation.
+                                </small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="address" class="form-label">
+                                    <i class="bi bi-geo-alt me-2"></i>Temple Address
+                                </label>
+                                <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}" id="address" name="address" 
+                                          rows="3" placeholder="Enter temple address">{{ form.address.value|default:page.address|default:'' }}</textarea>
+                                {% if form.address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.address.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="description" class="form-label">
+                                    <i class="bi bi-text-paragraph me-2"></i>Description
+                                </label>
+                                <textarea class="form-control" id="description" name="description" 
+                                          rows="5" placeholder="Enter page description">{{ page.description }}</textarea>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="profile_image" class="form-label">
+                                    <i class="bi bi-image me-2"></i>Profile Image
+                                </label>
+                                {% if page.profile_image %}
+                                    <div class="mb-2">
+                                        <img src="{{ page.profile_image.url }}" alt="Current profile image" class="img-thumbnail" style="max-height: 100px;">
+                                        <br><small class="text-muted">Current image</small>
+                                    </div>
+                                {% endif %}
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" 
+                                       accept="image/*">
+                                <small class="form-text text-muted">Leave empty to keep current image</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="cover_image" class="form-label">
+                                    <i class="bi bi-image me-2"></i>Cover Image
+                                </label>
+                                {% if page.cover_image %}
+                                    <div class="mb-2">
+                                        <img src="{{ page.cover_image.url }}" alt="Current cover image" class="img-thumbnail" style="max-height: 100px;">
+                                        <br><small class="text-muted">Current image</small>
+                                    </div>
+                                {% endif %}
+                                <input type="file" class="form-control" id="cover_image" name="cover_image" 
+                                       accept="image/*">
+                                <small class="form-text text-muted">Leave empty to keep current image</small>
+                            </div>
+                            
+                            <!-- SEO & Search Visibility Section -->
+                            <div class="card mb-4" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-search me-2"></i>SEO & Search Visibility (Optional)
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted small mb-3">
+                                        These fields help search engines find and display your page. They are auto-generated from your page data, but you can customize them.
+                                    </p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_title" class="form-label">
+                                            SEO Title
+                                            <span class="badge bg-secondary ms-2" id="seo_title_counter">0/60</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="seo_title" 
+                                               name="seo_title" 
+                                               value="{{ page.seo_title|default:'' }}"
+                                               maxlength="60"
+                                               placeholder="Auto-generated from page title and city">
+                                        <small class="form-text text-muted">SEO title for search engines (max 60 characters)</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_description" class="form-label">
+                                            SEO Description
+                                            <span class="badge bg-secondary ms-2" id="seo_description_counter">0/160</span>
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="seo_description" 
+                                                  name="seo_description" 
+                                                  rows="3"
+                                                  maxlength="160"
+                                                  placeholder="Auto-generated from page information">{{ page.seo_description|default:'' }}</textarea>
+                                        <small class="form-text text-muted">SEO description for search engines (max 160 characters)</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_keywords" class="form-label">
+                                            SEO Keywords
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="seo_keywords" 
+                                                  name="seo_keywords" 
+                                                  rows="3"
+                                                  placeholder="Auto-generated keywords (comma-separated, unlimited length)">{{ page.seo_keywords|default:'' }}</textarea>
+                                        <small class="form-text text-muted">SEO keywords (comma-separated, unlimited length)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Current Status</label>
+                                <div>
+                                    <span class="badge bg-{% if page.status == 'ACTIVE' %}success{% elif page.status == 'DEACTIVATED' %}warning{% else %}secondary{% endif %} fs-6">
+                                        {{ page.get_status_display }}
+                                    </span>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Status can be changed from the page detail view.
+                                </small>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" class="btn btn-secondary me-md-2">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-save">
+                                    <i class="bi bi-check-circle me-1"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// SEO field character counters
+document.addEventListener('DOMContentLoaded', function() {
+    const seoTitleInput = document.getElementById('seo_title');
+    const seoTitleCounter = document.getElementById('seo_title_counter');
+    const seoDescInput = document.getElementById('seo_description');
+    const seoDescCounter = document.getElementById('seo_description_counter');
+    
+    function updateCounter(input, counter, maxLength) {
+        if (input && counter) {
+            const length = input.value.length;
+            counter.textContent = `${length}/${maxLength}`;
+            if (length > maxLength * 0.9) {
+                counter.className = 'badge bg-warning ms-2';
+            } else if (length > maxLength) {
+                counter.className = 'badge bg-danger ms-2';
+            } else {
+                counter.className = 'badge bg-secondary ms-2';
+            }
+        }
+    }
+    
+    if (seoTitleInput && seoTitleCounter) {
+        seoTitleInput.addEventListener('input', function() {
+            updateCounter(seoTitleInput, seoTitleCounter, 60);
+        });
+        updateCounter(seoTitleInput, seoTitleCounter, 60); // Initial update
+    }
+    
+    if (seoDescInput && seoDescCounter) {
+        seoDescInput.addEventListener('input', function() {
+            updateCounter(seoDescInput, seoDescCounter, 160);
+        });
+        updateCounter(seoDescInput, seoDescCounter, 160); // Initial update
+    }
+});
+</script>
+{% endblock %}
+
+
+
+

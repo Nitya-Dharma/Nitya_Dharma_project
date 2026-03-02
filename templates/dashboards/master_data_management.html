@@ -1,0 +1,389 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Master Data Management - Super Admin Dashboard{% endblock %}
+
+{% block dashboard_heading %}Master Data Management{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Manage canonical platform data: Cities, Areas, Poojas, Languages, Categories</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Master Data Tabs -->
+    <ul class="nav nav-tabs mb-4" id="masterDataTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="cities-tab" data-bs-toggle="tab" data-bs-target="#cities" type="button" role="tab">
+                <i class="bi bi-geo-alt me-2"></i>Cities
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="areas-tab" data-bs-toggle="tab" data-bs-target="#areas" type="button" role="tab">
+                <i class="bi bi-geo me-2"></i>Local Areas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="poojas-tab" data-bs-toggle="tab" data-bs-target="#poojas" type="button" role="tab">
+                <i class="bi bi-star me-2"></i>Poojas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages" type="button" role="tab">
+                <i class="bi bi-translate me-2"></i>Languages
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">
+                <i class="bi bi-folder me-2"></i>Pooja Categories
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="masterDataTabContent">
+        <!-- Cities Tab -->
+        <div class="tab-pane fade show active" id="cities" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Cities</h5>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'masterdata:upload_cities' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload me-1"></i>Upload CSV
+                        </a>
+                        <a href="{% url 'masterdata:download_sample' entity_type='cities' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-download me-1"></i>Sample CSV
+                        </a>
+                        <a href="{% url 'admin:masterdata_city_add' %}" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>Add Single
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>State</th>
+                                    <th>Status</th>
+                                    <th>Usage Count</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if cities %}
+                                    {% for city in cities %}
+                                        <tr>
+                                            <td><strong>{{ city.name }}</strong></td>
+                                        <td>{{ city.state|default:"—" }}</td>
+                                        <td>
+                                            <span class="badge {% if city.is_active and city.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ city.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ city.usage_count|default:0 }}</td>
+                                        <td>{{ city.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:master_data_edit' entity_type='city' entity_id=city.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <form method="post" action="{% url 'module5_dashboards:master_data_toggle_status' entity_type='city' entity_id=city.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-{% if city.is_active %}warning{% else %}success{% endif %}" 
+                                                            onclick="return confirm('{% if city.is_active %}Deactivate{% else %}Activate{% endif %} this city?');">
+                                                        <i class="bi bi-{% if city.is_active %}eye-slash{% else %}eye{% endif %}"></i> {% if city.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No cities found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Local Areas Tab -->
+        <div class="tab-pane fade" id="areas" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-geo me-2"></i>Local Areas</h5>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'masterdata:upload_local_areas' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload me-1"></i>Upload CSV
+                        </a>
+                        <a href="{% url 'masterdata:download_sample' entity_type='local_areas' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-download me-1"></i>Sample CSV
+                        </a>
+                        <a href="{% url 'admin:masterdata_localarea_add' %}" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>Add Single
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>City</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for area in local_areas %}
+                                    <tr>
+                                        <td><strong>{{ area.name }}</strong></td>
+                                        <td>{{ area.city.name }}</td>
+                                        <td>
+                                            <span class="badge {% if area.is_active and area.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ area.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ area.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:master_data_edit' entity_type='localarea' entity_id=area.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <form method="post" action="{% url 'module5_dashboards:master_data_toggle_status' entity_type='localarea' entity_id=area.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-{% if area.is_active %}warning{% else %}success{% endif %}" 
+                                                            onclick="return confirm('{% if area.is_active %}Deactivate{% else %}Activate{% endif %} this area?');">
+                                                        <i class="bi bi-{% if area.is_active %}eye-slash{% else %}eye{% endif %}"></i> {% if area.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">No local areas found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Poojas Tab -->
+        <div class="tab-pane fade" id="poojas" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-star me-2"></i>Poojas</h5>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'masterdata:upload_poojas' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload me-1"></i>Upload CSV
+                        </a>
+                        <a href="{% url 'masterdata:download_sample' entity_type='poojas' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-download me-1"></i>Sample CSV
+                        </a>
+                        <a href="{% url 'admin:masterdata_pooja_add' %}" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>Add Single
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Usage Count</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pooja in poojas %}
+                                    <tr>
+                                        <td><strong>{{ pooja.name }}</strong></td>
+                                        <td>{{ pooja.pooja_category.name|default:pooja.get_category_display|default:"—" }}</td>
+                                        <td>
+                                            <span class="badge {% if pooja.is_active and pooja.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ pooja.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ pooja.usage_count|default:0 }}</td>
+                                        <td>{{ pooja.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:master_data_edit' entity_type='pooja' entity_id=pooja.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <form method="post" action="{% url 'module5_dashboards:master_data_toggle_status' entity_type='pooja' entity_id=pooja.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-{% if pooja.is_active %}warning{% else %}success{% endif %}" 
+                                                            onclick="return confirm('{% if pooja.is_active %}Deactivate{% else %}Activate{% endif %} this pooja?');">
+                                                        <i class="bi bi-{% if pooja.is_active %}eye-slash{% else %}eye{% endif %}"></i> {% if pooja.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No poojas found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Languages Tab -->
+        <div class="tab-pane fade" id="languages" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-translate me-2"></i>Languages</h5>
+                    <a href="{% url 'admin:masterdata_language_add' %}" class="btn btn-primary btn-sm" target="_blank">
+                        <i class="bi bi-plus-circle me-1"></i>Add Language
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Native Name</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Usage Count</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for language in languages %}
+                                    <tr>
+                                        <td><strong>{{ language.name }}</strong></td>
+                                        <td>{{ language.native_name|default:"—" }}</td>
+                                        <td><code>{{ language.code }}</code></td>
+                                        <td>
+                                            <span class="badge {% if language.is_active and language.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ language.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ language.usage_count|default:0 }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:master_data_edit' entity_type='language' entity_id=language.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <form method="post" action="{% url 'module5_dashboards:master_data_toggle_status' entity_type='language' entity_id=language.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-{% if language.is_active %}warning{% else %}success{% endif %}" 
+                                                            onclick="return confirm('{% if language.is_active %}Deactivate{% else %}Activate{% endif %} this language?');">
+                                                        <i class="bi bi-{% if language.is_active %}eye-slash{% else %}eye{% endif %}"></i> {% if language.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No languages found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pooja Categories Tab -->
+        <div class="tab-pane fade" id="categories" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-folder me-2"></i>Pooja Categories</h5>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'masterdata:upload_pooja_categories' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload me-1"></i>Upload CSV
+                        </a>
+                        <a href="{% url 'masterdata:download_sample' entity_type='pooja_categories' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-download me-1"></i>Sample CSV
+                        </a>
+                        <a href="{% url 'admin:masterdata_poojacategory_add' %}" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>Add Single
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Display Order</th>
+                                    <th>Status</th>
+                                    <th>Usage Count</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in pooja_categories %}
+                                    <tr>
+                                        <td><strong>{{ category.name }}</strong></td>
+                                        <td>{{ category.display_order }}</td>
+                                        <td>
+                                            <span class="badge {% if category.is_active and category.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ category.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ category.usage_count|default:0 }}</td>
+                                        <td>{{ category.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:master_data_edit' entity_type='poojacategory' entity_id=category.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <form method="post" action="{% url 'module5_dashboards:master_data_toggle_status' entity_type='poojacategory' entity_id=category.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-{% if category.is_active %}warning{% else %}success{% endif %}" 
+                                                            onclick="return confirm('{% if category.is_active %}Deactivate{% else %}Activate{% endif %} this category?');">
+                                                        <i class="bi bi-{% if category.is_active %}eye-slash{% else %}eye{% endif %}"></i> {% if category.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No categories found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+{% endblock %}
+

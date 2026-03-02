@@ -1,0 +1,907 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Admin Pandit Dashboard{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_pandit_ui.css' %}">
+<style>
+    /* Admin Pandit Dashboard - Premium Styling */
+    .dashboard-container {
+        background-color: #F8FAFC;
+        min-height: 100vh;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Admin Pandit Dashboard{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">System overview and summaries</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab active" href="#" data-tab="overview" onclick="showDashboardTab('overview'); return false;">
+            <i class="bi bi-speedometer2 me-2"></i>Overview
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="onboarding" onclick="showDashboardTab('onboarding'); return false;">
+            <i class="bi bi-person-plus me-2"></i>Onboarding Queue
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="profiles" onclick="showDashboardTab('profiles'); return false;">
+            <i class="bi bi-file-person me-2"></i>Profile Approvals
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="blocks" onclick="showDashboardTab('blocks'); return false;">
+            <i class="bi bi-shield-exclamation me-2"></i>Partial Blocks
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="referrals" onclick="showDashboardTab('referrals'); return false;">
+            <i class="bi bi-link-45deg me-2"></i>Referral Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="trust" onclick="showDashboardTab('trust'); return false;">
+            <i class="bi bi-diagram-3 me-2"></i>Trust & Referral Chain
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="temples" onclick="showDashboardTab('temples'); return false;">
+            <i class="bi bi-building me-2"></i>Temple Pages
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="notifications" onclick="showDashboardTab('notifications'); return false;">
+            <i class="bi bi-bell me-2"></i>Notifications
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="analytics" onclick="showDashboardTab('analytics'); return false;">
+            <i class="bi bi-graph-up me-2"></i>Analytics
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link dashboard-tab" href="#" data-tab="settings" onclick="showDashboardTab('settings'); return false;">
+            <i class="bi bi-gear me-2"></i>Account Settings
+        </a>
+    </li>
+    <li class="nav-item mt-3">
+        <a class="nav-link" href="{% url 'core:home' %}">
+            <i class="bi bi-house me-2"></i>Home
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="admin-dashboard-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- UNIT 10: Premium Date Filter Section -->
+    <div class="admin-card p-3 mb-3">
+        <form method="get" action="{% url 'module5_dashboards:dashboard_admin_pandit' %}" id="dateFilterForm" class="row g-3 align-items-end" onsubmit="return preserveActiveTab();">
+                <div class="col-md-3">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="from_date" name="from_date" value="{{ request.GET.from_date|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="to_date" name="to_date" value="{{ request.GET.to_date|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-funnel me-1"></i>Apply Filter
+                    </button>
+                    {% if request.GET.from_date or request.GET.to_date %}
+                        <a href="{% url 'module5_dashboards:dashboard_admin_pandit' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-x-circle me-1"></i>Clear
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="col-md-3 text-end">
+                    {% if request.GET.from_date or request.GET.to_date %}
+                        <small class="admin-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Filtered: 
+                            {% if request.GET.from_date %}{{ request.GET.from_date }}{% endif %}
+                            {% if request.GET.from_date and request.GET.to_date %} to {% endif %}
+                            {% if request.GET.to_date %}{{ request.GET.to_date }}{% endif %}
+                        </small>
+                    {% endif %}
+                </div>
+            </form>
+    </div>
+    
+    <!-- UNIT 6 & 8: OVERVIEW TAB (Default - Shows Summary) -->
+    <div id="tab-overview" class="dashboard-tab-content">
+        <!-- UNIT 8: Premium Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="dashboard-card stats-card p-4 h-100">
+                    <h6 class="stats-label mb-1">Pending Pandits</h6>
+                    <h4 class="stats-number mb-1">{{ pending_pandits|length|default:0 }}</h4>
+                    <p class="admin-muted small mb-0">Awaiting review</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card stats-card p-4 h-100">
+                    <h6 class="stats-label mb-1">Profiles Awaiting Approval</h6>
+                    <h4 class="stats-number mb-1">{{ profiles_awaiting_approval|length|default:0 }}</h4>
+                    <p class="admin-muted small mb-0">Ready for approval</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card stats-card p-4 h-100">
+                    <h6 class="stats-label mb-1">Active Partial Blocks</h6>
+                    <h4 class="stats-number mb-1">{{ active_partial_blocks|length|default:0 }}</h4>
+                    <p class="admin-muted small mb-0">Currently restricted</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card stats-card p-4 h-100">
+                    <h6 class="stats-label mb-1">Unread Notifications</h6>
+                    <h4 class="stats-number mb-1">{{ admin_notifications|length|default:0 }}</h4>
+                    <p class="admin-muted small mb-0">Require attention</p>
+                </div>
+            </div>
+        </div>
+        <!-- UNIT 6: Quick Actions Card -->
+        <div class="dashboard-card p-4">
+            <h5 class="fw-semibold mb-3">Quick Actions</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="#" class="btn btn-primary-premium" onclick="showDashboardTab('onboarding'); return false;">
+                    <i class="bi bi-person-plus me-1"></i>Review Pending Pandits
+                </a>
+                <a href="#" class="btn btn-primary-premium" onclick="showDashboardTab('profiles'); return false;">
+                    <i class="bi bi-file-person me-1"></i>Approve Profiles
+                </a>
+                <a href="#" class="btn btn-primary-premium" onclick="showDashboardTab('blocks'); return false;">
+                    <i class="bi bi-shield-exclamation me-1"></i>Manage Partial Blocks
+                </a>
+                <a href="#" class="btn btn-primary-premium" onclick="showDashboardTab('referrals'); return false;">
+                    <i class="bi bi-link-45deg me-1"></i>View Referral Links
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- UNIT 9: ONBOARDING QUEUE TAB -->
+    <div id="tab-onboarding" class="dashboard-tab-content" style="display: none;">
+        <!-- 1. ONBOARDING & APPROVAL PANEL -->
+        {% if pending_pandits %}
+        <div class="dashboard-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Pandit Onboarding Queue</h3>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Pandit Name</th>
+                                <th>Email</th>
+                                <th>Referral Source</th>
+                                <th>Submitted Date</th>
+                                <th>Email Status</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in pending_pandits %}
+                                <tr>
+                                    <td>{{ item.user.get_full_name|default:item.user.email }}</td>
+                                    <td>{{ item.user.email }}</td>
+                                    <td>{{ item.referral_source }}</td>
+                                    <td>{{ item.submitted_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <!-- UNIT 16: Premium Status Badges -->
+                                        {% if item.user.email_verified and item.user.email_verified_at %}
+                                            <span class="badge badge-approved">
+                                                <i class="bi bi-check-circle me-1"></i>Verified
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-pending">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Not Verified
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- UNIT 16: Premium Status Badge -->
+                                        <span class="badge badge-pending">Pending</span>
+                                    </td>
+                                    <td>
+                                        <!-- UNIT 13 & 14: Premium Moderation Action Buttons -->
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            {% if not item.user.email_verified or not item.user.email_verified_at %}
+                                                <form method="post" action="{% url 'accounts:resend_pandit_verification' pandit_public_id=item.user.public_id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-info" title="Resend Verification Email">
+                                                        <i class="bi bi-envelope me-1"></i>Resend Email
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" action="{% url 'module5_dashboards:approve_pandit_ui' item.user.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to approve this Pandit?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ item.user.id }}">
+                                                <i class="bi bi-x-circle me-1"></i>Reject
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Reject Modal -->
+                                        <div class="modal fade" id="rejectModal{{ item.user.id }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ item.user.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="rejectModalLabel{{ item.user.id }}">Reject Pandit Registration</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'module5_dashboards:reject_pandit_ui' item.user.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <!-- UNIT 15: Premium Textarea Styling -->
+                                                            <div class="mb-3">
+                                                                <label for="reject_reason{{ item.user.id }}" class="form-label fw-semibold">Reason for Rejection</label>
+                                                                <select class="form-select" id="reject_reason{{ item.user.id }}" name="reject_reason" required>
+                                                                    <option value="">Select a reason</option>
+                                                                    <option value="incomplete_info">Incomplete Information</option>
+                                                                    <option value="invalid_referral">Invalid Referral</option>
+                                                                    <option value="does_not_meet_criteria">Does Not Meet Criteria</option>
+                                                                    <option value="other">Other</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label for="reject_note{{ item.user.id }}" class="form-label fw-semibold">Additional Notes (Optional)</label>
+                                                                <textarea class="form-control" id="reject_note{{ item.user.id }}" name="reject_note" rows="4" placeholder="Add any additional notes..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <!-- UNIT 14: Button Hierarchy -->
+                                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this Pandit? This action cannot be undone.');">
+                                                                <i class="bi bi-x-circle me-1"></i>Reject Pandit
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    {% else %}
+        <!-- UNIT 11: Premium Empty State -->
+        <div class="dashboard-card p-5 mb-4 text-center">
+            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 mb-2 fw-semibold">No Pending Pandits</h5>
+            <p class="admin-muted mb-0">All Pandit registrations have been processed.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- UNIT 9: PROFILE APPROVALS TAB -->
+    <div id="tab-profiles" class="dashboard-tab-content" style="display: none;">
+        <!-- 2. PROFILE APPROVAL PANEL -->
+    {% if profiles_awaiting_approval %}
+        <div class="dashboard-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Profiles Awaiting Approval</h3>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Pandit Name</th>
+                                <th>Profile Completeness</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in profiles_awaiting_approval %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.pandit_name }}</strong><br>
+                                        <small class="text-muted">{{ item.profile.user.email }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ item.completeness_percent }}%">
+                                                    {{ item.completeness_percent }}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.last_updated|date:"M d, Y" }}<br><small class="text-muted">{{ item.last_updated|time:"g:i A" }}</small></td>
+                                    <td>
+                                        <!-- UNIT 13 & 14: Premium Moderation Action Buttons -->
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            <form method="post" action="{% url 'module5_dashboards:approve_profile' item.profile.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to approve this profile for public visibility?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Approve Profile
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'module5_dashboards:send_profile_back' item.profile.id %}" class="d-inline" onsubmit="return confirm('Send this profile back for editing?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                    <i class="bi bi-arrow-left-circle me-1"></i>Send Back for Edit
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    {% else %}
+        <!-- UNIT 11: Premium Empty State -->
+        <div class="dashboard-card p-5 mb-4 text-center">
+            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 mb-2 fw-semibold">No Profiles Awaiting Approval</h5>
+            <p class="admin-muted mb-0">All profiles have been approved or are not yet ready for approval.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- UNIT 9: PARTIAL BLOCKS TAB -->
+    <div id="tab-blocks" class="dashboard-tab-content" style="display: none;">
+        <!-- 3. PARTIAL BLOCK MANAGEMENT PANEL -->
+        <div class="dashboard-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0 fw-semibold">Blocked / Restricted Pandits</h3>
+                <button type="button" class="btn btn-primary-premium btn-sm" data-bs-toggle="modal" data-bs-target="#applyBlockModal">
+                    <i class="bi bi-shield-exclamation me-1"></i>Apply Partial Block
+                </button>
+            </div>
+            {% if active_partial_blocks %}
+                <div class="table-responsive table-mobile-wrapper">
+                    <table class="table table-hover table-mobile">
+                        <thead>
+                            <tr>
+                                <th>Pandit Name</th>
+                                <th>Restriction Type</th>
+                                <th>Reason</th>
+                                <th>Applied By</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for block in active_partial_blocks %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ block.pandit.get_full_name|default:block.pandit.email }}</strong><br>
+                                        <small class="text-muted">{{ block.pandit.email }}</small>
+                                    </td>
+                                    <td>
+                                        <!-- UNIT 16: Premium Status Badge -->
+                                        <span class="badge badge-pending">{{ block.get_restriction_type_display }}</span>
+                                    </td>
+                                    <td>{{ block.reason|truncatewords:10 }}</td>
+                                    <td>{{ block.applied_by.get_full_name|default:block.applied_by.email }}</td>
+                                    <td>
+                                        {{ block.applied_at|date:"M d, Y" }}<br>
+                                        <small class="text-muted">{{ block.applied_at|time:"g:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <form method="post" action="{% url 'module5_dashboards:remove_partial_block' block.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to remove this block?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check-circle me-1"></i>Remove Block
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <!-- UNIT 11: Premium Empty State -->
+                <div class="text-center py-4">
+                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 mb-2 fw-semibold">No Active Partial Blocks</h5>
+                    <p class="admin-muted mb-0">No Pandits are currently partially blocked.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Apply Partial Block Modal -->
+        <div class="modal fade" id="applyBlockModal" tabindex="-1" aria-labelledby="applyBlockModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="applyBlockModalLabel">Apply Partial Block</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'module5_dashboards:apply_partial_block' %}" id="applyBlockForm">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="block_pandit" class="form-label">Select Pandit</label>
+                                <select class="form-select" id="block_pandit" name="pandit_id" required>
+                                    <option value="">Select a Pandit</option>
+                                    {% for pandit in all_active_pandits %}
+                                        <option value="{{ pandit.id }}">{{ pandit.get_full_name|default:pandit.email }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="block_type" class="form-label">Restriction Type</label>
+                                <select class="form-select" id="block_type" name="restriction_type" required>
+                                    <option value="">Select restriction type</option>
+                                    <option value="booking_intent_block">Disable Booking Intents</option>
+                                    <option value="search_visibility_block">Hide from Search</option>
+                                    <option value="review_block">Disable Reviews</option>
+                                    <option value="profile_unlist">Temporarily Unlist Profile</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="block_reason" class="form-label">Reason</label>
+                                <textarea class="form-control" id="block_reason" name="reason" rows="3" required placeholder="Enter reason for partial block..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Apply Block</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- REFERRAL MANAGEMENT TAB -->
+    <div id="tab-referrals" class="dashboard-tab-content" style="display: none;">
+        <!-- 4. REFERRAL MANAGEMENT -->
+        {% include "module5_dashboards/referral_links_section.html" %}
+    </div>
+    
+    <!-- UNIT 9: TRUST & REFERRAL CHAIN TAB -->
+    <div id="tab-trust" class="dashboard-tab-content" style="display: none;">
+        <!-- 5. TRUST & REFERRAL CHAIN VIEW (OBSERVE ONLY) -->
+    {% if trust_chain_data %}
+        <div class="dashboard-card p-4 mb-4">
+            <h3 class="h5 mb-1 fw-semibold">Trust & Referral Chain View</h3>
+            <small class="admin-muted">Read-only observation</small>
+            <div class="table-responsive mt-3">
+                <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Pandit Name</th>
+                                <th>Referral Chain Depth</th>
+                                <th>Trust Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in trust_chain_data %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.pandit_name }}</strong><br>
+                                        <small class="text-muted">{{ item.pandit.email }}</small>
+                                    </td>
+                                    <td>
+                                        <!-- UNIT 16: Premium Status Badges -->
+                                        {% if item.has_referral %}
+                                            <span class="badge bg-info">{{ item.chain_length }} levels</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No referral chain</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.has_referral %}
+                                            <span class="badge badge-approved">Has Referral Chain</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No Referral</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="admin-muted small mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This is a read-only view. Trust scores and referral chains cannot be edited from here.
+                </p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- UNIT 9: TEMPLE PAGES TAB -->
+    <div id="tab-temples" class="dashboard-tab-content" style="display: none;">
+        <!-- 6. TEMPLE PAGES MANAGEMENT -->
+    {% if temple_pages %}
+        <div class="dashboard-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0 fw-semibold">Temple Pages Management</h3>
+                <a href="{% url 'pages:page_create' %}" class="btn btn-primary-premium btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+                </a>
+            </div>
+            <div class="table-responsive table-mobile-wrapper">
+                <table class="table table-hover table-mobile">
+                        <thead>
+                            <tr>
+                                <th>Page Name</th>
+                                <th>State</th>
+                                <th>Created</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in temple_pages %}
+                                <tr id="temple-{{ item.page.public_id }}">
+                                    <td>
+                                        <strong><a href="{% url 'pages:page_detail' page_public_id=item.page.public_id %}" class="text-decoration-none">{{ item.page.title }}</a></strong>
+                                        {% if item.page.description %}
+                                            <br><small class="text-muted">{{ item.page.description|truncatewords:10 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- UNIT 16: Premium Status Badges -->
+                                        {% if item.page.status == 'ACTIVE' %}
+                                            <span class="badge badge-approved">{{ item.page.get_status_display }}</span>
+                                        {% elif item.page.status == 'DEACTIVATED' %}
+                                            <span class="badge badge-pending">{{ item.page.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ item.page.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.created_at|date:"M d, Y" }}</td>
+                                    <td>{{ item.updated_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'pages:page_detail' page_public_id=item.page.public_id %}" class="btn btn-outline-primary">View</a>
+                                            <a href="{% url 'pages:page_edit' page_public_id=item.page.public_id %}" class="btn btn-outline-secondary">Edit</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    {% else %}
+        <!-- UNIT 11: Premium Empty State -->
+        <div class="dashboard-card p-5 mb-4 text-center">
+            <i class="bi bi-building" style="font-size: 3rem; color: #CBD5E1;"></i>
+            <h5 class="mt-3 mb-2 fw-semibold">No Temple Pages</h5>
+            <p class="admin-muted mb-3">Create your first temple page to get started.</p>
+            <a href="{% url 'pages:page_create' %}" class="btn btn-primary-premium mt-2">
+                <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- UNIT 9: NOTIFICATIONS TAB -->
+    <div id="tab-notifications" class="dashboard-tab-content" style="display: none;">
+        <!-- 7. NOTIFICATIONS PANEL (ACTIONABLE) -->
+    {% if admin_notifications %}
+        <div class="dashboard-card p-4 mb-4">
+            <h3 class="h5 mb-3 fw-semibold">Notifications</h3>
+            <div>
+                <div class="list-group">
+                    {% for item in admin_notifications %}
+                        <div class="list-group-item {% if not item.notification.is_read %}list-group-item-action bg-light{% endif %}">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <!-- UNIT 16: Premium Status Badges -->
+                                        {% if not item.notification.is_read %}
+                                            <span class="badge bg-info me-2">New</span>
+                                        {% endif %}
+                                        <span class="badge bg-secondary me-2">{{ item.notification.get_notification_type_display }}</span>
+                                    </div>
+                                    <p class="mb-1">
+                                        {% if item.notification.payload %}
+                                            {% if item.notification.payload.message %}
+                                                {{ item.notification.payload.message }}
+                                            {% elif item.notification.payload.text %}
+                                                {{ item.notification.payload.text }}
+                                            {% else %}
+                                                {{ item.notification.get_notification_type_display }} notification
+                                            {% endif %}
+                                        {% else %}
+                                            {{ item.notification.get_notification_type_display }} notification
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ item.notification.created_at|date:"M d, Y" }} at {{ item.notification.created_at|time:"g:i A" }}
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    {% if item.action_url %}
+                                        <a href="{% url item.action_url %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-arrow-right me-1"></i>{{ item.action_text|default:"View" }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- UNIT 11: Premium Empty State -->
+        <div class="dashboard-card p-5 mb-4 text-center">
+            <i class="bi bi-bell-slash" style="font-size: 3rem; color: #CBD5E1;"></i>
+            <h5 class="mt-3 mb-2 fw-semibold">No Notifications</h5>
+            <p class="admin-muted mb-0">You don't have any notifications at this time.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- UNIT 8: ANALYTICS TAB -->
+    <div id="tab-analytics" class="dashboard-tab-content" style="display: none;">
+        <!-- 8. ANALYTICS DASHBOARD (READ-ONLY) -->
+    <div class="dashboard-card p-4 mb-4">
+        <h3 class="h5 mb-1 fw-semibold">Analytics Dashboard</h3>
+        <small class="admin-muted">Read-only view</small>
+        <div class="mt-3">
+            <!-- Onboarding Trends -->
+            <div class="mb-4">
+                <h6 class="mb-3">Onboarding Trends (Last 30 Days)</h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1">{{ onboarding_trends.registered }}</div>
+                                <div class="text-muted small">Pandits Registered</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-success bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-success">{{ onboarding_trends.approved }}</div>
+                                <div class="text-muted small">Approved</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-danger bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-danger">{{ onboarding_trends.rejected }}</div>
+                                <div class="text-muted small">Rejected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Approval vs Rejection Counts -->
+            <div class="mb-4">
+                <h6 class="mb-3">Approval vs Rejection Counts (All Time)</h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-success bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-success">{{ approval_stats.total_approved }}</div>
+                                <div class="text-muted small">Total Approved</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-danger bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-danger">{{ approval_stats.total_rejected }}</div>
+                                <div class="text-muted small">Total Rejected</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-warning bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-warning">{{ approval_stats.total_pending }}</div>
+                                <div class="text-muted small">Pending</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Referral Effectiveness -->
+            <div>
+                <h6 class="mb-3">Referral Effectiveness</h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-info bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-info">{{ referral_effectiveness.total_links }}</div>
+                                <div class="text-muted small">Total Referral Links</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-primary bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1 text-primary">{{ referral_effectiveness.total_uses }}</div>
+                                <div class="text-muted small">Total Uses</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card bg-secondary bg-opacity-10">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-1">{{ referral_effectiveness.average_uses }}</div>
+                                <div class="text-muted small">Average Uses per Link</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="admin-muted small mt-3 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                This is a read-only analytics view. No exports, filters, or drill-downs available.
+            </p>
+        </div>
+    </div>
+    
+    <!-- UNIT 6: ACCOUNT SETTINGS TAB -->
+    <div id="tab-settings" class="dashboard-tab-content" style="display: none;">
+        <!-- 9. ACCOUNT SETTINGS (ADMIN PANDIT) -->
+    <div class="dashboard-card p-4 mb-4">
+        <h3 class="h5 mb-3 fw-semibold">Account Settings</h3>
+        <div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'accounts:profile_settings' %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-person me-2"></i>
+                            <strong>Personal Details</strong>
+                            <p class="mb-0 text-muted small">Manage your name, email, and contact information</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{% url 'accounts:security_settings' %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-shield-lock me-2"></i>
+                            <strong>Security</strong>
+                            <p class="mb-0 text-muted small">Change password and manage session security</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{% url 'accounts:account_notifications' %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-bell me-2"></i>
+                            <strong>Notification Preferences</strong>
+                            <p class="mb-0 text-muted small">View notification settings</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action text-danger">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            <strong>Logout</strong>
+                            <p class="mb-0 text-muted small">Sign out of your account</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        function showDashboardTab(tabName) {
+            // Hide all tab contents
+            const allTabs = document.querySelectorAll('.dashboard-tab-content');
+            allTabs.forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all nav links
+            const allNavLinks = document.querySelectorAll('.dashboard-tab');
+            allNavLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById('tab-' + tabName);
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+            }
+            
+            // Add active class to clicked nav link
+            const clickedLink = document.querySelector(`[data-tab="${tabName}"]`);
+            if (clickedLink) {
+                clickedLink.classList.add('active');
+            }
+            
+            // Update URL hash without reloading (preserves date filters)
+            if (history.pushState) {
+                history.pushState(null, null, '#' + tabName);
+            } else {
+                window.location.hash = tabName;
+            }
+            
+            // Scroll to top of content area
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Preserve active tab when submitting date filter form
+        function preserveActiveTab() {
+            const activeTab = document.querySelector('.dashboard-tab.active');
+            if (activeTab) {
+                const tabName = activeTab.getAttribute('data-tab');
+                const form = document.getElementById('dateFilterForm');
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'tab';
+                hiddenInput.value = tabName;
+                form.appendChild(hiddenInput);
+            }
+            return true;
+        }
+        
+        // Initialize: Show overview tab by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there's a hash in URL or tab parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            const hash = window.location.hash.substring(1);
+            
+            let tabToShow = 'overview';
+            if (tabParam && ['overview', 'onboarding', 'profiles', 'blocks', 'referrals', 'trust', 'temples', 'notifications', 'analytics', 'settings'].includes(tabParam)) {
+                tabToShow = tabParam;
+            } else if (hash && ['overview', 'onboarding', 'profiles', 'blocks', 'referrals', 'trust', 'temples', 'notifications', 'analytics', 'settings'].includes(hash)) {
+                tabToShow = hash;
+            }
+            
+            showDashboardTab(tabToShow);
+            
+            // Scroll to specific temple if hash contains temple ID
+            if (hash && hash.startsWith('temple-')) {
+                setTimeout(function() {
+                    const templeElement = document.getElementById(hash);
+                    if (templeElement) {
+                        templeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the row temporarily
+                        templeElement.style.backgroundColor = '#FEF3C7';
+                        setTimeout(function() {
+                            templeElement.style.backgroundColor = '';
+                        }, 2000);
+                    }
+                }, 500);
+            }
+        });
+    </script>
+{% endblock %}
+

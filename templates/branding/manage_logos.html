@@ -1,0 +1,163 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Branding Management{% endblock %}
+
+{% block super_admin_css %}
+<link rel="stylesheet" href="{% static 'css/super_admin_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/branding_management.css' %}">
+{% endblock %}
+
+{% block dashboard_page_class %}branding-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block dashboard_heading %}Branding Management{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Upload and manage site logos</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="branding-container">
+    <!-- Upload New Logo Form -->
+    <div class="branding-card mb-4">
+        <div class="card-header-premium">
+            <h5 class="mb-0">
+                <i class="bi bi-upload me-2"></i>Upload New Logo
+            </h5>
+        </div>
+        <div class="card-body-premium">
+            <form method="post" enctype="multipart/form-data" id="logoUploadForm">
+                {% csrf_token %}
+                <input type="hidden" name="upload_logo" value="1">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            Logo Name <span class="text-muted">(Optional)</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">{{ form.name.help_text|default:"e.g., Main Logo 2024, Dark Mode Logo" }}</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.logo_type.id_for_label }}" class="form-label">
+                            Logo Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.logo_type }}
+                        {% if form.logo_type.errors %}
+                            <div class="text-danger small">{{ form.logo_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.logo_image.id_for_label }}" class="form-label">
+                            Logo Image <span class="text-danger">*</span>
+                        </label>
+                        {{ form.logo_image }}
+                        {% if form.logo_image.errors %}
+                            <div class="text-danger small">{{ form.logo_image.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">{{ form.logo_image.help_text }}</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.favicon_image.id_for_label }}" class="form-label">
+                            Favicon (Optional)
+                        </label>
+                        {{ form.favicon_image }}
+                        {% if form.favicon_image.errors %}
+                            <div class="text-danger small">{{ form.favicon_image.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">{{ form.favicon_image.help_text }}</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary-premium">
+                        <i class="bi bi-upload me-2"></i>Upload Logo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Existing Logos -->
+    <div class="branding-card">
+        <div class="card-header-premium">
+            <h5 class="mb-0">
+                <i class="bi bi-images me-2"></i>Existing Logos
+            </h5>
+        </div>
+        <div class="card-body-premium">
+            {% if all_logos %}
+                {% for logo_type_display, logos in logos_by_type.items %}
+                    {% if logos %}
+                    <div class="logo-type-section mb-4">
+                        <h6 class="logo-type-title">{{ logo_type_display }}</h6>
+                        <div class="row">
+                            {% for logo in logos %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="logo-card {% if logo.is_active %}logo-active{% endif %}">
+                                        <div class="logo-preview">
+                                            {% if logo.logo_image %}
+                                                <img src="{{ logo.logo_image.url }}" alt="{{ logo.name }}" class="logo-img">
+                                            {% else %}
+                                                <div class="logo-placeholder">
+                                                    <i class="bi bi-image"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="logo-info">
+                                            <h6 class="logo-name">{{ logo.name|default:"Unnamed Logo" }}</h6>
+                                            <p class="logo-meta">
+                                                <small class="text-muted">
+                                                    Uploaded: {{ logo.created_at|date:"M d, Y" }}<br>
+                                                    By: {{ logo.uploaded_by.email|default:"System" }}
+                                                </small>
+                                            </p>
+                                            {% if logo.is_active %}
+                                                <span class="badge badge-active">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <form method="post" action="{% url 'branding:activate_logo' logo.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-activate" onclick="return confirm('Are you sure you want to activate this logo? This will deactivate the current active logo of this type.');">
+                                                        <i class="bi bi-check-circle me-1"></i>Set Active
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-images empty-icon"></i>
+                    <p class="empty-text">No logos uploaded yet. Upload your first logo above.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/end_user_ui.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="section-padding bg-slate-50 end-user-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h2 mb-0 fw-bold">Notifications</h1>
+                        <p class="text-muted mb-0">Your activity and updates</p>
+                    </div>
+                    {% if unread_count > 0 %}
+                        <div>
+                            <form method="post" action="{% url 'notifications:mark_all_read' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-check-all me-1"></i>Mark All as Read
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if notifications %}
+                <div class="premium-card p-4">
+                    <h6 class="fw-semibold mb-3">Notifications</h6>
+                    <div class="notification-list">
+                        {% for notification in notifications %}
+                            {% if notification.notification_type == 'temple_announcement' %}
+                                <!-- Temple Announcement Notification - Clickable -->
+                                <a href="{% url 'notifications:mark_read' notification.id %}?next={% if notification.page %}{% url 'pages:page_detail' page_public_id=notification.page.public_id %}{% else %}{% url 'notifications:list' %}{% endif %}" 
+                                   class="notification-item {% if not notification.is_read %}notification-unread{% endif %} text-decoration-none d-block">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1 fw-medium text-dark">
+                                                {% if notification.payload.title %}{{ notification.payload.title }}{% else %}Announcement{% endif %}
+                                            </p>
+                                            <p class="text-muted small mb-2">
+                                                {% if notification.payload.message %}
+                                                    {{ notification.payload.message|truncatewords:30 }}
+                                                {% else %}
+                                                    New announcement from temple
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                {% if notification.payload.temple_name %}
+                                                    {{ notification.payload.temple_name }}
+                                                    {% if notification.payload.temple_location %}
+                                                        - {{ notification.payload.temple_location }}
+                                                    {% elif notification.page and notification.page.address %}
+                                                        - {{ notification.page.address }}
+                                                    {% endif %}
+                                                {% elif notification.page %}
+                                                    {{ notification.page.title }}
+                                                    {% if notification.page.address %}
+                                                        - {{ notification.page.address }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    Temple
+                                                {% endif %}
+                                                <span class="ms-2">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                                </span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% elif notification.notification_type == 'page_moderator_assigned' %}
+                                <!-- Moderator assignment notification -->
+                                <a href="{% url 'notifications:mark_read' notification.id %}?next={% if user.role == 'pandit' %}{% url 'module5_dashboards:dashboard_pandit' %}#temple-pages-tab{% else %}{% url 'notifications:list' %}{% endif %}" 
+                                   class="notification-item {% if not notification.is_read %}notification-unread{% endif %} text-decoration-none d-block">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1 fw-medium text-dark">
+                                                {% if notification.payload.page_title %}
+                                                    You have been given moderator access to <strong>{{ notification.payload.page_title }}</strong>
+                                                {% else %}
+                                                    You have been given moderator access to a temple page
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% else %}
+                                <div class="notification-item {% if not notification.is_read %}notification-unread{% endif %}">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1 fw-medium text-dark">
+                                                {% if notification.payload %}
+                                                    {% if notification.payload.message %}
+                                                        {{ notification.payload.message }}
+                                                    {% elif notification.payload.text %}
+                                                        {{ notification.payload.text }}
+                                                    {% else %}
+                                                        {{ notification.get_notification_type_display }} notification
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ notification.get_notification_type_display }} notification
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                            </small>
+                                        </div>
+                                        {% if not notification.is_read %}
+                                            <form method="post" action="{% url 'notifications:mark_read' notification.id %}" class="d-inline ms-3">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Mark as read">
+                                                    <i class="bi bi-check"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="premium-card p-4">
+                    <div class="text-center py-5">
+                        <i class="bi bi-bell-slash" style="font-size: 3rem; color: #dee2e6;"></i>
+                        <p class="text-muted text-center mt-3 mb-0">You have no notifications yet.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+
+

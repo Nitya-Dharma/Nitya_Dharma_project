@@ -1,0 +1,1261 @@
+
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Super Admin Dashboard{% endblock %}
+
+{% block super_admin_css %}
+<link rel="stylesheet" href="{% static 'css/super_admin_ui.css' %}">
+{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_heading %}Super Admin Dashboard{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Platform overview and system health</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link active" href="#overview" data-bs-toggle="tab" data-bs-target="#overview" onclick="return showDashboardTab('overview', event);">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#pages" data-bs-toggle="tab" data-bs-target="#pages" onclick="return showDashboardTab('pages', event);">
+            <i class="bi bi-file-earmark-text me-2"></i>Pages
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#pandits" data-bs-toggle="tab" data-bs-target="#pandits" onclick="return showDashboardTab('pandits', event);">
+            <i class="bi bi-people me-2"></i>Pandits
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#trust" data-bs-toggle="tab" data-bs-target="#trust" onclick="return showDashboardTab('trust', event);">
+            <i class="bi bi-shield-check me-2"></i>Trust Overview
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#reviews" data-bs-toggle="tab" data-bs-target="#reviews" onclick="return showDashboardTab('reviews', event);">
+            <i class="bi bi-star me-2"></i>Reviews Overview
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#governance" data-bs-toggle="tab" data-bs-target="#governance" onclick="return showDashboardTab('governance', event);">
+            <i class="bi bi-shield-check me-2"></i>Governance Signals
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#analytics" data-bs-toggle="tab" data-bs-target="#analytics" onclick="return showDashboardTab('analytics', event);">
+            <i class="bi bi-graph-up me-2"></i>Analytics
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:master_data_management' %}">
+            <i class="bi bi-database me-2"></i>Master Data
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:super_admin_notifications' %}">
+            <i class="bi bi-bell me-2"></i>Notifications
+            {% if unread_notification_count and unread_notification_count > 0 %}
+                <span class="badge bg-danger">{{ unread_notification_count }}</span>
+            {% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'support:contact_requests_admin' %}">
+            <i class="bi bi-envelope me-2"></i>Contact Requests
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_faq_list' %}">
+            <i class="bi bi-question-circle me-2"></i>FAQ Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:super_admin_referral_links' %}">
+            <i class="bi bi-link-45deg me-2"></i>Referral Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:advertisement_list' %}">
+            <i class="bi bi-megaphone me-2"></i>Advertisements
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'referrals:referral_policy_edit' %}">
+            <i class="bi bi-gear me-2"></i>Referral Policy
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:system_operational_settings_super_admin' %}">
+            <i class="bi bi-sliders me-2"></i>System Operational Settings
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'super_admin_analytics_dashboard' %}">
+            <i class="bi bi-graph-up-arrow me-2"></i>Analytics Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:home' %}">
+            <i class="bi bi-search me-2"></i>Search
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:account_settings' %}">
+            <i class="bi bi-gear me-2"></i>Account Settings
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="tab-content" id="superAdminTabContent">
+    <!-- Dashboard/Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        {% if platform_health_indicators %}
+            <!-- PART 3: Premium Platform Health Cards -->
+            <div class="super-admin-card">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0 fw-semibold">Platform Health</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="row g-3">
+                        {% for indicator in platform_health_indicators %}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="health-indicator">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium">{{ indicator.label|default:"Indicator" }}</span>
+                                        <span class="badge {% if indicator.status == 'healthy' %}badge-success{% elif indicator.status == 'warning' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                            {{ indicator.value|default:"—" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if system_level_aggregates %}
+            {% include "module5_dashboards/dashboard_widgets/metrics_cards.html" with metrics=system_level_aggregates %}
+        {% endif %}
+
+        <!-- PART 3: Platform Controls Quick Links -->
+        <div class="super-admin-card">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-gear me-2"></i>Platform Controls</h3>
+            </div>
+            <div class="dashboard-card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-search me-2"></i>SEO Metadata Oversight</h6>
+                                <p class="card-text text-muted small">View, reset, and edit SEO metadata for Pandits and Pages</p>
+                                <a href="#seo-oversight" class="btn btn-outline-primary btn-sm">Manage SEO</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-globe me-2"></i>Crawl Readiness Monitor</h6>
+                                <p class="card-text text-muted small">Check indexing readiness for all public entities</p>
+                                <a href="{% url 'module5_dashboards:crawl_readiness_monitor' %}" class="btn btn-outline-primary btn-sm">View Monitor</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-graph-up me-2"></i>Analytics / GTM Config</h6>
+                                <p class="card-text text-muted small">Manage tracking snippets and analytics configuration</p>
+                                <a href="{% url 'module5_dashboards:analytics_config_super_admin' %}" class="btn btn-outline-primary btn-sm">Configure</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-toggle-on me-2"></i>Feature Flags</h6>
+                                <p class="card-text text-muted small">Enable/disable platform features (kill switches)</p>
+                                <a href="{% url 'module5_dashboards:feature_flags_super_admin' %}" class="btn btn-outline-primary btn-sm">Manage Flags</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-exclamation-triangle me-2"></i>Platform Kill Switch</h6>
+                                <p class="card-text text-muted small">Emergency control for platform-wide protection</p>
+                                <a href="{% url 'module5_dashboards:platform_kill_switch_super_admin' %}" class="btn btn-outline-warning btn-sm">Emergency Control</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-file-earmark-text me-2"></i>Config Change Audit</h6>
+                                <p class="card-text text-muted small">View audit trail for all configuration changes</p>
+                                <a href="{% url 'module5_dashboards:config_change_audit_super_admin' %}" class="btn btn-outline-primary btn-sm">View Audit</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-database me-2"></i>Master Data Management</h6>
+                                <p class="card-text text-muted small">Manage Cities, Areas, Poojas, Languages, Categories</p>
+                                <a href="{% url 'module5_dashboards:master_data_management' %}" class="btn btn-outline-primary btn-sm">Manage Data</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-download me-2"></i>Data Export</h6>
+                                <p class="card-text text-muted small">Export Pandits, Pages, Audit logs as CSV</p>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=pandits" class="btn btn-outline-primary btn-sm">Export Pandits</a>
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=pages" class="btn btn-outline-primary btn-sm">Export Pages</a>
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=audit" class="btn btn-outline-primary btn-sm">Export Audit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-check-circle me-2"></i>Consistency Checks</h6>
+                                <p class="card-text text-muted small">Run automated validation and consistency checks</p>
+                                <a href="{% url 'module5_dashboards:consistency_checks_super_admin' %}" class="btn btn-outline-primary btn-sm">Run Checks</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNIT 15: SEO Metadata Oversight -->
+        {% if seo_oversight_list %}
+            <div class="super-admin-card" id="seo-oversight">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-search me-2"></i>SEO Metadata Oversight</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    {% if seo_oversight_list|length > 0 %}
+                        <div class="table-container">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Entity Type</th>
+                                            <th>Entity Name</th>
+                                            <th>SEO Title</th>
+                                            <th>SEO Description</th>
+                                            <th>Auto-Generated</th>
+                                            <th>Last Updated</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in seo_oversight_list|slice:":20" %}
+                                            {% if item.entity_type and item.entity_public_id %}
+                                            <tr>
+                                                <td><span class="badge bg-primary">{{ item.entity_type }}</span></td>
+                                                <td><strong>{{ item.entity_name }}</strong></td>
+                                                <td>{{ item.seo_title|truncatewords:5|default:"—" }}</td>
+                                                <td>{{ item.seo_description|truncatewords:8|default:"—" }}</td>
+                                                <td>
+                                                    {% if item.seo_autogenerated %}
+                                                        <span class="badge bg-success">Yes</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">No (Manual)</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ item.seo_last_updated_at|date:"M d, Y"|default:"—" }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{% url 'module5_dashboards:edit_seo_super_admin' entity_type=item.entity_type|lower entity_public_id=item.entity_public_id %}" 
+                                                           class="btn btn-outline-primary btn-sm" title="Edit SEO">
+                                                            <i class="bi bi-pencil"></i> Edit
+                                                        </a>
+                                                        <form method="post" action="{% url 'module5_dashboards:reset_seo_super_admin' entity_type=item.entity_type|lower entity_public_id=item.entity_public_id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Reset to Auto-Generated" onclick="return confirm('Reset SEO to auto-generated?');">
+                                                                <i class="bi bi-arrow-clockwise"></i> Reset
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% if seo_oversight_list|length > 20 %}
+                            <p class="text-muted text-center mt-3">
+                                <small>Showing first 20 of {{ seo_oversight_list|length }} entities. Use filters to see more.</small>
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">No SEO metadata found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Governance Tab -->
+    <div class="tab-pane fade" id="governance" role="tabpanel" aria-labelledby="governance-tab" style="display: none;">
+        {% if governance_overview_summaries %}
+            <!-- PART 3: Premium Governance Overview Cards -->
+            <div class="super-admin-card">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0 fw-semibold">Governance Overview</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="row g-3">
+                        {% for summary in governance_overview_summaries %}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="health-indicator">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium">{{ summary.label|default:"Summary" }}</span>
+                                        <span class="badge bg-info">{{ summary.value|default:"0" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- PART 5: Premium Pandit Governance Overview -->
+        {% if pandit_governance_list %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-people me-2"></i>Pandit Governance</h3>
+                    <div class="btn-group btn-group-sm">
+                        <a href="?pandit_status=pending" class="btn btn-outline-warning">Pending</a>
+                        <a href="?pandit_status=active" class="btn btn-outline-success">Active</a>
+                        <a href="?pandit_status=suspended" class="btn btn-outline-danger">Suspended</a>
+                        <a href="?pandit_status=" class="btn btn-outline-secondary">All</a>
+                    </div>
+                </div>
+                <div class="dashboard-card-body">
+                    <!-- Filters -->
+                    <form method="get" class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <input type="text" name="pandit_search" class="form-control form-control-sm" 
+                                       placeholder="Search by name/email..." value="{{ pandit_governance_filters.search|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="pandit_status" class="form-select form-select-sm">
+                                    <option value="">All Status</option>
+                                    <option value="pending" {% if pandit_governance_filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="active" {% if pandit_governance_filters.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="rejected" {% if pandit_governance_filters.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                    <option value="suspended" {% if pandit_governance_filters.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                                <a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- PART 5: Premium Pandit Governance Table -->
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>City</th>
+                                    <th>Status</th>
+                                    <th>Joined Date</th>
+                                    <th>Referred By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pandit_governance_list %}
+                                    <tr>
+                                        <td><strong>{{ item.name }}</strong></td>
+                                        <td>{{ item.email }}</td>
+                                        <td>{{ item.city }}</td>
+                                        <td>
+                                            <!-- PART 5: Premium Status Badges -->
+                                            <span class="badge {% if item.status == 'active' %}badge-success{% elif item.status == 'pending' %}badge-warning{% elif item.status == 'suspended' %}badge-danger{% else %}badge-secondary{% endif %}">
+                                                {{ item.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.joined_date|date:"M d, Y" }}</td>
+                                        <td>{{ item.referred_by|default:"—" }}</td>
+                                        <td>
+                                            <!-- PART 7: Premium Button System -->
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                {% if item.status == 'pending' %}
+                                                    <form method="post" action="{% url 'module5_dashboards:approve_pandit_super_admin' user_id=item.profile.user.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-success btn-sm" title="Approve Pandit">
+                                                            <i class="bi bi-check-circle"></i> Approve
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="{% url 'module5_dashboards:reject_pandit_super_admin' user_id=item.profile.user.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger btn-sm" title="Reject Pandit" onclick="return confirm('Are you sure you want to reject this Pandit?');">
+                                                            <i class="bi bi-x-circle"></i> Reject
+                                                        </button>
+                                                    </form>
+                                                {% elif item.status == 'active' %}
+                                                    <form method="post" action="{% url 'module5_dashboards:suspend_pandit_super_admin' user_id=item.profile.user.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-warning btn-sm" title="Suspend Pandit" onclick="return confirm('Are you sure you want to suspend this Pandit?');">
+                                                            <i class="bi bi-pause-circle"></i> Suspend
+                                                        </button>
+                                                    </form>
+                                                {% elif item.status == 'suspended' %}
+                                                    <form method="post" action="{% url 'module5_dashboards:reinstate_pandit_super_admin' user_id=item.profile.user.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-success btn-sm" title="Reinstate Pandit">
+                                                            <i class="bi bi-arrow-clockwise"></i> Reinstate
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if pandit_governance_page.has_other_pages %}
+                        <nav aria-label="Pandit governance pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if pandit_governance_page.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?pandit_page={{ pandit_governance_page.previous_page_number }}{% if pandit_governance_filters.status %}&pandit_status={{ pandit_governance_filters.status }}{% endif %}{% if pandit_governance_filters.search %}&pandit_search={{ pandit_governance_filters.search }}{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item active">
+                                    <span class="page-link">Page {{ pandit_governance_page.number }} of {{ pandit_governance_page.paginator.num_pages }}</span>
+                                </li>
+                                {% if pandit_governance_page.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?pandit_page={{ pandit_governance_page.next_page_number }}{% if pandit_governance_filters.status %}&pandit_status={{ pandit_governance_filters.status }}{% endif %}{% if pandit_governance_filters.search %}&pandit_search={{ pandit_governance_filters.search }}{% endif %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- PART 5: Premium Page Governance Overview -->
+        {% if page_governance_list %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-file-earmark-text me-2"></i>Page Governance</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <!-- Filters -->
+                    <form method="get" class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <input type="text" name="page_search" class="form-control form-control-sm" 
+                                       placeholder="Search by title/owner..." value="{{ page_governance_filters.search|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="page_type" class="form-select form-select-sm">
+                                    <option value="">All Types</option>
+                                    {% for page_type, label in PAGE_TYPE_CHOICES %}
+                                        <option value="{{ page_type }}" {% if page_governance_filters.page_type == page_type %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="page_status" class="form-select form-select-sm">
+                                    <option value="">All Status</option>
+                                    {% for status, label in PAGE_STATUS_CHOICES %}
+                                        <option value="{{ status }}" {% if page_governance_filters.page_status == status %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                                <a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- PART 5: Premium Page Governance Table -->
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Page Type</th>
+                                    <th>Owner</th>
+                                    <th>Owner Role</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in page_governance_list %}
+                                    <tr>
+                                        <td><strong><a href="{% url 'pages:page_detail' page_public_id=item.page.public_id %}">{{ item.title }}</a></strong></td>
+                                        <td><span class="badge bg-primary">{{ item.page_type }}</span></td>
+                                        <td>{{ item.owner }}</td>
+                                        <td><span class="badge bg-info">{{ item.owner_role }}</span></td>
+                                        <td>
+                                            <span class="badge {% if item.visibility_status == 'ACTIVE' %}bg-success{% elif item.visibility_status == 'DEACTIVATED' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                {{ item.visibility_status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.created_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'module5_dashboards:edit_page_super_admin' page_public_id=item.page.public_id %}" class="btn btn-outline-primary btn-sm" title="Edit Page">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                {% if item.visibility_status == 'ACTIVE' %}
+                                                    <form method="post" action="{% url 'module5_dashboards:disable_page_super_admin' page_public_id=item.page.public_id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-warning btn-sm" title="Disable Page" onclick="return confirm('Are you sure you want to disable this page?');">
+                                                            <i class="bi bi-eye-slash"></i> Disable
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <form method="post" action="{% url 'module5_dashboards:restore_page_super_admin' page_public_id=item.page.public_id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Restore Page">
+                                                            <i class="bi bi-arrow-clockwise"></i> Restore
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_governance_page.has_other_pages %}
+                        <nav aria-label="Page governance pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_governance_page.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page_page={{ page_governance_page.previous_page_number }}{% if page_governance_filters.page_type %}&page_type={{ page_governance_filters.page_type }}{% endif %}{% if page_governance_filters.page_status %}&page_status={{ page_governance_filters.page_status }}{% endif %}{% if page_governance_filters.search %}&page_search={{ page_governance_filters.search }}{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item active">
+                                    <span class="page-link">Page {{ page_governance_page.number }} of {{ page_governance_page.paginator.num_pages }}</span>
+                                </li>
+                                {% if page_governance_page.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page_page={{ page_governance_page.next_page_number }}{% if page_governance_filters.page_type %}&page_type={{ page_governance_filters.page_type }}{% endif %}{% if page_governance_filters.page_status %}&page_status={{ page_governance_filters.page_status }}{% endif %}{% if page_governance_filters.search %}&page_search={{ page_governance_filters.search }}{% endif %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- UNIT 14: Governance Action Review (Unified Audit Feed) -->
+        {% if governance_table_data %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0"><i class="bi bi-clock-history me-2"></i>Governance Action Review</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <!-- Audit Filters -->
+                    <form method="get" class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" name="actor" class="form-control form-control-sm" 
+                                       placeholder="Filter by actor..." value="{{ audit_filters.actor|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="entity_type" class="form-select form-select-sm">
+                                    <option value="">All Entities</option>
+                                    <option value="Page" {% if audit_filters.entity_type == 'Page' %}selected{% endif %}>Page</option>
+                                    <option value="Pandit" {% if audit_filters.entity_type == 'Pandit' %}selected{% endif %}>Pandit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" name="action_type" class="form-control form-control-sm" 
+                                       placeholder="Action type..." value="{{ audit_filters.action_type|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="date_from" class="form-control form-control-sm" 
+                                       value="{{ audit_filters.date_from|default:'' }}" placeholder="From">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="date_to" class="form-control form-control-sm" 
+                                       value="{{ audit_filters.date_to|default:'' }}" placeholder="To">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Audit Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Action Type</th>
+                                    <th>Entity Type</th>
+                                    <th>Entity</th>
+                                    <th>Actor</th>
+                                    <th>Reason</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in governance_table_data %}
+                                    <tr>
+                                        <td><span class="badge bg-info">{{ record.action_type }}</span></td>
+                                        <td>{{ record.entity_type }}</td>
+                                        <td>
+                                            <a href="{% if record.entity_type == 'Page' %}{% url 'pages:page_detail' page_public_id=record.entity_public_id %}{% else %}#{% endif %}">
+                                                {{ record.entity_title }}
+                                            </a>
+                                        </td>
+                                        <td>{{ record.actor_email }}</td>
+                                        <td>{{ record.reason|default:"—" }}</td>
+                                        <td>{{ record.timestamp|date:"M d, Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if governance_audit_page.has_other_pages %}
+                        <nav aria-label="Audit pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if governance_audit_page.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?audit_page={{ governance_audit_page.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item active">
+                                    <span class="page-link">Page {{ governance_audit_page.number }} of {{ governance_audit_page.paginator.num_pages }}</span>
+                                </li>
+                                {% if governance_audit_page.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?audit_page={{ governance_audit_page.next_page_number }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- PART 3: Platform Controls Quick Links -->
+        <div class="card dashboard-card mb-4">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0"><i class="bi bi-gear me-2"></i>Platform Controls</h3>
+            </div>
+            <div class="dashboard-card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-search me-2"></i>SEO Metadata Oversight</h6>
+                                <p class="card-text text-muted small">View, reset, and edit SEO metadata for Pandits and Pages</p>
+                                <a href="#seo-oversight" class="btn btn-outline-primary btn-sm">Manage SEO</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-globe me-2"></i>Crawl Readiness Monitor</h6>
+                                <p class="card-text text-muted small">Check indexing readiness for all public entities</p>
+                                <a href="{% url 'module5_dashboards:crawl_readiness_monitor' %}" class="btn btn-outline-primary btn-sm">View Monitor</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-graph-up me-2"></i>Analytics / GTM Config</h6>
+                                <p class="card-text text-muted small">Manage tracking snippets and analytics configuration</p>
+                                <a href="{% url 'module5_dashboards:analytics_config_super_admin' %}" class="btn btn-outline-primary btn-sm">Configure</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-toggle-on me-2"></i>Feature Flags</h6>
+                                <p class="card-text text-muted small">Enable/disable platform features (kill switches)</p>
+                                <a href="{% url 'module5_dashboards:feature_flags_super_admin' %}" class="btn btn-outline-primary btn-sm">Manage Flags</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-exclamation-triangle me-2"></i>Platform Kill Switch</h6>
+                                <p class="card-text text-muted small">Emergency control for platform-wide protection</p>
+                                <a href="{% url 'module5_dashboards:platform_kill_switch_super_admin' %}" class="btn btn-outline-warning btn-sm">Emergency Control</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-file-earmark-text me-2"></i>Config Change Audit</h6>
+                                <p class="card-text text-muted small">View audit trail for all configuration changes</p>
+                                <a href="{% url 'module5_dashboards:config_change_audit_super_admin' %}" class="btn btn-outline-primary btn-sm">View Audit</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-database me-2"></i>Master Data Management</h6>
+                                <p class="card-text text-muted small">Manage Cities, Areas, Poojas, Languages, Categories</p>
+                                <a href="{% url 'module5_dashboards:master_data_management' %}" class="btn btn-outline-primary btn-sm">Manage Data</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-download me-2"></i>Data Export</h6>
+                                <p class="card-text text-muted small">Export Pandits, Pages, Audit logs as CSV</p>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=pandits" class="btn btn-outline-primary btn-sm">Export Pandits</a>
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=pages" class="btn btn-outline-primary btn-sm">Export Pages</a>
+                                    <a href="{% url 'module5_dashboards:export_data_super_admin' %}?type=audit" class="btn btn-outline-primary btn-sm">Export Audit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-check-circle me-2"></i>Consistency Checks</h6>
+                                <p class="card-text text-muted small">Run automated validation and consistency checks</p>
+                                <a href="{% url 'module5_dashboards:consistency_checks_super_admin' %}" class="btn btn-outline-primary btn-sm">Run Checks</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNIT 15: SEO Metadata Oversight -->
+        {% if seo_oversight_list %}
+            <div class="card dashboard-card mb-4" id="seo-oversight">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0"><i class="bi bi-search me-2"></i>SEO Metadata Oversight</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    {% if seo_oversight_list|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Entity Type</th>
+                                        <th>Entity Name</th>
+                                        <th>SEO Title</th>
+                                        <th>SEO Description</th>
+                                        <th>Auto-Generated</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in seo_oversight_list|slice:":20" %}
+                                        {% if item.entity_type and item.entity_public_id %}
+                                        <tr>
+                                            <td><span class="badge bg-primary">{{ item.entity_type }}</span></td>
+                                            <td><strong>{{ item.entity_name }}</strong></td>
+                                            <td>{{ item.seo_title|truncatewords:5|default:"—" }}</td>
+                                            <td>{{ item.seo_description|truncatewords:8|default:"—" }}</td>
+                                            <td>
+                                                {% if item.seo_autogenerated %}
+                                                    <span class="badge bg-success">Yes</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">No (Manual)</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item.seo_last_updated_at|date:"M d, Y"|default:"—" }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'module5_dashboards:edit_seo_super_admin' entity_type=item.entity_type|lower entity_public_id=item.entity_public_id %}" 
+                                                       class="btn btn-outline-primary btn-sm" title="Edit SEO">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </a>
+                                                    <form method="post" action="{% url 'module5_dashboards:reset_seo_super_admin' entity_type=item.entity_type|lower entity_public_id=item.entity_public_id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Reset to Auto-Generated" onclick="return confirm('Reset SEO to auto-generated?');">
+                                                            <i class="bi bi-arrow-clockwise"></i> Reset
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if seo_oversight_list|length > 20 %}
+                            <p class="text-muted text-center mt-3">
+                                <small>Showing first 20 of {{ seo_oversight_list|length }} entities. Use filters to see more.</small>
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">No SEO metadata found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab" style="display: none;">
+        {% if analytics_trends %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0">Analytics Trends</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    {% for trend in analytics_trends %}
+                        <div class="mb-3">
+                            <strong>{{ trend.label }}:</strong> {{ trend.value }}
+                            {% if trend.change %}
+                                <small class="text-muted">({{ trend.change }})</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if chart_data_list %}
+            {% for chart in chart_data_list %}
+                {% include "module5_dashboards/dashboard_widgets/charts.html" with chart_data=chart.data chart_title=chart.title chart_id=chart.id chart_legend=chart.legend %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Pages Tab -->
+    <div class="tab-pane fade" id="pages" role="tabpanel" aria-labelledby="pages-tab" style="display: none;">
+        {% if page_overview %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0">Pages Overview</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <span>Total Pages</span>
+                                <span class="badge bg-primary">{{ page_overview.total_pages|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <span>Deactivated</span>
+                                <span class="badge bg-warning">{{ page_overview.deactivated_pages_count|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <span>Invisible</span>
+                                <span class="badge bg-secondary">{{ page_overview.invisible_pages_count|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <span>Active</span>
+                                <span class="badge bg-success">{{ page_overview.pages_by_status.ACTIVE|default:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if page_overview.pages_by_type %}
+                        <div class="mb-3">
+                            <h6 class="mb-2">Pages by Type</h6>
+                            <div class="row g-2">
+                                {% for page_type, count in page_overview.pages_by_type.items %}
+                                    <div class="col-6 col-md-3">
+                                        <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                            <small>{{ page_type }}</small>
+                                            <span class="badge bg-info">{{ count }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- All Pages List -->
+        {% if all_pages %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0">All Pages</h3>
+                    <a href="{% url 'pages:page_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-list me-1"></i>View All
+                    </a>
+                </div>
+                <div class="dashboard-card-body">
+                    <!-- PART 5: Premium Pages Table -->
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Created By</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for page in all_pages|slice:":10" %}
+                                    <tr>
+                                        <td>
+                                            <strong><a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" class="text-decoration-none">{{ page.title }}</a></strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ page.get_page_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if page.status == 'ACTIVE' %}success{% elif page.status == 'DEACTIVATED' %}warning{% else %}secondary{% endif %}">
+                                                {{ page.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ page.created_by.get_full_name|default:page.created_by.email }}</td>
+                                        <td>{{ page.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" class="btn btn-outline-primary">View</a>
+                                                {% if page.status == 'INVISIBLE' %}
+                                                    <form method="post" action="{% url 'pages:page_make_visible' page_public_id=page.public_id %}?from=dashboard" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Make Visible">
+                                                            <i class="bi bi-eye"></i> Make Visible
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <form method="post" action="{% url 'pages:page_make_invisible' page_public_id=page.public_id %}?from=dashboard" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Make Invisible">
+                                                            <i class="bi bi-eye-slash"></i> Make Invisible
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </div>
+                    {% if all_pages|length > 10 %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'pages:page_list' %}" class="btn btn-outline-primary">
+                                View All {{ all_pages|length }} Pages
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif page_overview and page_overview.total_pages == 0 %}
+            <div class="super-admin-card">
+                <div class="dashboard-card-header">
+                    <h3 class="h5 mb-0">Pages Management</h3>
+                </div>
+                <div class="dashboard-card-body text-center py-4">
+                    <i class="bi bi-file-earmark-text" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <h5 class="mt-3 mb-2">No Pages Yet</h5>
+                    <p class="text-muted mb-0">No pages have been created on the platform.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pandits Tab -->
+    <div class="tab-pane fade" id="pandits" role="tabpanel" aria-labelledby="pandits-tab" style="display: none;">
+        <div class="super-admin-card">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0">
+                    <i class="bi bi-people me-2"></i>Pandits Overview
+                </h3>
+            </div>
+            <div class="dashboard-card-body">
+                {% if pandits_list %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Email Verified</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pandits_list %}
+                                    <tr>
+                                        <td>{{ item.user.email }}</td>
+                                        <td>{{ item.user.get_full_name|default:"—" }}</td>
+                                        <td>
+                                            <span class="badge {% if item.status == 'active' %}bg-success{% elif item.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ item.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if item.email_verified %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Verified
+                                                </span>
+                                                {% if item.email_verified_at %}
+                                                    <small class="text-muted d-block">{{ item.email_verified_at|date:"M d, Y" }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>Not Verified
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not item.email_verified %}
+                                                <form method="post" action="{% url 'accounts:resend_pandit_verification' pandit_public_id=item.user.public_id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-info" title="Resend Verification Email">
+                                                        <i class="bi bi-envelope me-1"></i>Resend Verification
+                                                    </button>
+                                                </form>
+                                                {% if item.last_verification_email_sent_at %}
+                                                    <small class="text-muted d-block mt-1">
+                                                        Last sent: {{ item.last_verification_email_sent_at|timesince }} ago
+                                                    </small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No Pandits found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trust Overview Tab -->
+    <div class="tab-pane fade" id="trust" role="tabpanel" aria-labelledby="trust-tab" style="display: none;">
+        <div class="super-admin-card">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0">
+                    <i class="bi bi-shield-check me-2"></i>Trust Overview
+                </h3>
+            </div>
+            <div class="dashboard-card-body">
+                <p class="text-muted">Trust status counts - Coming soon</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reviews Overview Tab -->
+    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab" style="display: none;">
+        <div class="super-admin-card">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0">
+                    <i class="bi bi-star me-2"></i>Reviews Overview
+                </h3>
+            </div>
+            <div class="dashboard-card-body">
+                <p class="text-muted">Reviews read-only view - Coming soon</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDashboardTab(tabName, event) {
+    // Prevent default if event is provided
+    if (event) {
+        event.preventDefault();
+    }
+    
+    // Hide ALL tab panes first - ensure nothing is visible
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('show', 'active');
+        pane.style.display = 'none';
+    });
+    
+    // Show ONLY the selected tab pane
+    const targetPane = document.getElementById(tabName);
+    if (targetPane) {
+        targetPane.classList.add('show', 'active');
+        targetPane.style.display = 'block';
+    } else {
+        console.warn('Tab pane not found:', tabName);
+    }
+    
+    // Update nav links - remove active from all
+    document.querySelectorAll('.dashboard-nav .nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // Activate clicked link
+    let clickedLink = null;
+    if (event) {
+        clickedLink = event.target.closest('.nav-link');
+    }
+    
+    // If no event, find link by data-tab or href
+    if (!clickedLink) {
+        clickedLink = document.querySelector(`.dashboard-nav .nav-link[data-bs-target="#${tabName}"], .dashboard-nav .nav-link[href="#${tabName}"]`);
+    }
+    
+    if (clickedLink) {
+        clickedLink.classList.add('active');
+    }
+    
+    // Update URL hash without reloading
+    if (history.pushState) {
+        history.pushState(null, null, '#' + tabName);
+    } else {
+        window.location.hash = tabName;
+    }
+    
+    // Scroll to top of content area
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    return false;
+}
+
+// Initialize tabs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for hash in URL or tab parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const hash = window.location.hash.substring(1);
+    
+    let tabToShow = 'overview';
+    const validTabs = ['overview', 'pages', 'pandits', 'trust', 'reviews', 'governance', 'analytics'];
+    
+    if (tabParam && validTabs.includes(tabParam)) {
+        tabToShow = tabParam;
+    } else if (hash && validTabs.includes(hash)) {
+        tabToShow = hash;
+    }
+    
+    // Show the appropriate tab - ensure only one is visible
+    showDashboardTab(tabToShow);
+    
+    // Handle Bootstrap tab events
+    const tabLinks = document.querySelectorAll('.dashboard-nav .nav-link[data-bs-toggle="tab"]');
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const tabTarget = this.getAttribute('data-bs-target') || this.getAttribute('href');
+            if (tabTarget) {
+                const tabName = tabTarget.replace('#', '');
+                showDashboardTab(tabName, e);
+            }
+        });
+        
+        // Also handle Bootstrap's shown.bs.tab event
+        link.addEventListener('shown.bs.tab', function(e) {
+            const tabTarget = e.target.getAttribute('data-bs-target') || e.target.getAttribute('href');
+            if (tabTarget) {
+                const tabName = tabTarget.replace('#', '');
+                // Update URL hash
+                if (history.pushState) {
+                    history.pushState(null, null, '#' + tabName);
+                } else {
+                    window.location.hash = tabName;
+                }
+            }
+        });
+    });
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('hashchange', function() {
+        const hash = window.location.hash.substring(1);
+        const validTabs = ['overview', 'pages', 'pandits', 'trust', 'reviews', 'governance', 'analytics'];
+        if (hash && validTabs.includes(hash)) {
+            showDashboardTab(hash);
+        }
+    });
+});
+</script>
+{% endblock %}
+

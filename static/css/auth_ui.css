@@ -1,0 +1,262 @@
+/* ============================================
+   PREMIUM AUTH UI - UNIFIED DESIGN SYSTEM
+   Login + Register Pages
+   ============================================ */
+
+/* PART 2: Unified Premium Auth Design System */
+/* 60% - Base: #0F172A (Deep Indigo/Charcoal) */
+/* 30% - Secondary: #6366F1 (Indigo) */
+/* 10% - Accent: #E11D48 (Rose) - Primary CTA only */
+
+.auth-section {
+    background: #F8FAFC;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    padding: 48px 0;
+}
+
+.auth-card {
+    background: var(--card-bg-theme, #FFFFFF);
+    border-radius: 18px;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+    overflow: hidden;
+    max-width: 420px;
+    margin: 0 auto;
+    transition: all 0.25s ease;
+}
+
+.auth-card:hover {
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.3);
+}
+
+/* PART 3: Header Gradient */
+.auth-header {
+    background: linear-gradient(135deg, #0F172A 0%, #6366F1 100%);
+    color: #FFFFFF;
+    padding: 2rem;
+    text-align: center;
+}
+
+.auth-header h2,
+.auth-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.auth-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-body {
+    padding: 2.5rem;
+}
+
+/* PART 4: Fixed Floating Labels (No Overlapping) */
+.auth-body .form-floating {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.auth-body .form-floating > .form-control {
+    height: 58px;
+    padding: 1.25rem 0.75rem 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    transition: all 0.25s ease;
+    background-color: var(--bg-secondary-theme, #FFFFFF);
+    color: var(--text-primary-theme, #0F172A);
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap;
+}
+
+.auth-body .form-floating > .form-control:focus {
+    border-color: var(--accent-theme, #E11D48);
+    box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2);
+    outline: none;
+    background-color: var(--bg-secondary-theme, #FFFFFF);
+    color: var(--text-primary-theme, #0F172A);
+}
+
+.auth-body .form-floating > label {
+    color: var(--text-muted-theme, #64748B);
+    padding: 0.75rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+/* Move label properly when focused or filled */
+.auth-body .form-floating > .form-control:focus ~ label,
+.auth-body .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    transform: scale(0.85) translateY(-0.6rem) translateX(0);
+    opacity: 0.9;
+    color: var(--accent-theme, #E11D48);
+}
+
+/* Remove icons from labels - premium rule */
+.auth-body .form-floating label i {
+    display: none;
+}
+
+/* PART 3 & 5: Primary CTA Button (Accent Color - 10%) */
+.auth-body .btn-primary-cta {
+    background: #E11D48;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 600;
+    color: #FFFFFF;
+    width: 100%;
+    transition: all 0.25s ease;
+}
+
+.auth-body .btn-primary-cta:hover {
+    background: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.auth-body .btn-primary-cta:active {
+    transform: scale(0.98);
+}
+
+/* PART 6: Auth UX Micro-Polish */
+.auth-body .form-check-input:checked {
+    background-color: #6366F1;
+    border-color: #6366F1;
+}
+
+.auth-body .form-check-label {
+    color: #64748B;
+    font-size: 0.875rem;
+}
+
+.auth-body a {
+    color: #6366F1;
+    text-decoration: none;
+    transition: color 0.25s ease;
+}
+
+.auth-body a:hover {
+    color: #4F46E5;
+}
+
+/* Info Note Styling */
+.auth-info-note {
+    background-color: #F8FAFC;
+    border-left: 4px solid #6366F1;
+    padding: 1.25rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.auth-info-note h6 {
+    color: #0F172A;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+.auth-info-note p,
+.auth-info-note ul {
+    color: #64748B;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-info-note hr {
+    margin: 1rem 0;
+    border-color: #E5E7EB;
+    opacity: 0.5;
+}
+
+/* Error Messages - Inline */
+.auth-body .invalid-feedback {
+    color: #E11D48;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.auth-body .form-control.is-invalid {
+    border-color: #E11D48;
+}
+
+.auth-body .form-control.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25);
+}
+
+/* Alert Messages */
+.auth-body .alert {
+    border-radius: 12px;
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+/* Join as Pandit CTA */
+.join-pandit-cta {
+    font-size: 14px;
+    color: #64748B; /* Muted */
+}
+
+.join-pandit-link {
+    color: #E11D48; /* Accent */
+    font-weight: 600;
+    margin-left: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.join-pandit-link:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-section {
+        padding: 32px 0;
+    }
+    
+    .auth-card {
+        max-width: 100%;
+        margin: 0 16px;
+    }
+    
+    .auth-header {
+        padding: 1.5rem;
+    }
+    
+    .auth-body {
+        padding: 1.5rem;
+    }
+    
+    .auth-body .btn-primary-cta {
+        min-height: 48px;
+    }
+}
+
+/* Mobile Responsiveness for Join Pandit CTA */
+@media (max-width: 576px) {
+    .join-pandit-cta {
+        font-size: 13px;
+    }
+}
+
+
+
+
+
+
+
+
+
+

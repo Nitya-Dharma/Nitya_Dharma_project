@@ -1,0 +1,130 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Revision History - {{ page.title }}{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<style>
+    .cms-revisions-card {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    
+    .revision-item {
+        background: var(--bg-secondary-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .revision-header {
+        color: var(--text-primary-theme);
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .revision-meta {
+        color: var(--text-muted-theme);
+        font-size: 0.875rem;
+        margin-bottom: 12px;
+    }
+    
+    .revision-content-preview {
+        background: var(--bg-primary-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 8px;
+        padding: 16px;
+        max-height: 200px;
+        overflow-y: auto;
+        color: var(--text-secondary-theme);
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Revision History{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">{{ page.title }} - {{ page.get_page_type_display }}</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="cms-revisions-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h5 mb-0 fw-semibold" style="color: var(--text-primary-theme);">Revision History</h3>
+        <a href="{% url 'pages:super_admin_cms_edit' slug=page.slug %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-2"></i>Edit Page
+        </a>
+    </div>
+    
+    {% if revisions %}
+        <div class="revisions-list">
+            {% for revision in revisions %}
+                <div class="revision-item">
+                    <div class="revision-header">
+                        <i class="bi bi-clock-history me-2"></i>Revision #{{ forloop.revcounter }}
+                    </div>
+                    <div class="revision-meta">
+                        <span><i class="bi bi-person me-1"></i>{{ revision.changed_by.get_full_name|default:revision.changed_by.email }}</span>
+                        <span class="ms-3"><i class="bi bi-calendar me-1"></i>{{ revision.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="revision-content-preview">
+                        {{ revision.content|truncatewords:50|safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clock-history" style="font-size: 3rem; color: var(--text-muted-theme);"></i>
+            <p class="text-muted mt-3">No revisions found for this page.</p>
+        </div>
+    {% endif %}
+    
+    <div class="mt-4 pt-4 border-top" style="border-color: var(--border-color-theme);">
+        <a href="{% url 'pages:super_admin_cms_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+{% endblock %}
+

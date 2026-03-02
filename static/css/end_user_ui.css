@@ -1,0 +1,622 @@
+/* ============================================
+   END USER UI PREMIUM REDESIGN - PART 1
+   Global Foundation & Search Results Cards
+   ============================================ */
+
+/* PART 4: Micro-Interactions, Hover States, Motion & Final Premium Polish */
+
+/* UNIT 14: Global Transitions (Base Layer) */
+.end-user-page *,
+.end-user-page *::before,
+.end-user-page *::after {
+    transition: 
+        background-color 180ms ease,
+        color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+/* UNIT 1: Global End User UI Foundation */
+
+/* Card foundation */
+.premium-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s ease;
+}
+
+.premium-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* Accent border */
+.border-accent {
+    border-top: 4px solid #E11D48;
+}
+
+/* Section spacing */
+.section-padding {
+    padding: 64px 0;
+}
+
+/* Typography consistency */
+.end-user-page h1,
+.end-user-page h2,
+.end-user-page h3,
+.end-user-page h4,
+.end-user-page h5,
+.end-user-page h6 {
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.end-user-page .text-muted {
+    color: #475569;
+}
+
+/* Premium card avatar styling */
+.premium-card .profile-image {
+    border: 3px solid #F1F5F9;
+    background: #F8FAFC;
+}
+
+/* Pooja chip styling */
+.pooja-chip {
+    background: #F1F5F9;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #475569;
+    border: 1px solid #E5E7EB;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.pooja-chip:hover {
+    background: #E2E8F0;
+}
+
+/* UNIT 16: Button Hover & Press States */
+.premium-card .btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    min-height: 44px;
+    transition: all 0.2s ease;
+}
+
+.premium-card .btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.premium-card .btn-danger:active {
+    transform: scale(0.97);
+}
+
+.premium-card .btn-success {
+    background-color: #16A34A;
+    border-color: #16A34A;
+    color: #FFFFFF;
+    font-weight: 500;
+    border-radius: 12px;
+    min-height: 44px;
+    transition: all 0.2s ease;
+}
+
+.premium-card .btn-success:hover {
+    background-color: #15803D;
+    border-color: #15803D;
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+}
+
+.premium-card .btn-success:active {
+    transform: scale(0.97);
+}
+
+/* General button press feedback */
+button:active,
+.btn:active {
+    transform: scale(0.97);
+}
+
+/* WhatsApp button specific */
+.premium-card .btn[style*="#25D366"] {
+    background-color: #22C55E !important;
+    border-color: #22C55E !important;
+    color: #FFFFFF !important;
+    font-weight: 500;
+    border-radius: 12px;
+    min-height: 44px;
+    transition: all 0.2s ease;
+}
+
+.premium-card .btn[style*="#25D366"]:hover {
+    background-color: #16A34A !important;
+    border-color: #16A34A !important;
+}
+
+/* Search Results Page Layout */
+.search-results-premium {
+    background: #F8FAFC;
+    min-height: 100vh;
+}
+
+.search-results-premium .section-padding {
+    padding: 48px 0;
+}
+
+.search-results-premium .row.g-4 {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.search-results-premium .row.g-4 > [class*="col-"] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Empty State */
+.empty-state-premium {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+}
+
+.empty-state-premium p {
+    color: #475569;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-premium .btn {
+    min-height: 44px;
+    padding: 0.75rem 2rem;
+}
+
+/* PART 2: End User Profile & Notifications Styles */
+
+/* Profile Page Layout */
+.bg-slate-50 {
+    background-color: #F8FAFC;
+}
+
+/* Form Group Spacing */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Notification List Styles */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.notification-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #E5E7EB;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: #F8FAFC;
+}
+
+.notification-unread {
+    border-left: 4px solid #E11D48;
+    padding-left: 12px;
+    background-color: #FEF2F2;
+}
+
+.notification-item p {
+    margin-bottom: 0.5rem;
+}
+
+.notification-item .text-muted {
+    color: #64748B;
+    font-size: 0.875rem;
+}
+
+/* Profile Summary Card */
+.premium-card .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Contact Preferences Section */
+.premium-card .form-label {
+    font-weight: 500;
+    color: #0F172A;
+    margin-bottom: 0.5rem;
+}
+
+.premium-card .form-control {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.2s ease;
+}
+
+.premium-card .form-control:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+}
+
+.premium-card .form-text {
+    color: #64748B;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Button Styles */
+.btn-danger {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background-color: #BE123C;
+    border-color: #BE123C;
+}
+
+.btn-outline-danger {
+    border-color: #E11D48;
+    color: #E11D48;
+}
+
+.btn-outline-danger:hover {
+    background-color: #E11D48;
+    border-color: #E11D48;
+    color: #FFFFFF;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .section-padding {
+        padding: 32px 0;
+    }
+    
+    .premium-card {
+        border-radius: 12px;
+    }
+    
+    .premium-card .profile-image {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .search-results-premium .row.g-4 > [class*="col-"] {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .notification-item {
+        padding: 12px 0;
+    }
+    
+    .premium-card {
+        padding: 1.5rem !important;
+    }
+}
+
+/* Large screens - Two column form layout */
+@media (min-width: 992px) {
+    .premium-card .row .col-md-6 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+/* PART 3: Search Filters, Navigation & Settings Polish */
+
+/* UNIT 17: Search & Filter Interactions */
+.search-filters .form-label {
+    font-weight: 500;
+    color: #0F172A;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.search-filters .form-control,
+.search-filters .form-select {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    height: 44px;
+}
+
+.search-filters .form-control:focus,
+.search-filters .form-select:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+    outline: none;
+}
+
+/* Placeholder softening */
+.search-filters .form-control::placeholder,
+.search-filters .form-select::placeholder,
+.form-control::placeholder,
+.form-select::placeholder {
+    color: #94A3B8;
+    opacity: 1;
+}
+
+/* UNIT 15: Card Micro-Interactions (Pandit Cards) */
+.pandit-card {
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    background: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.pandit-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    border-left: 4px solid transparent;
+    pointer-events: none;
+    transition: border-left-color 180ms ease;
+}
+
+.pandit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.pandit-card:hover::before {
+    border-left-color: #E11D48;
+}
+
+/* UNIT 18: Navigation & Dropdown Polish */
+.navbar {
+    padding: 14px 0;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.nav-link.active {
+    color: #E11D48 !important;
+    font-weight: 600;
+}
+
+.nav-link {
+    color: #0F172A;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #E11D48;
+}
+
+/* Profile Dropdown UX */
+.dropdown-menu {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 0.5rem 0;
+    animation: dropdownFade 160ms ease;
+}
+
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    color: #0F172A;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #F8FAFC;
+    color: #0F172A;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+    border-color: #E5E7EB;
+}
+
+/* Settings Toggle Layout */
+.premium-card .d-flex.justify-content-between {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.premium-card .d-flex.justify-content-between:last-child {
+    border-bottom: none;
+}
+
+.premium-card .d-flex.justify-content-between label {
+    margin-bottom: 0;
+    color: #0F172A;
+}
+
+/* Disabled State UX */
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background-color: #F1F5F9;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Footer Polish */
+footer.border-top {
+    border-top: 1px solid #E5E7EB !important;
+}
+
+footer.text-muted,
+footer.text-muted * {
+    color: #64748B !important;
+}
+
+footer a {
+    color: #64748B;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: #0F172A;
+    text-decoration: none;
+}
+
+.footer-premium {
+    background: #0F172A;
+}
+
+.footer-premium .text-light {
+    color: #CBD5E1 !important;
+}
+
+.footer-premium a {
+    color: #CBD5E1;
+}
+
+.footer-premium a:hover {
+    color: #FFFFFF;
+}
+
+/* UNIT 19: Micro-Text & Typography Refinement */
+.section-title {
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    color: #0F172A;
+}
+
+.end-user-page h1,
+.end-user-page h2,
+.end-user-page h3,
+.end-user-page h4,
+.end-user-page h5,
+.end-user-page h6 {
+    letter-spacing: -0.2px;
+}
+
+.end-user-page .text-muted {
+    color: #64748B;
+}
+
+.end-user-page label {
+    font-weight: 500;
+    color: #0F172A;
+}
+
+.end-user-page .small {
+    font-size: 0.875rem;
+    color: #64748B;
+}
+
+/* UNIT 20: Empty States & Feedback Polish */
+.empty-state-search {
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.empty-state-search i {
+    font-size: 3rem;
+    color: #CBD5E1;
+    margin-bottom: 1rem;
+}
+
+.empty-state-search h3,
+.empty-state-search h6 {
+    color: #0F172A;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-search p {
+    color: #64748B;
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    background: #F8FAFC;
+    border-radius: 14px;
+    padding: 48px;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #CBD5E1;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3,
+.empty-state h6 {
+    color: #0F172A;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #64748B;
+    font-size: 0.875rem;
+}
+
+/* UNIT 21: Mobile-First Final Tuning */
+@media (max-width: 768px) {
+    .search-filters .form-control,
+    .search-filters .form-select {
+        height: 44px;
+    }
+    
+    .navbar {
+        padding: 12px 0;
+    }
+    
+    .pandit-card {
+        margin-bottom: 20px;
+    }
+    
+    .pandit-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    button,
+    .btn {
+        min-height: 48px;
+    }
+    
+    .premium-card {
+        padding: 1.5rem !important;
+    }
+    
+    .empty-state {
+        padding: 32px 24px;
+    }
+    
+    .section-padding {
+        padding: 32px 0;
+    }
+}
+

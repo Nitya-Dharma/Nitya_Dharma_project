@@ -1,0 +1,239 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Send Booking Intent - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    
+    <style>
+        .booking-intent-form-section {
+            background: #f8f9fa;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .form-section-header {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .booking-intent-form-section {
+                padding: 1rem 0;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    
+    <section class="booking-intent-form-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0" id="form-heading">
+                                <i class="bi bi-envelope me-2" aria-hidden="true"></i>Send Booking Intent
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            
+                            {% if not user.is_authenticated %}
+                                <div class="alert alert-info" role="alert">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <a href="{% url 'accounts:login' %}">Login</a> to send a booking intent.
+                                </div>
+                            {% else %}
+                                
+                                <form method="post" action="{% url 'booking_intent_ui:create' pandit.public_id %}" id="booking-intent-form">
+                                    {% csrf_token %}
+                                    
+                                    
+                                    <div class="mb-3">
+                                        <label for="pandit" class="form-label">Pandit</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="pandit" 
+                                               value="{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }}"
+                                               readonly
+                                               aria-label="Selected Pandit"
+                                               aria-describedby="pandit-help">
+                                        <small id="pandit-help" class="form-text text-muted">This Pandit will receive your booking intent</small>
+                                        
+                                        <input type="hidden" name="pandit_id" value="{{ pandit_user.id }}">
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="pooja" class="form-label">Preferred Pooja Type <span class="text-muted">(Optional)</span></label>
+                                        <select class="form-select" 
+                                                id="pooja" 
+                                                name="pooja_id"
+                                                aria-label="Select preferred pooja type">
+                                            <option value="">Select a pooja type (optional)</option>
+                                            {% if poojas %}
+                                                {% for pooja in poojas %}
+                                                    <option value="{{ pooja.id }}" {% if form.pooja_id.value == pooja.id|stringformat:"s" %}selected{% endif %}>
+                                                        {{ pooja.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </select>
+                                        
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="preferred_date" class="form-label">Preferred Date <span class="text-muted">(Optional)</span></label>
+                                        <input type="date" 
+                                               class="form-control" 
+                                               id="preferred_date" 
+                                               name="preferred_date"
+                                               value="{{ form.preferred_date.value|default:'' }}"
+                                               aria-label="Select preferred date">
+                                        <small class="form-text text-muted">
+                                            This is your preference only. No calendar UI, no slot selection, no availability enforcement.
+                                        </small>
+                                        
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="preferred_time" class="form-label">Preferred Time Window <span class="text-muted">(Optional)</span></label>
+                                        <input type="time" 
+                                               class="form-control" 
+                                               id="preferred_time" 
+                                               name="preferred_time"
+                                               value="{{ form.preferred_time.value|default:'' }}"
+                                               aria-label="Select preferred time">
+                                        <small class="form-text text-muted">
+                                            This is your preference only. No availability checks, no conflict resolution.
+                                        </small>
+                                        
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="user_mobile_number" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                                        <input type="tel" 
+                                               class="form-control" 
+                                               id="user_mobile_number" 
+                                               name="user_mobile_number"
+                                               placeholder="Enter your mobile number"
+                                               value="{{ form.user_mobile_number.value|default:'' }}"
+                                               required
+                                               aria-label="Enter mobile number"
+                                               aria-describedby="mobile-help">
+                                        <small id="mobile-help" class="form-text text-muted">
+                                            Please add your mobile number so the Pandit can contact you.
+                                        </small>
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Location <span class="text-muted">(Optional)</span></label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="location" 
+                                               name="location"
+                                               placeholder="e.g., Your address or preferred location"
+                                               value="{{ form.location.value|default:'' }}"
+                                               aria-label="Enter location">
+                                    </div>
+
+                                    
+                                    <div class="mb-3">
+                                        <label for="message" class="form-label">Message <span class="text-muted">(Optional)</span></label>
+                                        <textarea class="form-control" 
+                                                  id="message" 
+                                                  name="message"
+                                                  rows="4"
+                                                  placeholder="Add any additional details or preferences..."
+                                                  aria-label="Enter message">{{ form.message.value|default:'' }}</textarea>
+                                    </div>
+
+                                    
+                                    {% if form.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <strong>Please correct the following errors:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                {% for field, errors in form.errors.items %}
+                                                    {% for error in errors %}
+                                                        <li>{{ error }}</li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+                                    
+                                    {% if eligibility_error %}
+                                        <div class="alert alert-warning" role="alert">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            {{ eligibility_error }}
+                                            
+                                        </div>
+                                    {% endif %}
+
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" 
+                                                class="btn btn-primary btn-lg" 
+                                                id="submit-btn"
+                                                aria-label="Submit booking intent">
+                                            <i class="bi bi-send me-2"></i>Send Booking Intent
+                                        </button>
+                                        <a href="{% url 'profiles:profile_public' pandit.public_id %}" 
+                                           class="btn btn-outline-secondary btn-lg">
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </form>
+
+                                
+                                
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> This is a non-binding expression of interest. The Pandit will be notified and can respond. This does not confirm or guarantee service availability.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+{% endblock %}
+
+{% block extra_js %}
+    
+    
+    <script>
+        // Disable submit button on form submission - Task 8.UI.5
+        document.getElementById('booking-intent-form')?.addEventListener('submit', function(e) {
+            // Validate mobile number before submission
+            const mobileInput = document.getElementById('user_mobile_number');
+            if (!mobileInput || !mobileInput.value.trim()) {
+                e.preventDefault();
+                alert('Please add your mobile number so the Pandit can contact you.');
+                mobileInput.focus();
+                return false;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
+            }
+        });
+        
+    </script>
+{% endblock %}
+

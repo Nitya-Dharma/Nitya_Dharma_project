@@ -1,0 +1,250 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Social Media Settings{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<style>
+    .cms-social-card {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    
+    .cms-social-header {
+        background: var(--text-primary-theme);
+        color: #FFFFFF;
+        padding: 20px 24px;
+        border-radius: 12px 12px 0 0;
+        margin: -24px -24px 24px -24px;
+    }
+    
+    [data-theme="dark"] .cms-social-header {
+        background: #0F172A;
+    }
+    
+    .cms-social-header h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+    
+    .cms-form-section {
+        margin-bottom: 24px;
+    }
+    
+    .cms-form-section h4 {
+        color: var(--text-primary-theme);
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-color-theme);
+    }
+    
+    .form-label {
+        color: var(--text-primary-theme);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        background-color: var(--bg-primary-theme);
+        color: var(--text-primary-theme);
+        border-color: var(--border-color-theme);
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--bg-secondary-theme);
+    }
+    
+    .form-control:focus {
+        border-color: var(--accent-theme);
+        box-shadow: 0 0 0 3px rgba(var(--accent-theme-rgb), 0.15);
+    }
+    
+    .form-control::placeholder {
+        color: var(--text-muted-theme);
+        opacity: 0.7;
+    }
+    
+    .social-icon-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 8px;
+        color: var(--text-muted-theme);
+        font-size: 0.875rem;
+    }
+    
+    .btn-save-social {
+        background: var(--accent-theme);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-save-social:hover {
+        background: darken(var(--accent-theme), 8%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--accent-theme-rgb), 0.3);
+    }
+    
+    .btn-back-social {
+        color: var(--text-secondary-theme);
+        border-color: var(--border-color-theme);
+    }
+    
+    .btn-back-social:hover {
+        background: var(--bg-secondary-theme);
+        color: var(--text-primary-theme);
+    }
+    
+    .social-platform-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .social-platform-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Social Media Settings{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Manage social media links displayed in footer</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="cms-social-card">
+    <div class="cms-social-header">
+        <h3><i class="bi bi-share me-2"></i>Social Media Links</h3>
+        <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Enter full URLs for each platform. Leave blank to hide from footer.</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="cms-form-section">
+            <h4><i class="bi bi-globe me-2"></i>Platform Links</h4>
+            
+            <div class="social-platform-grid">
+                <div class="mb-3">
+                    <label for="{{ form.facebook_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-facebook me-2" style="color: #1877F2;"></i>Facebook
+                    </label>
+                    {{ form.facebook_url }}
+                    {% if form.facebook_url.errors %}
+                        <div class="text-danger small">{{ form.facebook_url.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.instagram_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-instagram me-2" style="color: #E4405F;"></i>Instagram
+                    </label>
+                    {{ form.instagram_url }}
+                    {% if form.instagram_url.errors %}
+                        <div class="text-danger small">{{ form.instagram_url.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.twitter_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-twitter-x me-2" style="color: #000000;"></i>Twitter/X
+                    </label>
+                    {{ form.twitter_url }}
+                    {% if form.twitter_url.errors %}
+                        <div class="text-danger small">{{ form.twitter_url.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.linkedin_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-linkedin me-2" style="color: #0077B5;"></i>LinkedIn
+                    </label>
+                    {{ form.linkedin_url }}
+                    {% if form.linkedin_url.errors %}
+                        <div class="text-danger small">{{ form.linkedin_url.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.youtube_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-youtube me-2" style="color: #FF0000;"></i>YouTube
+                    </label>
+                    {{ form.youtube_url }}
+                    {% if form.youtube_url.errors %}
+                        <div class="text-danger small">{{ form.youtube_url.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.threads_url.id_for_label }}" class="form-label">
+                        <i class="bi bi-threads me-2" style="color: #000000;"></i>Threads
+                    </label>
+                    {{ form.threads_url }}
+                    {% if form.threads_url.errors %}
+                        <div class="text-danger small">{{ form.threads_url.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top" style="border-color: var(--border-color-theme);">
+            <a href="{% url 'pages:super_admin_cms_list' %}" class="btn btn-back-social">
+                <i class="bi bi-arrow-left me-2"></i>Back to CMS
+            </a>
+            <button type="submit" class="btn btn-save-social">
+                <i class="bi bi-save me-2"></i>Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

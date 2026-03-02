@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Master Data Management - Nitya Dharma{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Master Data Management</h1>
+            <p class="text-muted mb-4">Upload and manage master data (Super Admin only)</p>
+            
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-4" id="masterDataTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="cities-tab" data-bs-toggle="tab" data-bs-target="#cities" type="button" role="tab">
+                        Cities ({{ cities_count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="mandals-tab" data-bs-toggle="tab" data-bs-target="#mandals" type="button" role="tab">
+                        Mandals ({{ mandals_count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="local-areas-tab" data-bs-toggle="tab" data-bs-target="#local-areas" type="button" role="tab">
+                        Local Areas ({{ local_areas_count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pooja-categories-tab" data-bs-toggle="tab" data-bs-target="#pooja-categories" type="button" role="tab">
+                        Pooja Categories ({{ pooja_categories_count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="poojas-tab" data-bs-toggle="tab" data-bs-target="#poojas" type="button" role="tab">
+                        Poojas ({{ poojas_count }})
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="masterDataTabContent">
+                <!-- Cities Tab -->
+                <div class="tab-pane fade show active" id="cities" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Cities</h5>
+                            <form method="post" action="{% url 'masterdata:upload_cities' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="cities_csv" class="form-label">CSV File</label>
+                                    <input type="file" class="form-control" id="cities_csv" name="csv_file" accept=".csv" required>
+                                    <small class="form-text text-muted">Format: name,state,tier,status</small>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'masterdata:download_sample' 'cities' %}" class="btn btn-sm btn-outline-secondary">Download Sample CSV</a>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mandals Tab -->
+                <div class="tab-pane fade" id="mandals" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Mandals</h5>
+                            <form method="post" action="{% url 'masterdata:upload_mandals' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="mandals_csv" class="form-label">CSV File</label>
+                                    <input type="file" class="form-control" id="mandals_csv" name="csv_file" accept=".csv" required>
+                                    <small class="form-text text-muted">Format: city,name,status</small>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'masterdata:download_sample' 'mandals' %}" class="btn btn-sm btn-outline-secondary">Download Sample CSV</a>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Local Areas Tab -->
+                <div class="tab-pane fade" id="local-areas" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Local Areas</h5>
+                            <form method="post" action="{% url 'masterdata:upload_local_areas' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="local_areas_csv" class="form-label">CSV File</label>
+                                    <input type="file" class="form-control" id="local_areas_csv" name="csv_file" accept=".csv" required>
+                                    <small class="form-text text-muted">Format: city,mandal,name,status</small>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'masterdata:download_sample' 'local_areas' %}" class="btn btn-sm btn-outline-secondary">Download Sample CSV</a>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pooja Categories Tab -->
+                <div class="tab-pane fade" id="pooja-categories" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Pooja Categories</h5>
+                            <form method="post" action="{% url 'masterdata:upload_pooja_categories' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="pooja_categories_csv" class="form-label">CSV File</label>
+                                    <input type="file" class="form-control" id="pooja_categories_csv" name="csv_file" accept=".csv" required>
+                                    <small class="form-text text-muted">Format: name,status</small>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'masterdata:download_sample' 'pooja_categories' %}" class="btn btn-sm btn-outline-secondary">Download Sample CSV</a>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Poojas Tab -->
+                <div class="tab-pane fade" id="poojas" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Upload Poojas</h5>
+                            <form method="post" action="{% url 'masterdata:upload_poojas' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="poojas_csv" class="form-label">CSV File</label>
+                                    <input type="file" class="form-control" id="poojas_csv" name="csv_file" accept=".csv" required>
+                                    <small class="form-text text-muted">Format: name,category,status</small>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'masterdata:download_sample' 'poojas' %}" class="btn btn-sm btn-outline-secondary">Download Sample CSV</a>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+

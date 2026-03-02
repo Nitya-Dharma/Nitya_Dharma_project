@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications - Admin Pandit - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <style>
+        .notification-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .notification-tabs {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 2rem;
+        }
+        .notification-tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .notification-tab.active {
+            border-bottom-color: #0d6efd;
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        .notification-tab:hover {
+            background-color: #f8f9fa;
+        }
+        .notification-tab-content {
+            display: none;
+        }
+        .notification-tab-content.active {
+            display: block;
+        }
+        .notification-item {
+            border-left: 4px solid #dee2e6;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: white;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .notification-item.unread {
+            border-left-color: #0d6efd;
+            background: #f8f9ff;
+        }
+        .notification-item.read {
+            border-left-color: #6c757d;
+        }
+        .notification-link {
+            display: block;
+            color: inherit;
+        }
+        .notification-link:hover {
+            color: inherit;
+            text-decoration: none;
+        }
+        .notification-clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .notification-clickable:hover {
+            transform: translateX(4px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="notification-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Notifications</h1>
+            <p class="text-muted mb-0">Admin Pandit Account (User ID: {{ user_id }})</p>
+        </div>
+        <div>
+            <a href="{% url 'accounts:admin_notification_settings' user_id=user_id %}" class="btn btn-outline-primary">
+                <i class="bi bi-gear me-1"></i>Notification Settings
+            </a>
+        </div>
+    </div>
+    
+    <!-- Notification Tabs -->
+    <div class="notification-tabs d-flex">
+        <button class="notification-tab active" onclick="showNotificationTab('users')" data-tab="users">
+            <i class="bi bi-people me-2"></i>Users
+            {% if user_unread_count > 0 %}
+                <span class="badge bg-danger ms-2">{{ user_unread_count }}</span>
+            {% endif %}
+        </button>
+        <button class="notification-tab" onclick="showNotificationTab('pandits')" data-tab="pandits">
+            <i class="bi bi-person-badge me-2"></i>Pandits
+            {% if pandit_unread_count > 0 %}
+                <span class="badge bg-danger ms-2">{{ pandit_unread_count }}</span>
+            {% endif %}
+        </button>
+        <button class="notification-tab" onclick="showNotificationTab('temples')" data-tab="temples">
+            <i class="bi bi-building me-2"></i>Temples
+            {% if temple_unread_count > 0 %}
+                <span class="badge bg-danger ms-2">{{ temple_unread_count }}</span>
+            {% endif %}
+        </button>
+    </div>
+    
+    <!-- Users Notifications Tab -->
+    <div id="tab-users" class="notification-tab-content active">
+        <h5 class="mb-3">User Notifications</h5>
+        {% if user_notifications %}
+            {% for notification in user_notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% else %}read{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if not notification.is_read %}
+                                    <span class="badge bg-primary me-2">New</span>
+                                {% endif %}
+                                <span class="badge bg-secondary me-2">{{ notification.get_notification_type_display }}</span>
+                                <small class="text-muted ms-auto">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                </small>
+                            </div>
+                            <p class="mb-1">
+                                {% if notification.payload %}
+                                    {% if notification.payload.message %}
+                                        {{ notification.payload.message }}
+                                    {% elif notification.payload.text %}
+                                        {{ notification.payload.text }}
+                                    {% else %}
+                                        {{ notification.get_notification_type_display }} notification
+                                    {% endif %}
+                                {% else %}
+                                    {{ notification.get_notification_type_display }} notification
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">Source: {{ notification.source_module }}</small>
+                        </div>
+                        {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_read' notification.id %}?next={% url 'accounts:admin_notification_list' user_id=user_id %}" class="ms-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 mb-2">No User Notifications</h5>
+                <p class="text-muted mb-0">You don't have any notifications from users at this time.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pandits Notifications Tab -->
+    <div id="tab-pandits" class="notification-tab-content">
+        <h5 class="mb-3">Pandit Notifications</h5>
+        {% if pandit_notifications %}
+            {% for notification in pandit_notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% else %}read{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if not notification.is_read %}
+                                    <span class="badge bg-primary me-2">New</span>
+                                {% endif %}
+                                <span class="badge bg-warning me-2">{{ notification.get_notification_type_display }}</span>
+                                <small class="text-muted ms-auto">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                </small>
+                            </div>
+                            <p class="mb-1">
+                                {% if notification.payload %}
+                                    {% if notification.payload.message %}
+                                        {{ notification.payload.message }}
+                                    {% elif notification.payload.text %}
+                                        {{ notification.payload.text }}
+                                    {% else %}
+                                        {{ notification.get_notification_type_display }} notification
+                                    {% endif %}
+                                {% else %}
+                                    {{ notification.get_notification_type_display }} notification
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">Source: {{ notification.source_module }}</small>
+                        </div>
+                        {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_read' notification.id %}?next={% url 'accounts:admin_notification_list' user_id=user_id %}" class="ms-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 mb-2">No Pandit Notifications</h5>
+                <p class="text-muted mb-0">You don't have any notifications from pandits at this time.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Temples Notifications Tab -->
+    <div id="tab-temples" class="notification-tab-content">
+        <h5 class="mb-3">Temple Notifications</h5>
+        {% if temple_notifications %}
+            {% for notification in temple_notifications %}
+                {% if notification.page %}
+                <a href="{% url 'notifications:mark_read' notification.id %}?next={% url 'pages:page_detail' page_public_id=notification.page.public_id %}" class="text-decoration-none notification-link">
+                {% endif %}
+                <div class="notification-item {% if not notification.is_read %}unread{% else %}read{% endif %} {% if notification.page %}notification-clickable{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if not notification.is_read %}
+                                    <span class="badge bg-primary me-2">New</span>
+                                {% endif %}
+                                <span class="badge bg-info me-2">{{ notification.get_notification_type_display }}</span>
+                                <small class="text-muted ms-auto">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                </small>
+                            </div>
+                            <p class="mb-1">
+                                {% if notification.payload %}
+                                    {% if notification.payload.message %}
+                                        {{ notification.payload.message }}
+                                    {% elif notification.payload.text %}
+                                        {{ notification.payload.text }}
+                                    {% else %}
+                                        {{ notification.get_notification_type_display }} notification
+                                    {% endif %}
+                                {% else %}
+                                    {{ notification.get_notification_type_display }} notification
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">Source: {{ notification.source_module }}</small>
+                            {% if notification.page %}
+                            <div class="mt-2">
+                                <small class="text-primary">
+                                    <i class="bi bi-arrow-right-circle me-1"></i>Click to view temple page
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_read' notification.id %}?next={% url 'accounts:admin_notification_list' user_id=user_id %}" class="ms-2" onclick="event.stopPropagation();">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+                                    <i class="bi bi-check"></i> Mark as read
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if notification.page %}
+                </a>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 mb-2">No Temple Notifications</h5>
+                <p class="text-muted mb-0">You don't have any notifications from temples at this time.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function showNotificationTab(tabName) {
+        // Hide all tab contents
+        const allTabs = document.querySelectorAll('.notification-tab-content');
+        allTabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all tab buttons
+        const allTabButtons = document.querySelectorAll('.notification-tab');
+        allTabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        const selectedTab = document.getElementById('tab-' + tabName);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+        
+        // Add active class to clicked tab button
+        const clickedButton = document.querySelector(`[data-tab="${tabName}"]`);
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
+    }
+</script>
+{% endblock %}
+

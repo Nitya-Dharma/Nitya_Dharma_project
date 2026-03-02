@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Page - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-create-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    .page-create-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .page-create-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-create {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    .btn-create:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #653a91 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-fill slug from full title (do not truncate). Backend is source of truth.
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('title');
+        const slugInput = document.getElementById('slug');
+        var slugManuallyEdited = false;
+        if (titleInput && slugInput) {
+            function slugifyText(text) {
+                return text.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .trim()
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+            }
+            titleInput.addEventListener('input', function() {
+                if (!slugManuallyEdited) {
+                    slugInput.value = slugifyText(titleInput.value);
+                }
+            });
+            slugInput.addEventListener('input', function() { slugManuallyEdited = true; });
+            slugInput.addEventListener('focus', function() { slugManuallyEdited = true; });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="page-create-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                <div class="card page-create-card">
+                    <div class="page-create-header">
+                        <h2 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Page
+                        </h2>
+                        <p class="mb-0 mt-2 opacity-75">Fill in the details below to create your page</p>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.tags != 'error' or form.errors %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Please correct the errors below:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% if form.non_field_errors %}
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'pages:page_create' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-4">
+                                <label for="{{ form.page_type.id_for_label }}" class="form-label">
+                                    <i class="bi bi-tag me-2"></i>Page Type <span class="text-danger">*</span>
+                                </label>
+                                {% if allowed_page_types|length == 1 %}
+                                    <!-- When only one option, show as disabled and add hidden field -->
+                                    <input type="text" class="form-control" value="{% if allowed_page_types.0 == 'TEMPLE' %}Temple{% elif allowed_page_types.0 == 'BRAND' %}Brand{% elif allowed_page_types.0 == 'TRUST' %}Trust{% elif allowed_page_types.0 == 'SOCIAL_SERVICE' %}Social Service{% else %}{{ allowed_page_types.0 }}{% endif %}" disabled>
+                                    <input type="hidden" name="page_type" value="{{ allowed_page_types.0 }}">
+                                {% else %}
+                                    <select class="form-select {% if form.page_type.errors %}is-invalid{% endif %}" id="{{ form.page_type.id_for_label }}" name="{{ form.page_type.name }}" required>
+                                        {% for value, label in form.page_type.field.widget.choices %}
+                                            <option value="{{ value }}" {% if form.page_type.value == value or form.page_type.initial == value or not form.page_type.value and value == allowed_page_types.0 %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% empty %}
+                                            {% for page_type in allowed_page_types %}
+                                                <option value="{{ page_type }}" {% if forloop.first or form.page_type.value == page_type %}selected{% endif %}>
+                                                    {% if page_type == 'TEMPLE' %}Temple
+                                                    {% elif page_type == 'BRAND' %}Brand
+                                                    {% elif page_type == 'TRUST' %}Trust
+                                                    {% elif page_type == 'SOCIAL_SERVICE' %}Social Service
+                                                    {% else %}{{ page_type }}{% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                                {% if form.page_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.page_type.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    {% if allowed_page_types|length == 1 %}
+                                        You can only create Temple pages.
+                                    {% else %}
+                                        Select the type of page you want to create.
+                                    {% endif %}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-type me-2"></i>Page Title <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control {% if form.title.errors %}is-invalid{% endif %}" id="title" name="title" 
+                                          rows="2" required
+                                          placeholder="Enter page title">{{ form.title.value|default:'' }}</textarea>
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.title.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">A descriptive title for your page (required, no length limit)</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="slug" class="form-label">
+                                    <i class="bi bi-link-45deg me-2"></i>URL Slug
+                                </label>
+                                <input type="text" class="form-control {% if form.slug.errors %}is-invalid{% endif %}" id="slug" name="slug" 
+                                       value="{{ form.slug.value|default:'' }}" maxlength="255"
+                                       pattern="[a-z0-9-]+" 
+                                       placeholder="my-page-slug">
+                                {% if form.slug.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.slug.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    URL-friendly identifier (optional, auto-generated from title if left empty). 
+                                    Only lowercase letters, numbers, and hyphens allowed.
+                                </small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="address" class="form-label">
+                                    <i class="bi bi-geo-alt me-2"></i>Temple Address <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}" id="address" name="address" 
+                                          rows="3" required placeholder="Enter temple address">{{ form.address.value|default:'' }}</textarea>
+                                {% if form.address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.address.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Address of the temple/page (required)</small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="city" class="form-label">
+                                        <i class="bi bi-geo-alt-fill me-2"></i>City
+                                    </label>
+                                    <select class="form-select" id="city" name="city">
+                                        <option value="">Select City (Optional)</option>
+                                        {% for city in cities %}
+                                            <option value="{{ city.id }}" {% if city.id|stringformat:"s" == request.POST.city %}selected{% endif %}>
+                                                {{ city.name }}{% if city.state %}, {{ city.state }}{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">Select the city where the temple is located</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-4">
+                                    <label for="area" class="form-label">
+                                        <i class="bi bi-geo me-2"></i>Area
+                                    </label>
+                                    <select class="form-select" id="area" name="area" disabled>
+                                        <option value="">Select Area (Optional)</option>
+                                    </select>
+                                    <small class="form-text text-muted">Select the local area (select city first)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="description" class="form-label">
+                                    <i class="bi bi-text-paragraph me-2"></i>Description
+                                </label>
+                                <textarea class="form-control" id="description" name="description" 
+                                          rows="5" placeholder="Enter page description (optional)">{{ description|default:'' }}</textarea>
+                                <small class="form-text text-muted">A detailed description of your page (optional)</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="profile_image" class="form-label">
+                                    <i class="bi bi-image me-2"></i>Profile Image
+                                </label>
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" 
+                                       accept="image/*">
+                                <small class="form-text text-muted">Profile image for the page (optional)</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="cover_image" class="form-label">
+                                    <i class="bi bi-image me-2"></i>Cover Image
+                                </label>
+                                <input type="file" class="form-control" id="cover_image" name="cover_image" 
+                                       accept="image/*">
+                                <small class="form-text text-muted">Cover image for the page (optional)</small>
+                            </div>
+                            
+                            <!-- SEO & Search Visibility Section -->
+                            <div class="card mb-4" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-search me-2"></i>SEO & Search Visibility (Optional)
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted small mb-3">
+                                        These fields help search engines find and display your page. They are auto-generated from your page data, but you can customize them.
+                                    </p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_title" class="form-label">
+                                            SEO Title
+                                            <span class="badge bg-secondary ms-2" id="seo_title_counter">0/60</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="seo_title" 
+                                               name="seo_title" 
+                                               value="{{ form.seo_title.value|default:'' }}"
+                                               maxlength="60"
+                                               placeholder="Auto-generated from page title and city">
+                                        <small class="form-text text-muted">SEO title for search engines (max 60 characters)</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_description" class="form-label">
+                                            SEO Description
+                                            <span class="badge bg-secondary ms-2" id="seo_description_counter">0/160</span>
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="seo_description" 
+                                                  name="seo_description" 
+                                                  rows="3"
+                                                  maxlength="160"
+                                                  placeholder="Auto-generated from page information">{{ form.seo_description.value|default:'' }}</textarea>
+                                        <small class="form-text text-muted">SEO description for search engines (max 160 characters)</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="seo_keywords" class="form-label">
+                                            SEO Keywords
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="seo_keywords" 
+                                                  name="seo_keywords" 
+                                                  rows="3"
+                                                  placeholder="Auto-generated keywords (comma-separated, unlimited length)">{{ form.seo_keywords.value|default:'' }}</textarea>
+                                        <small class="form-text text-muted">SEO keywords (comma-separated, unlimited length)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a href="{% url 'module5_dashboards:dashboard_admin_pandit' %}" class="btn btn-secondary me-md-2">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-create">
+                                    <i class="bi bi-check-circle me-1"></i>Create Page
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Slug from full title (no truncation). Backend generates final slug from title.
+(function() {
+    var slugManuallyEdited = false;
+    function slugifyText(text) {
+        return (text || '').toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+    }
+    var titleEl = document.getElementById('title');
+    var slugEl = document.getElementById('slug');
+    if (titleEl && slugEl) {
+        titleEl.addEventListener('input', function() {
+            if (!slugManuallyEdited) slugEl.value = slugifyText(titleEl.value);
+        });
+        slugEl.addEventListener('input', function() { slugManuallyEdited = true; });
+        slugEl.addEventListener('focus', function() { slugManuallyEdited = true; });
+    }
+})();
+// City-Area dependency - preload all areas data
+const citySelect = document.getElementById('city');
+const areaSelect = document.getElementById('area');
+const areasByCity = {};
+{% for city in cities %}
+    areasByCity[{{ city.id }}] = [
+        {% for area in city.local_areas.all %}
+            {% if area.is_active %}
+            {id: {{ area.id }}, name: "{{ area.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ];
+{% endfor %}
+
+// Load areas when city is selected
+citySelect.addEventListener('change', function() {
+    const cityId = parseInt(this.value);
+    areaSelect.innerHTML = '<option value="">Select Area (Optional)</option>';
+    areaSelect.disabled = !cityId;
+    
+    if (cityId && areasByCity[cityId]) {
+        areasByCity[cityId].forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.id;
+            option.textContent = area.name;
+            areaSelect.appendChild(option);
+        });
+    }
+    
+    // SEO field character counters
+    const seoTitleInput = document.getElementById('seo_title');
+    const seoTitleCounter = document.getElementById('seo_title_counter');
+    const seoDescInput = document.getElementById('seo_description');
+    const seoDescCounter = document.getElementById('seo_description_counter');
+    
+    function updateCounter(input, counter, maxLength) {
+        if (input && counter) {
+            const length = input.value.length;
+            counter.textContent = `${length}/${maxLength}`;
+            if (length > maxLength * 0.9) {
+                counter.className = 'badge bg-warning ms-2';
+            } else if (length > maxLength) {
+                counter.className = 'badge bg-danger ms-2';
+            } else {
+                counter.className = 'badge bg-secondary ms-2';
+            }
+        }
+    }
+    
+    if (seoTitleInput && seoTitleCounter) {
+        seoTitleInput.addEventListener('input', function() {
+            updateCounter(seoTitleInput, seoTitleCounter, 60);
+        });
+        updateCounter(seoTitleInput, seoTitleCounter, 60); // Initial update
+    }
+    
+    if (seoDescInput && seoDescCounter) {
+        seoDescInput.addEventListener('input', function() {
+            updateCounter(seoDescInput, seoDescCounter, 160);
+        });
+        updateCounter(seoDescInput, seoDescCounter, 160); // Initial update
+    }
+});
+</script>
+{% endblock %}
+
+
+
+

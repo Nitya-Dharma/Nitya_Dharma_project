@@ -1,0 +1,63 @@
+
+<div class="table-container mb-4">
+    {% if table_data %}
+        <div class="card dashboard-card">
+            <div class="dashboard-card-header">
+                <h3 class="h5 mb-0">
+                    {% if table_title %}{{ table_title }}{% else %}Data Table{% endif %}
+                </h3>
+            </div>
+            <div class="dashboard-card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" role="table" aria-label="{% if table_title %}{{ table_title }}{% else %}Data table{% endif %}">
+                        <thead>
+                            <tr>
+                                {% for header in table_headers %}
+                                    <th scope="col">{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in table_data %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell|default:"—" }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                
+                {% if table_pagination %}
+                    <nav aria-label="Table pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if table_pagination.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ table_pagination.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            <li class="page-item active">
+                                <span class="page-link">Page {{ table_pagination.current_page }} of {{ table_pagination.total_pages }}</span>
+                            </li>
+                            {% if table_pagination.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ table_pagination.next_page_number }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        
+        <div class="card dashboard-card">
+            <div class="dashboard-card-body text-center text-muted">
+                <p class="mb-0">No data available.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+

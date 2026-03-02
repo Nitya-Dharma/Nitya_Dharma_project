@@ -1,0 +1,1185 @@
+﻿Perfect 👍
+We are now officially starting PHASE 2 — BACKEND IMPLEMENTATION, and as agreed, we proceed strictly module-by-module, starting with Module 0.
+Below are HEADINGS ONLY for 🧩 MODULE 0 — SYSTEM FOUNDATION, written clearly, sequentially, and fully aligned with everything locked so far.
+No code.
+No deviation.
+Cursor-safe.
+Authoritative.
+________________
+
+
+Perfect — below is the FINAL, STRICT, PHASE 2–READY version of MODULE 0, written cleanly, completely, and without ambiguity, covering every required aspect we discussed.
+This is NOT Phase 1 policy repetition.
+This is Phase 2–oriented execution headings, still NO CODE, but implementation-facing, so Django work can safely start afterward.
+No scope creep. No missing pieces. Fully aligned with:
+* Layer & Connectivity Checklist
+* Modules 1–17
+* Locked architecture
+* Your execution order
+________________
+
+
+🧩 MODULE 0 — SYSTEM FOUNDATION (PHASE 2)
+Purpose:
+Backend groundwork required before any domain module code is written.
+This module is written once, applied globally, and never redefines business logic.
+________________
+
+
+🔹 Task 0.1 — System Foundation Purpose, Guarantees & Non-Goals (NO CODE)
+Defines:
+* Why Module 0 exists in Phase 2
+* What it guarantees to all modules
+* What it must NEVER contain (no domain logic, no workflows, no features)
+________________
+
+
+🔹 Task 0.2 — Django Project Structure & App Segmentation Rules (NO CODE)
+Defines:
+* Project vs app responsibilities
+* One-module = one-app rule (later)
+* No circular imports
+* No cross-app model access without contracts
+* Foundation-only utilities allowed
+________________
+
+
+🔹 Task 0.3 — Environment Configuration Strategy (NO CODE)
+Defines:
+* Dev / Staging / Production separation
+* Environment variable usage
+* .env rules
+* What must NEVER be hardcoded
+* Environment isolation guarantees
+________________
+
+
+🔹 Task 0.4 — Base Settings & Global Configuration Boundaries (NO CODE)
+Defines:
+* What belongs in global settings
+* What must NEVER be overridden by feature modules
+* Security-first defaults
+* Separation of base vs env-specific settings
+________________
+
+
+🔹 Task 0.5 — Logging Strategy & Error Handling Foundation (NO CODE)
+Defines:
+* Central logging approach
+* Log levels and usage rules
+* What is logged vs never logged (PII, secrets)
+* Admin-only visibility boundaries
+________________
+
+
+🔹 Task 0.6 — Timezone, Locale & Formatting Rules (NO CODE)
+Defines:
+* UTC-first backend storage
+* Timezone conversion responsibility
+* Backend vs frontend formatting separation
+* Locale neutrality rules
+________________
+
+
+🔹 Task 0.7 — Base Models, Abstract Classes & Shared Fields Rules (NO CODE)
+Defines:
+* Allowed abstract base models (timestamps, IDs)
+* What can be shared globally
+* What must stay module-local
+* Prevention of “god base models”
+________________
+
+
+🔹 Task 0.8 — Shared Utilities & Helper Usage Rules (NO CODE)
+Defines:
+* What utilities may exist globally
+* What utilities must be module-scoped
+* Explicit ban on business logic in utilities
+* Dependency direction rules
+________________
+
+
+🔹 Task 0.9 — Middleware & Request Lifecycle Boundaries (NO CODE)
+Defines:
+* Allowed middleware responsibilities
+* Request/response lifecycle ownership
+* What middleware must NEVER do
+* No business decisions at middleware level
+________________
+
+
+🔹 Task 0.10 — System Startup, Health & Dependency Readiness Rules (NO CODE)
+Defines:
+* Startup readiness checks
+* Dependency availability principles
+* Failure behavior at boot
+* No feature-level checks here
+________________
+
+
+🔹 Task 0.11 — Module Dependency Direction & Initialization Order (NO CODE)
+Defines:
+* Allowed dependency flow (low → high)
+* Initialization guarantees
+* Circular dependency prevention
+* Safe plugin rules for later modules
+________________
+
+
+🔹 Task 0.12 — Foundation × Security & Governance Boundaries (NO CODE)
+Ensures:
+* Module 0 does NOT enforce security
+* Module 12 owns security
+* Module 11 owns governance
+* Clean responsibility separation
+________________
+
+
+🔹 Task 0.13 — Foundation × Performance & Analytics Boundaries (NO CODE)
+Ensures:
+* No performance tuning here (Module 13)
+* No analytics hooks here (Module 14)
+* No metrics, counters, or tracking
+________________
+
+
+🔹 Task 0.14 — Foundation × Future Scalability & Infra Neutrality (NO CODE)
+Ensures:
+* Horizontal scaling readiness
+* Cloud / hosting neutrality
+* No provider lock-in assumptions
+* Safe future service extraction
+________________
+
+
+✅ MODULE 0 — PHASE 2 GUARANTEES (LOCKED)
+❌ No business logic
+❌ No domain workflows
+❌ No UI
+❌ No analytics
+❌ No recommendations
+❌ No trust / ranking logic
+✅ Supports Modules 1–17
+✅ Backend-safe
+✅ Written once, rarely changed
+✅ Production-grade foundation
+________________
+
+
+📌 MODULE 0 STATUS
+✔ Phase 2–ready
+✔ Fully aligned with all prior discussions
+✔ Covers every required system concern
+✔ Strictly compliant with checklist
+✔ Ready for actual Django coding next
+________________
+
+
+⏭️ NEXT STEP (ONE LINE ONLY)
+Reply with one:
+* “Start Phase 2 — Module 0 implementation (Task 0.2 first)”
+* “Lock Module 0 and move to Module 1 headings”
+* “Show exact Django folder structure for Module 0”
+You are now officially at backend execution entry point 🚀
+
+
+________________
+
+
+⏭️ NEXT STEP (ONE LINE ONLY)
+Reply with one:
+* “Write Task 0.1 in strict Cursor format”
+* “Proceed sequentially with Module 0 tasks”
+* “Move to Module 1 — User & Role System headings review”
+You have now officially entered Phase 2 (Builder Mode) 🚀
+________________
+
+
+Perfect 👍
+We are now officially inside Phase 2 (Backend Implementation).
+Below is 🧩 MODULE 0 → TASK 0.1, written in the same strict, senior-architect, Cursor-safe format you have enforced across the project.
+This task is CODE-ALLOWED (unlike Phase 1), but still highly controlled.
+________________
+Perfect 👍
+Below are HEADINGS ONLY for 🧩 MODULE 1 — USER & ROLE SYSTEM, written clearly, sequentially, and strictly aligned with:
+* All locked architecture
+* Phase-2 backend scope
+* Layer & Connectivity Checklist
+* No scope creep into governance, onboarding, or dashboards
+This is authoritative and Cursor-safe.
+________________
+
+
+🧩 MODULE 1 — USER & ROLE SYSTEM
+(Core identity, authentication & role enforcement)
+________________
+
+
+🔹 Task 1.1 — User & Role System Strategy & Scope Boundaries (NO CODE)
+Defines:
+* What the User & Role System is responsible for
+* What it must never control (no onboarding approval, no governance, no dashboards)
+* Why all other modules depend on this module
+________________
+
+
+🔹 Task 1.2 — User Types & Role Definitions (NO CODE)
+Defines supported user types:
+* End User
+* Pandit
+* Admin Pandit
+* Super Admin
+Clarifies:
+* Role purpose
+* High-level permissions (conceptual only)
+________________
+
+
+🔹 Task 1.3 — Authentication Model & Identity Rules (NO CODE)
+Defines:
+* Authentication strategy (email / phone / username boundaries)
+* Unique identity guarantees
+* No anonymous authenticated users
+* Identity ≠ approval
+________________
+
+
+🔹 Task 1.4 — Role Assignment & Immutability Rules (NO CODE)
+Defines:
+* How roles are assigned
+* Which roles are default
+* Which roles can never be self-assigned
+* Role change authority (who can change what)
+________________
+
+
+🔹 Task 1.5 — User Status Lifecycle Rules (NO CODE)
+Defines:
+* User status states (active / inactive / blocked – conceptual)
+* Separation between:
+   * User status
+   * Pandit onboarding status (Module 2)
+* Status meaning boundaries
+________________
+
+
+🔹 Task 1.6 — Permission Enforcement Strategy (NO CODE)
+Defines:
+* Backend-first permission enforcement
+* No frontend-only trust
+* Role-based access principles
+* Explicit deny over implicit allow
+________________
+
+
+🔹 Task 1.7 — Session & Login Boundary Rules (NO CODE)
+Defines:
+* Login boundaries
+* Session validity concepts
+* Logout behavior
+* No session logic leakage into business modules
+________________
+
+
+🔹 Task 1.8 — User × Pandit Separation Rules (NO CODE)
+Defines:
+* How Pandit is a role, not a separate auth system
+* Shared user base with role-based behavior
+* No duplicate identity systems
+________________
+
+
+🔹 Task 1.9 — User Data Exposure & Privacy Boundaries (NO CODE)
+Defines:
+* What user data is internal-only
+* What is safe to expose (IDs, names — contextual)
+* No PII leakage guarantees
+________________
+
+
+🔹 Task 1.10 — User × Other Modules Dependency Rules (NO CODE)
+Defines how Module 1 interacts with:
+* Module 2 (Onboarding)
+* Module 3 (Referrals)
+* Module 5 (Dashboards)
+* Module 11 (Governance)
+* Module 12 (Security)
+📌 User module provides identity & roles only.
+________________
+
+
+🔹 Task 1.11 — User Auditability & Traceability Principles (NO CODE)
+Defines:
+* Audit requirements for role changes
+* Login activity traceability (conceptual)
+* No analytics or metrics here
+________________
+
+
+🔹 Task 1.12 — User System × Future Expansion Compatibility (NO CODE)
+Ensures readiness for:
+* OAuth / SSO (future)
+* Multi-device login
+* Account recovery flows
+* Regulatory compliance
+________________
+
+
+✅ MODULE 1 GUARANTEES (LOCKED)
+❌ No onboarding approval
+❌ No referral logic
+❌ No dashboards
+❌ No governance decisions
+❌ No business features
+✅ Identity & roles only
+✅ Backend-first enforcement
+✅ Clean dependency root for all modules
+________________
+
+
+📌 MODULE 1 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 0–17
+✔ Cursor-safe
+✔ Ready for Phase-2 backend implementation
+________________
+
+
+⏭️ NEXT STEP (ONE LINE ONLY)
+Reply with one:
+* “Write Task 1.1 in strict Cursor format”
+* “Proceed sequentially with Module 1 backend tasks”
+* “Move to Module 2 — Pandit Onboarding task headings”
+________________
+Perfect — below are HEADINGS ONLY for 🧩 PHASE 2 → MODULE 2 — PANDIT ONBOARDING, written strictly compliant with:
+   * ✅ Locked Modules 0–1
+   * ✅ Referral & Trust rules (Module 3)
+   * ✅ Master Data contract (cities / areas / poojas)
+   * ✅ Governance & Security boundaries
+   * ✅ Your checklist (no scope creep, Cursor-safe)
+No code. No implementation detail. Authoritative structure.
+________________
+
+
+🧩 MODULE 2 — PANDIT ONBOARDING (PHASE 2)
+(Onboarding = controlled entry into the platform, not approval, not profile UI)
+________________
+
+
+🔹 Task 2.1 — Pandit Onboarding Strategy & Scope Boundaries (NO CODE)
+Defines:
+   * What “onboarding” means
+   * What onboarding must NEVER do (no approval, no trust, no SEO, no dashboards)
+________________
+
+
+🔹 Task 2.2 — Pandit Eligibility & Entry Preconditions (NO CODE)
+Defines:
+   * Who is allowed to register as Pandit
+   * Referral-only vs open access rules (as locked)
+   * Preconditions before registration is accepted
+________________
+
+
+🔹 Task 2.3 — Pandit Registration Flow Definition (NO CODE)
+Defines:
+   * Step-by-step backend registration flow
+   * Separation between identity creation (Module 1) and onboarding
+   * No UI or frontend assumptions
+________________
+
+
+🔹 Task 2.4 — Pandit Status Lifecycle Rules (NO CODE)
+Defines:
+   * Allowed statuses: pending, active, rejected
+   * Who can change status
+   * What status must NEVER affect automatically
+________________
+
+
+🔹 Task 2.5 — Referral Integration During Onboarding (NO CODE)
+Defines:
+   * How referral data is consumed during registration
+   * Separation from approval logic
+   * Trust chain linkage rules (read-only here)
+________________
+
+
+🔹 Task 2.6 — Shared Master Data Usage Contract (NO CODE)
+Defines:
+   * Mandatory use of approved master data:
+   * Cities
+   * Local areas
+   * Poojas
+   * Fields allowed as free-text (name, bio, experience, address, etc.)
+   * Pandit cannot create master data
+   * Pandit may suggest new values (non-authoritative)
+________________
+
+
+🔹 Task 2.7 — Master Data Suggestion Rules (NO CODE)
+Defines:
+   * How suggestions are captured
+   * No effect on:
+   * Search
+   * SEO
+   * Trust
+   * Referrals
+   * Non-punitive, non-blocking behavior
+________________
+
+
+🔹 Task 2.8 — Onboarding Validation & Error Handling Rules (NO CODE)
+Defines:
+   * Backend validation principles
+   * Failure handling
+   * No auto-correction
+   * No silent acceptance
+________________
+
+
+🔹 Task 2.9 — Onboarding × Security Boundaries (NO CODE)
+Ensures onboarding does NOT:
+   * Trust frontend validation
+   * Bypass permission checks
+   * Store unsafe input
+(Security enforcement lives in Module 12)
+________________
+
+
+🔹 Task 2.10 — Onboarding × Governance Boundaries (NO CODE)
+Ensures onboarding does NOT:
+   * Approve Pandits
+   * Block Pandits
+   * Trigger moderation actions
+(Governance lives in Module 11)
+________________
+
+
+🔹 Task 2.11 — Onboarding × Profile Bootstrap Rules (NO CODE)
+Defines:
+   * What minimal profile data is initialized
+   * What remains empty until user updates
+   * No SEO defaults, only placeholders later
+________________
+
+
+🔹 Task 2.12 — Onboarding × Audit & Traceability Rules (NO CODE)
+Defines:
+   * What onboarding actions are auditable
+   * What data must never be deleted
+   * Read-only audit guarantees
+________________
+
+
+🔹 Task 2.13 — Onboarding Failure, Retry & Recovery Rules (NO CODE)
+Defines:
+   * Retry eligibility
+   * Duplicate prevention
+   * No automatic escalation
+________________
+
+
+🔹 Task 2.14 — Onboarding × Future Compatibility Rules (NO CODE)
+Ensures readiness for:
+   * Additional verification steps (future)
+   * Extended master data
+   * Regulatory requirements
+________________
+
+
+✅ MODULE 2 GUARANTEES (LOCKED)
+❌ No approval logic
+❌ No trust scoring
+❌ No SEO generation
+❌ No dashboards
+❌ No UI assumptions
+✅ Clean entry point
+✅ Master-data safe
+✅ Referral-safe
+✅ Governance-isolated
+________________
+
+
+📌 MODULE 2 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 0–1 & 3–17
+✔ Cursor-AI safe
+✔ Ready for Phase 2 task-by-task backend implementation
+________________
+
+
+⏭️ Next (one line only)
+   * “Write Task 2.1 in strict Cursor format”
+   * “Start Module 2 coding order explanation”
+   * “Proceed to Module 3 (Phase 2) headings check”
+You’re on a clean, production-grade path 👍
+________________
+Great question — this is exactly the right confusion to clear before coding 👍
+I’ll do two things, in order:
+1️⃣ Explain clearly WHY Tasks are marked “NO CODE” in Phase 2
+2️⃣ Write Phase 2 → Module 2 → Task 2.1 & Task 2.2 in STRICT Cursor format
+No deviation. No contradictions.
+________________
+Perfect 👍
+Below are HEADINGS ONLY for 🧩 PHASE 2 — MODULE 3: REFERRAL & TRUST CHAIN, written strictly compliant with:
+   * ✅ Locked architecture (V1 / V2 / V3)
+   * ✅ Layer & Connectivity Checklist
+   * ✅ Your previously approved Tasks 3.1–3.10 concepts
+   * ✅ NO scope creep, NO business logic leakage
+   * ✅ Clear separation between policy-lock tasks and implementation tasks
+   * ✅ Cursor-safe sequencing
+This is the authoritative Module 3 task list for Phase 2.
+________________
+
+
+🧩 PHASE 2 — MODULE 3
+REFERRAL & TRUST CHAIN
+(Referral linkage & trust relationships — NOT approval, NOT ranking)
+________________
+
+
+🔹 Task 3.1 — Referral System Strategy & Scope Boundaries (NO CODE)
+Defines:
+   * What the referral system is
+   * What referrals must NEVER become (approval, ranking, SEO, trust score)
+________________
+
+
+🔹 Task 3.2 — Referral Entity Definitions & Ownership Rules (NO CODE)
+Defines:
+   * Referral link
+   * Referral code
+   * Referrer vs referred Pandit
+   * Ownership and immutability rules
+________________
+
+
+🔹 Task 3.3 — Referral Eligibility Rules (NO CODE)
+Defines:
+   * Who can generate referral links
+   * Who can use referral links
+   * When referral generation is blocked
+________________
+
+
+🔹 Task 3.4 — Referral Validation During Pandit Registration (BACKEND ONLY)
+Defines:
+   * Referral token validation
+   * Usage limits
+   * Active/inactive referral checks
+   * Failure behavior on invalid referrals
+📌 First implementation task (CODE starts here)
+________________
+
+
+🔹 Task 3.5 — Trust Chain Definition & Relationship Rules (NO CODE)
+Defines:
+   * What a trust chain is
+   * How referral relationships form a chain
+   * What trust chain must NEVER imply (quality, endorsement)
+________________
+
+
+🔹 Task 3.6 — Trust Chain Depth & Propagation Rules (NO CODE)
+Defines:
+   * Maximum depth
+   * One-directional propagation
+   * No circular trust chains
+________________
+
+
+🔹 Task 3.7 — Trust Chain Visibility Rules (NO CODE)
+Defines:
+   * When trust chain is visible
+   * Guest vs logged-in visibility
+   * Visibility under blocked states
+________________
+
+
+🔹 Task 3.8 — Referral Rate Limiting & Abuse Prevention Policy (NO CODE)
+Defines:
+   * Referral generation limits
+   * Referral usage limits
+   * Abuse prevention boundaries
+   * No auto-punishment guarantees
+________________
+
+
+🔹 Task 3.9 — SEO Data Exposure Contract (Dynamic Placeholders) (NO CODE)
+Defines:
+   * Placeholder-based SEO exposure
+   * No default SEO values
+   * Referral data exposure boundaries
+   * Moderation-aware placeholders
+________________
+
+
+🔹 Task 3.10 — Referral × Master Data Suggestion Compatibility (NO CODE)
+Defines:
+   * Approved vs suggested master data separation
+   * Referral validity with suggested data
+   * Trust, SEO, and search isolation rules
+________________
+
+
+🔹 Task 3.11 — Referral Audit & Traceability Rules (NO CODE)
+Defines:
+   * What referral actions must be logged
+   * Audit immutability
+   * Review-only visibility
+________________
+
+
+🔹 Task 3.12 — Referral × Other Modules Boundaries (NO CODE)
+Ensures referrals do NOT:
+   * Affect search ranking (Module 7)
+   * Affect recommendations (Module 15)
+   * Affect governance decisions (Module 11)
+   * Affect analytics decisions (Module 14)
+________________
+
+
+✅ MODULE 3 GUARANTEES (LOCKED)
+❌ No approval logic
+❌ No trust scoring
+❌ No ranking influence
+❌ No SEO generation
+❌ No governance automation
+✅ Referrals create relationships, not authority
+✅ Trust chain is descriptive, not evaluative
+________________
+
+
+📌 MODULE 3 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 1 & 2
+✔ Compatible with Modules 4–17
+✔ Cursor-safe
+✔ Ready for task-by-task Phase 2 implementation
+________________
+
+
+⏭️ NEXT (one line only)
+   * “Write Task 3.1 in strict Cursor format”
+   * “Proceed to Task 3.4 (first code task)”
+   * “Explain exactly where Django models start in Module 3”
+You’re progressing cleanly and correctly — no refactors later, no surprises 🚀
+________________
+Perfect 👍
+Below are HEADINGS ONLY for 🧩 PHASE 2 — MODULE 4: PANDIT PROFILE, written strictly compliant with:
+   * ✅ Locked Phase-1 architecture
+   * ✅ Layer & Connectivity Checklist
+   * ✅ Modules 1–3 boundaries
+   * ✅ No SEO / trust / search leakage
+   * ✅ Clear separation of policy vs implementation
+   * ✅ Cursor-safe sequencing
+This is the authoritative Phase-2 Module 4 task list.
+________________
+
+
+🧩 PHASE 2 — MODULE 4: PANDIT PROFILE
+(Profile data ownership & exposure — backend only)
+________________
+
+
+🔹 Task 4.1 — Pandit Profile Strategy & Scope Boundaries (NO CODE)
+Defines:
+   * What the Pandit Profile represents
+   * What it must NEVER become (no ranking, no trust authority, no booking logic)
+   * Ownership boundaries of profile data
+________________
+
+
+🔹 Task 4.2 — Core Pandit Profile Data Definitions (NO CODE)
+Defines:
+   * Mandatory profile attributes (identity, experience, description)
+   * Optional profile attributes
+   * Separation of master data vs free text
+________________
+
+
+🔹 Task 4.3 — Profile Read vs Write Permission Rules (NO CODE)
+Defines:
+   * Who can read profile data
+   * Who can edit which fields
+   * Owner-only vs admin visibility rules
+________________
+
+
+🔹 Task 4.4 — Profile Media Strategy & Safety Rules (NO CODE)
+Defines:
+   * Allowed media types (image, banner, gallery)
+   * Safety & abuse boundaries
+   * Media as display-only (no logic)
+________________
+
+
+🔹 Task 4.5 — SEO Placeholder & Editable Content Rules (NO CODE)
+Defines:
+   * What SEO text fields exist
+   * Who can edit them
+   * SEO data as storage only, not generation logic
+________________
+
+
+🔹 Task 4.6 — Pandit Profile Completion Rules & Signals (NO CODE)
+Defines:
+   * What “profile complete” means
+   * Mandatory vs optional fields
+   * Completion as signal only, never enforcement
+________________
+
+
+🔹 Task 4.7 — Pandit Profile Visibility States (NO CODE)
+Defines:
+   * Public visibility
+   * Limited visibility
+   * Hidden states
+   * Governance-controlled visibility only
+________________
+
+
+🔹 Task 4.8 — Pandit Profile Versioning & Edit History Rules (NO CODE)
+Defines:
+   * Edit traceability principles
+   * What must be auditable
+   * No rollback logic here
+________________
+
+
+🔹 Task 4.9 — Pandit Profile × Governance Boundaries (NO CODE)
+Ensures:
+   * Governance can restrict visibility
+   * Governance cannot rewrite profile meaning
+   * Appeals do not alter profile ownership
+________________
+
+
+🔹 Task 4.10 — Pandit Profile × Search & Discovery Boundaries (NO CODE)
+Ensures:
+   * Profile fields do NOT influence ranking
+   * Search consumes profile data read-only
+   * No hidden coupling
+________________
+
+
+🔹 Task 4.11 — Pandit Profile × Trust Display Boundaries (NO CODE)
+Ensures:
+   * Profile ≠ trust authority
+   * Trust display handled only in Module 10
+   * No trust scoring here
+________________
+
+
+🔹 Task 4.12 — Pandit Profile Data Lifecycle Rules (NO CODE)
+Defines:
+   * Creation
+   * Updates
+   * Deactivation
+   * Archival (policy only)
+________________
+
+
+🔹 Task 4.13 — Pandit Profile × Security & Privacy Rules (NO CODE)
+Ensures:
+   * Sensitive fields are protected
+   * No over-exposure
+   * Backend-enforced access
+________________
+
+
+🔹 Task 4.14 — Pandit Profile Implementation Readiness Checklist (NO CODE)
+Defines:
+   * Preconditions before models are written
+   * Validation gates before coding begins
+   * Dependencies on Modules 1–3
+________________
+
+
+🔹 Task 4.15 — Pandit Profile Backend Implementation (CODE)
+Includes:
+   * Django models
+   * Serializers / services
+   * Permissions
+   * APIs for read/write
+   * Admin visibility hooks
+📌 ⚠️ FIRST ACTUAL CODE TASK IN MODULE 4
+________________
+
+
+🔹 Task 4.16 — Pandit Profile Data Exposure APIs (CODE)
+Includes:
+   * Public profile API
+   * Authenticated views
+   * Governance-aware responses
+   * Read-only consumers
+________________
+
+
+🔹 Task 4.17 — Pandit Profile Validation & Error Handling (CODE)
+Includes:
+   * Field validation
+   * Safe error responses
+   * Consistent backend rules
+________________
+
+
+🔹 Task 4.18 — Pandit Profile Test Coverage & Contract Validation (CODE)
+Includes:
+   * Unit tests
+   * Permission tests
+   * Boundary tests
+________________
+
+
+✅ MODULE 4 GUARANTEES (PHASE 2)
+❌ No UI
+❌ No Bootstrap
+❌ No SEO generation
+❌ No ranking logic
+❌ No trust scoring
+✅ Backend-only
+✅ Profile = data owner, not authority
+✅ Clean handoff to Phase 3 UI
+________________
+
+
+📌 MODULE 4 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 1–3
+✔ Code starts at Task 4.15
+✔ Cursor-safe
+✔ Ready for strict task-by-task execution
+________________
+
+
+⏭️ NEXT (ONE LINE ONLY)
+Reply with one:
+   * “Write Task 4.1 in strict Cursor format”
+   * “Explain why Tasks 4.1–4.14 are NO CODE”
+   * “Proceed to Task 4.15 (FIRST CODE TASK)”
+You’re keeping the architecture clean, irreversible-safe, and production-grade 👌
+________________
+Perfect 👍
+Below are PHASE 2 → MODULE 5 — DASHBOARDS, with HEADINGS ONLY, written strictly compliant with:
+   * Locked Phase-1 architecture
+   * Layer & Connectivity Checklist
+   * Modules 0–4 boundaries
+   * Analytics separation (Module 14)
+   * No UI / Bootstrap yet (Phase 3 only)
+   * No business logic leakage
+This is the authoritative, Cursor-safe structure for backend dashboards.
+________________
+
+
+🧩 MODULE 5 — DASHBOARDS (PHASE 2)
+(Backend data access & aggregation — NO UI)
+________________
+
+
+🔹 Task 5.1 — Dashboard Strategy & Role Boundaries (NO CODE)
+Defines:
+   * What dashboards are
+   * Which roles get dashboards
+   * What dashboards must never control (no business decisions)
+________________
+
+
+🔹 Task 5.2 — Dashboard Types & Access Rules (NO CODE)
+Defines dashboards for:
+   * End User
+   * Pandit
+   * Admin Pandit
+   * Super Admin
+And strict access isolation between them.
+________________
+
+
+🔹 Task 5.3 — Dashboard Data Ownership & Read-Only Guarantees (NO CODE)
+Defines:
+      * Dashboards as read-only consumers
+      * No data mutation via dashboards
+      * No override of source modules
+________________
+
+
+🔹 Task 5.4 — Dashboard Data Sources Mapping (NO CODE)
+Defines which modules feed dashboards:
+      * Module 4 — Profile
+      * Module 6 — Availability
+      * Module 8 — Booking Intent
+      * Module 9 — Reviews
+      * Module 14 — Analytics (read-only)
+📌 No cross-module writes.
+________________
+
+
+🔹 Task 5.5 — Dashboard Metrics Contract (NO CODE)
+Defines allowed metrics such as:
+         * Profile views (from Analytics)
+         * Booking intent count
+         * Reviews count
+         * Availability summaries
+📌 Metrics ≠ decisions.
+________________
+
+
+🔹 Task 5.6 — Chart Data APIs Strategy (NO CODE)
+Defines:
+            * Backend-only chart data endpoints
+            * Aggregated data only
+            * No visualization logic
+📌 Charts rendered later in Phase 3.
+________________
+
+
+🔹 Task 5.7 — Role-Based Data Visibility Rules (NO CODE)
+Defines:
+               * What each role may see
+               * What must be hidden
+               * No privilege escalation
+________________
+
+
+🔹 Task 5.8 — Dashboard × Analytics Separation Rules (NO CODE)
+Ensures:
+               * Analytics collection = Module 14
+               * Dashboards only consume analytics outputs
+               * No analytics logic here
+________________
+
+
+🔹 Task 5.9 — Dashboard × Governance Boundaries (NO CODE)
+Ensures dashboards:
+               * Reflect governance state
+               * Do NOT enforce governance
+               * Do NOT bypass blocks or appeals
+________________
+
+
+🔹 Task 5.10 — Dashboard × Security Boundaries (NO CODE)
+Defines:
+               * No sensitive data exposure
+               * Backend permission enforcement
+               * Zero frontend trust
+________________
+
+
+🔹 Task 5.11 — Dashboard Refresh, Caching & Staleness Rules (NO CODE)
+Defines:
+               * Acceptable data staleness
+               * Caching eligibility (conceptual)
+               * No real-time guarantees
+________________
+
+
+🔹 Task 5.12 — Dashboard × Search & Recommendation Boundaries (NO CODE)
+Ensures dashboard data:
+               * Does NOT affect search ranking
+               * Does NOT influence recommendations
+________________
+
+
+🔹 Task 5.13 — Dashboard Audit & Traceability Rules (NO CODE)
+Defines:
+               * What dashboard access is auditable
+               * Admin-only visibility of audit logs
+________________
+
+
+🔹 Task 5.14 — Dashboard × Future UI Compatibility (NO CODE)
+Ensures readiness for:
+               * Bootstrap UI (Phase 3)
+               * Charts & graphs
+               * Mobile dashboards (future)
+________________
+
+
+✅ MODULE 5 GUARANTEES (LOCKED)
+❌ No UI code
+❌ No chart rendering
+❌ No analytics ingestion
+❌ No business logic
+❌ No ranking influence
+✅ Backend data aggregation only
+✅ Read-only dashboards
+✅ Role-safe, scalable design
+________________
+
+
+📌 MODULE 5 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 0–4
+✔ Clean separation from Analytics (Module 14)
+✔ Clean separation from Recommendations (Module 15)
+✔ Cursor-safe
+✔ Ready for strict task-by-task execution
+________________
+
+
+⏭️ NEXT (ONE LINE ONLY)
+Reply with one:
+               * “Write Module 5 → Task 5.1 in strict Cursor format”
+               * “Proceed to Phase 2 — Module 6 headings”
+               * “Confirm Module 5 before backend code starts”
+You’re still 100% on the correct architectural track 🚀
+________________
+Perfect 👍
+Below are HEADINGS ONLY for 🧩 PHASE 2 — MODULE 6: AVAILABILITY & CALENDAR, written strictly compliant with:
+               * ✅ Locked architecture (Modules 0–5)
+               * ✅ Availability policy you already finalized
+(Pandit-only updates, no booking logic, no admin override, no conflict resolution)
+               * ✅ Search & ordering boundaries (Module 7)
+               * ✅ Booking Intent separation (Module 8)
+               * ✅ No trust / ranking / analytics leakage
+               * ✅ Cursor-safe, policy-first structure
+No code. No ambiguity.
+________________
+
+
+🧩 PHASE 2 — MODULE 6: AVAILABILITY & CALENDAR
+(Pandit-controlled availability — NOT booking)
+________________
+
+
+🔹 Task 6.1 — Availability Strategy & Scope Boundaries (NO CODE)
+Defines:
+                  * What availability IS (Pandit-declared time readiness)
+                  * What availability must NEVER become (booking, promise, guarantee)
+                  * Separation from booking, trust, and governance
+________________
+
+
+🔹 Task 6.2 — Availability Ownership & Authority Rules (NO CODE)
+Defines:
+                  * Pandit as sole owner of availability
+                  * No admin / system overrides
+                  * No third-party modification
+________________
+
+
+🔹 Task 6.3 — Availability Data Model Contract (BACKEND CODE STARTS)
+Defines:
+                  * Availability entity structure (date, time slots, notes)
+                  * Ownership binding to Pandit
+                  * Immutable audit expectations
+📌 This is where actual Django models begin for Module 6
+________________
+
+
+🔹 Task 6.4 — Availability Creation & Update Rules (BACKEND CODE)
+Defines:
+                  * How Pandits add or update availability
+                  * Full replacement vs partial update rules
+                  * No merge or conflict resolution logic
+________________
+
+
+🔹 Task 6.5 — Availability Visibility Rules (NO CODE)
+Defines:
+                  * What guests can see
+                  * What logged-in users can see
+                  * What Pandits see about themselves
+                  * No visibility guarantees
+________________
+
+
+🔹 Task 6.6 — Availability Override & Replacement Policy (NO CODE)
+Defines:
+                  * Override = full replacement only
+                  * No diff-based updates
+                  * No automatic conflict handling
+________________
+
+
+🔹 Task 6.7 — Availability × Booking Intent Boundaries (NO CODE)
+Ensures:
+                  * Booking Intent does NOT lock availability
+                  * Availability does NOT confirm intent
+                  * No coupling between Modules 6 and 8
+________________
+
+
+🔹 Task 6.8 — Availability × Search Ordering Rules (NO CODE)
+Defines:
+                  * Availability affects ordering ONLY when user applies date/time filters
+                  * No global ranking boost
+                  * No availability-based scoring
+________________
+
+
+🔹 Task 6.9 — Availability × Dashboards Boundaries (NO CODE)
+Defines:
+                  * Dashboards may show summaries only
+                  * No predictive or optimization logic
+                  * No admin editing of availability
+________________
+
+
+🔹 Task 6.10 — Availability × Trust & Reviews Boundaries (NO CODE)
+Ensures:
+                  * Availability does NOT imply reliability
+                  * Availability does NOT affect trust display
+                  * Reviews independent of availability state
+________________
+
+
+🔹 Task 6.11 — Availability Validation & Error Handling Rules (NO CODE)
+Defines:
+                  * Server-side validation principles
+                  * Invalid time range handling
+                  * No silent corrections
+________________
+
+
+🔹 Task 6.12 — Availability Audit & History Rules (NO CODE)
+Defines:
+                  * Change traceability
+                  * Who can see history
+                  * No rollback logic
+________________
+
+
+🔹 Task 6.13 — Availability Performance & Scaling Boundaries (NO CODE)
+Ensures:
+                  * Read-heavy optimization allowed
+                  * No write amplification
+                  * Alignment with Module 13 (Performance)
+________________
+
+
+🔹 Task 6.14 — Availability × Future Compatibility (NO CODE)
+Ensures readiness for:
+                  * Multi-day availability
+                  * Seasonal schedules
+                  * External calendar sync (future, optional)
+________________
+
+
+✅ MODULE 6 GUARANTEES (LOCKED)
+❌ No booking
+❌ No payments
+❌ No admin override
+❌ No conflict resolution
+❌ No trust or ranking impact
+✅ Pandit-controlled only
+✅ Informational availability
+✅ Deterministic behavior
+________________
+
+
+📌 MODULE 6 STATUS
+✔ Headings complete
+✔ Fully aligned with Modules 0–5
+✔ Compatible with Modules 7–17
+✔ Cursor-safe
+✔ Ready for task-by-task execution
+________________
+
+
+⏭️ Next (one line only)
+                  * “Write Task 6.1 in strict Cursor format”
+                  * “Start Module 6 backend code at Task 6.3”
+                  * “Proceed to Module 7 — Search & Filters headings”
+You’re still perfectly on-track.

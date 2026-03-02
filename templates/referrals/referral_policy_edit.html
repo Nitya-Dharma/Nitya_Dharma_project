@@ -1,0 +1,68 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Referral Policy{% endblock %}
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'referrals:referral_policy_edit' %}">
+            <i class="bi bi-gear me-2"></i>Referral Policy
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_heading %}Referral Policy{% endblock %}
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">System-wide defaults. Changes apply only to newly created referral links.</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-2">
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="card shadow-sm" style="border: 1px solid #E5E7EB;">
+        <div class="card-header" style="background: #1E293B; color: #FFF;">
+            <strong>Policy Settings</strong>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'referrals:referral_policy_edit' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Default expiry (days)</label>
+                    <input type="number" name="default_expiry_days" class="form-control" min="1" max="365" value="{{ policy.default_expiry_days }}">
+                    <small class="text-muted">Used when Admin Pandit does not select a value.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Max allowed expiry (days)</label>
+                    <input type="number" name="max_allowed_expiry_days" class="form-control" min="1" max="365" value="{{ policy.max_allowed_expiry_days }}">
+                    <small class="text-muted">Upper bound for expiry dropdown in Admin Pandit dashboard.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Allowed max use tiers (comma-separated, e.g. 5,10,50,100)</label>
+                    <input type="text" name="allowed_max_use_tiers" class="form-control" value="{{ tiers_display }}" placeholder="5,10,50,100">
+                    <small class="text-muted">Admin Pandits choose max_uses from these values only.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Max allowed uses (cap)</label>
+                    <input type="number" name="max_allowed_uses" class="form-control" min="1" max="100" value="{{ policy.max_allowed_uses }}">
+                </div>
+                <button type="submit" class="btn btn-primary" style="background: #E11D48; border-color: #E11D48;">Save policy</button>
+            </form>
+        </div>
+    </div>
+    <p class="text-muted small mt-3">Existing referral links are never modified. Only new links use this policy.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,247 @@
+/* ============================================
+   CONTACT US - PREMIUM UI (60-30-10 Design System)
+   ============================================ */
+
+.contact-us-container {
+    background: #F8FAFC;
+    min-height: 100vh;
+    padding: 48px 0;
+}
+
+.contact-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.contact-header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.contact-title {
+    color: #0F172A;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.contact-subtitle {
+    color: #64748B;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.contact-form {
+    margin-top: 24px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    color: #1E293B;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.required {
+    color: #E11D48;
+}
+
+.form-control {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: #0F172A;
+    transition: all 0.2s ease;
+    background: #FFFFFF;
+}
+
+.form-control:focus {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: #94A3B8;
+}
+
+.form-text {
+    color: #64748B;
+    font-size: 0.875rem;
+    margin-top: 6px;
+    display: block;
+}
+
+/* Reasons Grid */
+.reasons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.reason-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    background: #FFFFFF;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.reason-checkbox:hover {
+    border-color: #E11D48;
+    background: #FEF2F2;
+}
+
+.reason-input {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+    accent-color: #E11D48;
+    flex-shrink: 0;
+}
+
+.reason-label {
+    color: #1E293B;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+}
+
+.reason-input:checked + .reason-label {
+    color: #0F172A;
+    font-weight: 500;
+}
+
+.reason-checkbox:has(.reason-input:checked) {
+    border-color: #E11D48;
+    background: #FEF2F2;
+}
+
+/* Primary Button */
+.btn-primary-premium {
+    background: #E11D48;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 32px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-primary-premium:hover {
+    background: #be123c;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.btn-primary-premium:active {
+    transform: translateY(0);
+}
+
+.form-actions {
+    margin-top: 32px;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 10px;
+    border: none;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.alert-success {
+    background: #ECFDF5;
+    color: #22C55E;
+    border-left: 4px solid #22C55E;
+}
+
+.alert-error,
+.alert-danger {
+    background: #FEF2F2;
+    color: #DC2626;
+    border-left: 4px solid #DC2626;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .contact-us-container {
+        padding: 24px 0;
+    }
+    
+    .contact-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .contact-title {
+        font-size: 1.5rem;
+    }
+    
+    .contact-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .reasons-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .reason-checkbox {
+        padding: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .btn-primary-premium {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .contact-card {
+        padding: 16px;
+    }
+    
+    .contact-title {
+        font-size: 1.25rem;
+    }
+    
+    .form-control {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

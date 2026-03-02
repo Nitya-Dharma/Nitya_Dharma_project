@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/auth_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/password_toggle.css' %}">
+<style>
+    /* PART 5: Register Page - Same Design Language */
+    .password-requirements {
+        font-size: 0.85rem;
+        color: #64748B;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/password_toggle.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<!-- PART 5: Premium Register Page (Same Design Language) -->
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6">
+                <div class="auth-card" style="max-width: 100%;">
+                    
+                    <!-- PART 5: Same Gradient Header -->
+                    <div class="auth-header">
+                        <h2>Create Account</h2>
+                        <p>Join Nitya Dharma</p>
+                    </div>
+                    
+                    
+                    <div class="auth-body">
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'accounts:register' %}">
+                            {% csrf_token %}
+                            
+                            
+                            <!-- PART 4: Fixed Floating Labels (No Overlapping) -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="first_name" 
+                                               name="first_name" 
+                                               placeholder=" "
+                                               value="{{ first_name|default:'' }}" 
+                                               required>
+                                        <label for="first_name">First Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="last_name" 
+                                               name="last_name" 
+                                               placeholder=" "
+                                               value="{{ last_name|default:'' }}" 
+                                               required>
+                                        <label for="last_name">Last Name</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="form-floating mb-3">
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder=" "
+                                       value="{{ email|default:'' }}" 
+                                       required 
+                                       autofocus>
+                                <label for="email">Email Address</label>
+                            </div>
+                            
+                            
+                            <div class="form-floating mb-3 password-field-wrapper">
+                                <input type="password" 
+                                       class="form-control password-input" 
+                                       id="password" 
+                                       name="password" 
+                                       placeholder=" "
+                                       required
+                                       minlength="8">
+                                <label for="password">Password</label>
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        aria-label="Toggle password visibility"
+                                        tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="password-requirements">
+                                    <small>Password must be at least 8 characters long</small>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="form-floating mb-3 password-field-wrapper">
+                                <input type="password" 
+                                       class="form-control password-input" 
+                                       id="password_confirm" 
+                                       name="password_confirm" 
+                                       placeholder=" "
+                                       required
+                                       minlength="8">
+                                <label for="password_confirm">Confirm Password</label>
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        aria-label="Toggle password visibility"
+                                        tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- PART 5: Primary CTA Button (Accent Color - 10%) -->
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary-cta">
+                                    <i class="bi bi-person-plus me-2"></i>Create Account
+                                </button>
+                            </div>
+                        </form>
+                        
+                        
+                        <!-- PART 5: Secondary Links -->
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                Already have an account? 
+                                <a href="{% url 'accounts:login' %}" class="fw-bold">Sign In</a>
+                            </p>
+                        </div>
+                        
+                        <!-- Join as Pandit CTA -->
+                        <div class="text-center mt-3 pt-2 border-top join-pandit-cta">
+                            <span class="text-muted">Want to join as Pandit?</span>
+                            <a href="{% url 'support:contact_us' %}" class="join-pandit-link">
+                                Contact
+                            </a>
+                        </div>
+                        
+                        <!-- PART 5: Info Note (Consistent Styling) -->
+                        <div class="auth-info-note">
+                            <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>About Registration</h6>
+                            <p class="mb-2">
+                                <strong>This registration is for regular users (End Users).</strong>
+                            </p>
+                            <ul class="mb-2 ps-3">
+                                <li>You can search for Pandits</li>
+                                <li>You can book Pooja services</li>
+                                <li>You can write reviews</li>
+                                <li>Your account will be active immediately</li>
+                            </ul>
+                            <hr class="my-2">
+                            <h6 class="mb-2"><i class="bi bi-link-45deg me-2"></i>Want to Register as a Pandit?</h6>
+                            <p class="mb-2">
+                                <strong>Pandit registration requires a referral link.</strong>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Steps to register as a Pandit:</strong><br>
+                                1. Contact an Admin Pandit or Super Admin<br>
+                                2. They will generate a referral link from their dashboard<br>
+                                3. Use that referral link to register as a Pandit<br>
+                                4. After registration, wait for admin approval to become active
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

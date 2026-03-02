@@ -1,0 +1,470 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Behavior Analytics Dashboard{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page analytics-dashboard-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'super_admin_analytics_dashboard' %}">
+            <i class="bi bi-graph-up-arrow me-2"></i>Analytics Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:home' %}">
+            <i class="bi bi-search me-2"></i>Search
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/super_admin_ui.css' %}">
+<style>
+    /* 60-30-10: Primary #FFFFFF/#F8FAFC, Secondary #0F172A/#1E293B, Accent #E11D48 */
+    /* Force visible headings and text regardless of theme state (dark/light) */
+    .analytics-dashboard-page .dashboard-header,
+    .analytics-dashboard-page .dashboard-header h1,
+    .analytics-dashboard-page .dashboard-header #dashboard-heading {
+        color: #0F172A !important;
+    }
+    .analytics-dashboard-page .dashboard-header .text-muted,
+    .analytics-dashboard-page .dashboard-header p {
+        color: #64748B !important;
+    }
+    .analytics-dashboard-page .dashboard-main {
+        color: #0F172A !important;
+    }
+    .analytics-dashboard-page .analytics-dashboard h2,
+    .analytics-dashboard-page .analytics-dashboard .stat-value,
+    .analytics-dashboard-page .analytics-dashboard h3,
+    .analytics-dashboard-page .analytics-dashboard .list-group-item {
+        color: #0F172A !important;
+    }
+    .analytics-dashboard-page .analytics-dashboard .stat-value-accent,
+    .analytics-dashboard-page .analytics-card-7days .card-body h3 {
+        color: #E11D48 !important;
+    }
+    .analytics-dashboard-page .analytics-dashboard .text-muted {
+        color: #64748B !important;
+    }
+    .analytics-card {
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    /* Last 7 Days card: distinct background + accent number (override theme/Bootstrap) */
+    .analytics-card-7days {
+        background: #F8FAFC !important;
+        border: 1px solid #E5E7EB !important;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    .analytics-card-7days .card-body h3,
+    .analytics-card-7days h3.fw-bold {
+        color: #E11D48 !important;
+    }
+    .analytics-card-header {
+        background: #1E293B;
+        color: #FFFFFF !important;
+        border-radius: 12px 12px 0 0;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+    }
+    .analytics-dashboard-page .analytics-card-header,
+    .analytics-dashboard-page .analytics-card-header * {
+        color: #FFFFFF !important;
+    }
+    .stat-value { color: #0F172A; }
+    .stat-value-accent { color: #E11D48 !important; }
+    .analytics-dashboard .text-muted { color: #64748B !important; }
+    .analytics-dashboard .list-group-item {
+        background: #FFFFFF;
+        border-color: #E5E7EB;
+    }
+    .analytics-dashboard .badge-accent { background: #E11D48; color: #FFFFFF; }
+    .analytics-dashboard .badge-success { background: #22C55E; color: #FFFFFF; }
+    #behaviorIntelligenceAccordion .accordion-button { background: #F8FAFC !important; color: #0F172A !important; }
+    #behaviorIntelligenceAccordion .accordion-button:not(.collapsed) { background: #E5E7EB !important; color: #0F172A !important; }
+    #behaviorIntelligenceAccordion .accordion-body { background: #FFFFFF !important; color: #0F172A !important; }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Behavior Analytics Dashboard{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Insights from Behavior Engine (first-party tracking)</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-2 analytics-dashboard">
+
+    <h2 class="mb-4 fw-bold stat-value">
+        Behavior Analytics Dashboard
+    </h2>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm analytics-card">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Events</h6>
+                    <h3 class="fw-bold stat-value">
+                        {{ total_events }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm analytics-card-7days">
+                <div class="card-body">
+                    <h6 class="text-muted">Last 7 Days</h6>
+                    <h3 class="fw-bold stat-value-accent">
+                        {{ events_last_7_days }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Event Types -->
+    <div class="card mt-4 shadow-sm analytics-card">
+        <div class="analytics-card-header">
+            Top Event Types
+        </div>
+        <div class="card-body">
+            {% if top_event_types %}
+                <ul class="list-group list-group-flush">
+                    {% for event in top_event_types %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ event.event_type }}
+                            <span class="badge badge-accent rounded-pill">{{ event.total }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted mb-0">No event data yet. Events appear as users browse the site.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Referral Tier Analytics (read-only) -->
+    {% if referral_tier_analytics %}
+    <div class="card mt-4 shadow-sm analytics-card">
+        <div class="analytics-card-header d-flex align-items-center">
+            <i class="bi bi-link-45deg me-2"></i>
+            Referral Tier Analytics
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Tier distribution</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for t in referral_tier_analytics.tier_distribution %}
+                        <li><strong>{{ t.tier }}-use:</strong> {{ t.count }} links</li>
+                        {% empty %}
+                        <li class="text-muted">No referral links yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Usage rate per tier</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for u in referral_tier_analytics.usage_by_tier %}
+                        <li><strong>{{ u.tier }}-use:</strong> {{ u.usage_rate_pct }}%</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">High-tier (50 / 100)</span>
+                    <div class="fw-bold">{{ referral_tier_analytics.high_tier_50_count }} / {{ referral_tier_analytics.high_tier_100_count }} links</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Links per admin (top)</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for a in referral_tier_analytics.links_per_admin|slice:":5" %}
+                        <li><code>{{ a.admin_email|truncatechars:20 }}</code>: {{ a.count }}</li>
+                        {% empty %}
+                        <li class="text-muted">—</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% if referral_tier_analytics.high_tier_alerts %}
+            <div class="alert alert-warning mb-0 py-2 small">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ referral_tier_analytics.high_tier_alerts|join:"; " }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Share Analytics (read-only) -->
+    {% if share_analytics %}
+    <div class="card mt-4 shadow-sm analytics-card">
+        <div class="analytics-card-header d-flex align-items-center">
+            <i class="bi bi-share me-2"></i>
+            Share Analytics
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Total shares</span>
+                    <div class="fw-bold">{{ share_analytics.total_shares }}</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">By platform</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for p in share_analytics.shares_by_platform %}
+                        <li><strong>{{ p.platform }}:</strong> {{ p.count }}</li>
+                        {% empty %}
+                        <li class="text-muted">—</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Top shared Pandits (entity_id)</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for e in share_analytics.top_shared_pandits|slice:":5" %}
+                        <li><code>{{ e.entity_id }}</code>: {{ e.total }}</li>
+                        {% empty %}
+                        <li class="text-muted">—</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted">Top shared Temples (entity_id)</span>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for e in share_analytics.top_shared_temples|slice:":5" %}
+                        <li><code>{{ e.entity_id }}</code>: {{ e.total }}</li>
+                        {% empty %}
+                        <li class="text-muted">—</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Entities -->
+    <div class="card mt-4 shadow-sm analytics-card">
+        <div class="analytics-card-header">
+            Top Entities (by interaction count)
+        </div>
+        <div class="card-body">
+            {% if top_entities %}
+                <ul class="list-group list-group-flush">
+                    {% for entity in top_entities %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ entity.entity_type|default:"—" }} — {{ entity.entity_id|default:"—" }}</span>
+                            <span class="badge badge-success rounded-pill">{{ entity.total }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted mb-0">No entity data yet. Add <code>data-track</code> and <code>data-entity-type</code> / <code>data-entity-id</code> to elements to track clicks.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Behavior Intelligence (Newsfeed Engine Insights) -->
+    {% if behavior_intelligence %}
+    <div class="card mt-5 shadow-sm analytics-card">
+        <div class="analytics-card-header d-flex align-items-center">
+            <i class="bi bi-cpu me-2"></i>
+            Behavior Intelligence (Newsfeed Engine Insights)
+        </div>
+        <div class="card-body p-0">
+            <div class="accordion accordion-flush" id="behaviorIntelligenceAccordion">
+                <!-- 1. User Engagement Metrics -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEngagement" aria-expanded="false" aria-controls="collapseEngagement" style="background:#F8FAFC;color:#0F172A;">
+                            1. User Engagement Metrics
+                        </button>
+                    </h3>
+                    <div id="collapseEngagement" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">DAU</span><div class="fw-bold">{{ behavior_intelligence.engagement.dau|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">WAU</span><div class="fw-bold">{{ behavior_intelligence.engagement.wau|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">MAU</span><div class="fw-bold">{{ behavior_intelligence.engagement.mau|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Avg Session Duration</span><div class="fw-bold">{{ behavior_intelligence.engagement.avg_session_duration|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Sessions per User</span><div class="fw-bold">{{ behavior_intelligence.engagement.sessions_per_user|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Bounce Rate</span><div class="fw-bold">{{ behavior_intelligence.engagement.bounce_rate|default:"—" }}</div></div>
+                                <div class="col-12"><span class="text-muted">Scroll Depth (25 / 50 / 75 / 100%)</span><div class="fw-bold">{{ behavior_intelligence.engagement.scroll_depth_25 }} / {{ behavior_intelligence.engagement.scroll_depth_50 }} / {{ behavior_intelligence.engagement.scroll_depth_75 }} / {{ behavior_intelligence.engagement.scroll_depth_100 }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Retention D1/D7/D30</span><div class="fw-bold">{{ behavior_intelligence.engagement.retention_d1|default:"—" }} / {{ behavior_intelligence.engagement.retention_d7|default:"—" }} / {{ behavior_intelligence.engagement.retention_d30|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Repeat Visit Rate</span><div class="fw-bold">{{ behavior_intelligence.engagement.repeat_visit_rate|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Dwell Time Avg</span><div class="fw-bold">{{ behavior_intelligence.engagement.dwell_time_avg|default:"—" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 2. Content Interaction Metrics -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContent" aria-expanded="false" aria-controls="collapseContent" style="background:#F8FAFC;color:#0F172A;">
+                            2. Content Interaction Metrics
+                        </button>
+                    </h3>
+                    <div id="collapseContent" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">Pandit Profile Views</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.pandit_profile_views|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Temple Views</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.temple_views|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Pooja Views</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.pooja_views|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Card Click Rate</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.card_click_rate|default:"—" }}%</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Follow Rate</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.follow_rate|default:"—" }}%</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Save / Share Rate</span><div class="fw-bold">{{ behavior_intelligence.content_interaction.save_rate|default:"—" }} / {{ behavior_intelligence.content_interaction.share_rate|default:"—" }}</div></div>
+                                <div class="col-12"><span class="text-muted">Top Viewed Entities</span>
+                                    {% for e in behavior_intelligence.content_interaction.top_viewed_entities %}
+                                        <span class="badge badge-accent me-1">{{ e.entity_type }}:{{ e.entity_id }} ({{ e.total }})</span>
+                                    {% empty %}
+                                        <span class="text-muted">—</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 3. Behavioral Intent Metrics -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntent" aria-expanded="false" aria-controls="collapseIntent" style="background:#F8FAFC;color:#0F172A;">
+                            3. Behavioral Intent Metrics
+                        </button>
+                    </h3>
+                    <div id="collapseIntent" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">Booking Intent Clicks</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.booking_intent_clicks|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Booking Submission Rate</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.booking_submission_rate|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">High-Intent Users %</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.high_intent_users_pct|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Repeat Profile Visits</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.repeat_profile_visits|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Scroll 75% + Click</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.scroll_75_click_correlation|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Intent Depth Index</span><div class="fw-bold">{{ behavior_intelligence.behavioral_intent.intent_depth_index|default:"—" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4. Newsfeed Intelligence Metrics -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNewsfeed" aria-expanded="false" aria-controls="collapseNewsfeed" style="background:#F8FAFC;color:#0F172A;">
+                            4. Newsfeed Intelligence Metrics
+                        </button>
+                    </h3>
+                    <div id="collapseNewsfeed" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">User Interest Score (agg)</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.user_interest_score_agg|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Entity Popularity Score</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.entity_popularity_score|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Trending Score</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.trending_score|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Recency Decay Index</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.recency_decay_index|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Geo Preference</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.geo_preference_distribution|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Category Affinity</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.category_affinity|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Feed CTR</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.feed_ctr|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Cold Start Users %</span><div class="fw-bold">{{ behavior_intelligence.newsfeed_intelligence.cold_start_users_pct|default:"—" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 5. Performance & Event Health -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePerf" aria-expanded="false" aria-controls="collapsePerf" style="background:#F8FAFC;color:#0F172A;">
+                            5. Performance & Event Health
+                        </button>
+                    </h3>
+                    <div id="collapsePerf" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">Events per Minute</span><div class="fw-bold">{{ behavior_intelligence.performance_health.events_per_minute|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Failed Tracking %</span><div class="fw-bold">{{ behavior_intelligence.performance_health.failed_tracking_pct|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Invalid Payload %</span><div class="fw-bold">{{ behavior_intelligence.performance_health.invalid_payload_pct|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Duplicate Events %</span><div class="fw-bold">{{ behavior_intelligence.performance_health.duplicate_events_pct|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Tracking Opt-Out %</span><div class="fw-bold">{{ behavior_intelligence.performance_health.tracking_opt_out_pct|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Avg Event Write Time</span><div class="fw-bold">{{ behavior_intelligence.performance_health.avg_event_write_time|default:"—" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 6. Referral Impact Metrics -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReferral" aria-expanded="false" aria-controls="collapseReferral" style="background:#F8FAFC;color:#0F172A;">
+                            6. Referral Impact Metrics
+                        </button>
+                    </h3>
+                    <div id="collapseReferral" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4"><span class="text-muted">Referred Users Engagement</span><div class="fw-bold">{{ behavior_intelligence.referral_impact.referred_users_engagement|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Referral → Booking Conversion</span><div class="fw-bold">{{ behavior_intelligence.referral_impact.referral_booking_conversion|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Trust Chain Depth vs Activity</span><div class="fw-bold">{{ behavior_intelligence.referral_impact.trust_chain_depth_vs_activity|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Top Referrers by Engagement</span><div class="fw-bold">{{ behavior_intelligence.referral_impact.top_referrers_by_engagement|default:"—" }}</div></div>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">Referral data is not in Behavior Engine; integrate with referrals app for these KPIs.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 7. Platform Decision Insights -->
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePlatform" aria-expanded="false" aria-controls="collapsePlatform" style="background:#F8FAFC;color:#0F172A;">
+                            7. Platform Decision Insights
+                        </button>
+                    </h3>
+                    <div id="collapsePlatform" class="accordion-collapse collapse" data-bs-parent="#behaviorIntelligenceAccordion">
+                        <div class="accordion-body" style="background:#FFFFFF;color:#0F172A;">
+                            <div class="row g-3">
+                                <div class="col-12"><span class="text-muted">High Exit Pages</span>
+                                    {% for p in behavior_intelligence.platform_insights.high_exit_pages %}
+                                        <div><code>{{ p.page_url|truncatechars:60 }}</code> <span class="badge badge-accent">{{ p.total }}</span></div>
+                                    {% empty %}
+                                        <span class="text-muted">—</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Low Engagement Cities</span><div class="fw-bold">{{ behavior_intelligence.platform_insights.low_engagement_cities|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Underperforming Categories</span><div class="fw-bold">{{ behavior_intelligence.platform_insights.underperforming_categories|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">High View / Low Booking</span><div class="fw-bold">{{ behavior_intelligence.platform_insights.high_view_low_booking_entities|default:"—" }}</div></div>
+                                <div class="col-6 col-md-4"><span class="text-muted">Feed vs Search Usage Ratio</span><div class="fw-bold">{{ behavior_intelligence.platform_insights.feed_vs_search_usage_ratio|default:"—" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

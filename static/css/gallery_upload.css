@@ -1,0 +1,55 @@
+/* Gallery Upload UI Styles */
+/* Following the locked design system: 60-30-10 color rule */
+
+/* Drag & Drop Zone */
+#galleryDropZone {
+    transition: all 0.2s ease;
+}
+
+#galleryDropZone:hover {
+    background: #FFFFFF !important;
+    border-color: #E11D48 !important;
+}
+
+#galleryDropZone.drag-over {
+    background: #FFFFFF !important;
+    border-color: #E11D48 !important;
+    border-style: solid !important;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+}
+
+/* File List */
+#fileList .border {
+    border-color: #E5E7EB !important;
+    background: #FFFFFF;
+}
+
+#fileList .border:hover {
+    background: #F8FAFC;
+}
+
+/* Error States */
+.text-danger {
+    color: #DC2626 !important;
+}
+
+/* File Counter */
+#fileCounter {
+    color: #64748B;
+    font-weight: 500;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

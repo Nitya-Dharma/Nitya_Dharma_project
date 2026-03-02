@@ -1,0 +1,16 @@
+
+<!-- UNIT 14: Poojas as Premium Chips -->
+<div class="premium-card p-4 mb-4">
+    <h6 class="fw-semibold mb-3">Poojas Performed</h6>
+    
+    {% if pandit.poojas_performed.all %}
+        <div class="d-flex flex-wrap gap-2">
+            {% for pooja in pandit.poojas_performed.all %}
+                <span class="pooja-chip">{{ pooja.name }}</span>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted mb-0">No poojas listed yet.</p>
+    {% endif %}
+</div>
+

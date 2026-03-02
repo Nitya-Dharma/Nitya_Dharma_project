@@ -1,0 +1,184 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}SEO Configuration{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<style>
+    .cms-seo-card {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    
+    .cms-form-section {
+        margin-bottom: 24px;
+    }
+    
+    .cms-form-section h4 {
+        color: var(--text-primary-theme);
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-color-theme);
+    }
+    
+    .form-label {
+        color: var(--text-primary-theme);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        background-color: var(--bg-primary-theme);
+        color: var(--text-primary-theme);
+        border-color: var(--border-color-theme);
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--bg-secondary-theme);
+    }
+    
+    .form-control:focus {
+        border-color: var(--accent-theme);
+        box-shadow: 0 0 0 3px rgba(var(--accent-theme-rgb), 0.15);
+    }
+    
+    .btn-save-seo {
+        background: var(--accent-theme);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-save-seo:hover {
+        background: darken(var(--accent-theme), 8%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--accent-theme-rgb), 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}SEO Configuration{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Global SEO settings for the site</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="cms-seo-card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Organization Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-building me-2"></i>Organization</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.organization_name.id_for_label }}" class="form-label">Organization Name</label>
+                {{ form.organization_name }}
+                {% if form.organization_name.errors %}
+                    <div class="text-danger small">{{ form.organization_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.organization_logo.id_for_label }}" class="form-label">Organization Logo</label>
+                {{ form.organization_logo }}
+                {% if form.organization_logo.errors %}
+                    <div class="text-danger small">{{ form.organization_logo.errors }}</div>
+                {% endif %}
+                {% if seo_config.organization_logo %}
+                    <div class="mt-2">
+                        <img src="{{ seo_config.organization_logo.url }}" alt="Current Logo" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Default Images Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-image me-2"></i>Default Images</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.default_og_image.id_for_label }}" class="form-label">Default Open Graph Image</label>
+                {{ form.default_og_image }}
+                {% if form.default_og_image.errors %}
+                    <div class="text-danger small">{{ form.default_og_image.errors }}</div>
+                {% endif %}
+                {% if seo_config.default_og_image %}
+                    <div class="mt-2">
+                        <img src="{{ seo_config.default_og_image.url }}" alt="Current OG Image" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                {% endif %}
+                <small class="text-muted">1200x630 recommended for social media previews</small>
+            </div>
+        </div>
+        
+        <!-- Social Media Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-twitter me-2"></i>Social Media</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.twitter_handle.id_for_label }}" class="form-label">Twitter Handle</label>
+                {{ form.twitter_handle }}
+                {% if form.twitter_handle.errors %}
+                    <div class="text-danger small">{{ form.twitter_handle.errors }}</div>
+                {% endif %}
+                <small class="text-muted">e.g., @nityadharma</small>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top" style="border-color: var(--border-color-theme);">
+            <a href="{% url 'pages:super_admin_cms_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to CMS
+            </a>
+            <button type="submit" class="btn btn-save-seo">
+                <i class="bi bi-save me-2"></i>Save Configuration
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

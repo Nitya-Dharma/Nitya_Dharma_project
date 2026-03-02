@@ -1,0 +1,71 @@
+{% load static %}
+
+<div class="temple-card">
+    <!-- Temple Image -->
+    {% if page.cover_image %}
+        <img src="{{ page.cover_image.url }}" 
+             alt="{{ page.title }} cover image"
+             class="temple-card-image">
+    {% else %}
+        <div class="temple-card-image-placeholder">
+            <i class="bi bi-building"></i>
+        </div>
+    {% endif %}
+    
+    <div class="temple-card-body">
+        <!-- Temple Name -->
+        <h5 class="temple-card-title">
+            <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}">
+                {{ page.title }}
+            </a>
+        </h5>
+        
+        <!-- Location / Area -->
+        {% if page.address %}
+            <p class="temple-card-location">
+                <i class="bi bi-geo-alt"></i>
+                {{ page.address }}
+            </p>
+        {% elif page.city %}
+            <p class="temple-card-location">
+                <i class="bi bi-geo-alt"></i>
+                {{ page.city.name }}{% if page.area %}, {{ page.area.name }}{% endif %}
+            </p>
+        {% endif %}
+        
+        <!-- Temple Badges -->
+        <div class="mb-3">
+            <span class="temple-badge">{{ page.get_page_type_display }}</span>
+            
+            {% if page.posts.exists %}
+                {% for post in page.posts.all|slice:":2" %}
+                    {% if post.post_type == 'ANNOUNCEMENT' and not post.is_hidden %}
+                        <span class="temple-badge">
+                            <i class="bi bi-megaphone me-1"></i>Has Announcements
+                        </span>
+                    {% elif post.post_type == 'EVENT' and not post.is_hidden %}
+                        <span class="temple-badge">
+                            <i class="bi bi-calendar-event me-1"></i>Has Events
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Status Badge -->
+        <div class="mb-3">
+            <span class="temple-status-badge temple-status-{% if page.status == 'ACTIVE' %}active{% elif page.status == 'DEACTIVATED' %}deactivated{% else %}invisible{% endif %}">
+                {{ page.get_status_display }}
+            </span>
+        </div>
+        
+        <!-- Primary CTA -->
+        <div class="temple-card-footer">
+            <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" 
+               class="temple-btn-primary w-100 text-center text-decoration-none">
+                <i class="bi bi-eye"></i>View Page
+            </a>
+        </div>
+    </div>
+</div>
+

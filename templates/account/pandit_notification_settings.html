@@ -1,0 +1,122 @@
+{% extends "account/account_base.html" %}
+
+{% block title %}Notification Settings - Pandit Account - Nitya Dharma{% endblock %}
+
+{% block account_content %}
+    <h2 class="h4 mb-4">Notification Settings</h2>
+    <p class="text-muted mb-4">
+        Manage your notification preferences for your Pandit account
+        {% if profile_id %}
+            (User ID: {{ user_id }}, Profile ID: {{ profile_id }})
+        {% else %}
+            (User ID: {{ user_id }})
+        {% endif %}
+    </p>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post" action="{% url 'accounts:pandit_notification_settings' user_id=user_id %}">
+        {% csrf_token %}
+        
+        <!-- Channel Preferences -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Notification Channels</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="in_app_enabled" name="in_app_enabled" {% if preferences.in_app_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="in_app_enabled">
+                        <strong>In-App Notifications</strong>
+                        <p class="text-muted small mb-0">Receive notifications within the platform</p>
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled" {% if preferences.email_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="email_enabled">
+                        <strong>Email Notifications</strong>
+                        <p class="text-muted small mb-0">Receive notifications via email</p>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pandit-Specific Notifications -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Pandit-Specific Notifications</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="pandit_booking_requests_enabled" name="pandit_booking_requests_enabled" {% if preferences.pandit_booking_requests_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="pandit_booking_requests_enabled">
+                        <strong>New Booking Requests</strong>
+                        <p class="text-muted small mb-0">Get notified when you receive new booking requests</p>
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="pandit_profile_updates_enabled" name="pandit_profile_updates_enabled" {% if preferences.pandit_profile_updates_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="pandit_profile_updates_enabled">
+                        <strong>Profile Approval Updates</strong>
+                        <p class="text-muted small mb-0">Receive notifications about your profile approval status</p>
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="pandit_review_submissions_enabled" name="pandit_review_submissions_enabled" {% if preferences.pandit_review_submissions_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="pandit_review_submissions_enabled">
+                        <strong>Review Submissions</strong>
+                        <p class="text-muted small mb-0">Get notified when customers submit reviews about your services</p>
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="booking_intent_enabled" name="booking_intent_enabled" {% if preferences.booking_intent_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="booking_intent_enabled">
+                        <strong>Booking Intent Updates</strong>
+                        <p class="text-muted small mb-0">Receive updates on booking intent status changes</p>
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="review_notifications_enabled" name="review_notifications_enabled" {% if preferences.review_notifications_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="review_notifications_enabled">
+                        <strong>Review Notifications</strong>
+                        <p class="text-muted small mb-0">Get notified about review-related updates</p>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'accounts:profile_settings' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

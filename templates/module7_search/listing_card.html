@@ -1,0 +1,207 @@
+
+{% load static %}
+{% load phone_filters %}
+{% load contact_tags %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/end_user_ui.css' %}">
+
+<div class="premium-card border-accent h-100">
+    <div class="card-body d-flex flex-column p-4">
+        <div class="text-center mb-3">
+            {% if pandit.profile_image %}
+                <img src="{{ pandit.profile_image.url }}" 
+                     alt="{{ pandit.get_display_name|default:'Pandit' }} profile photo"
+                     class="rounded-circle profile-image mb-2 border p-1"
+                     width="72"
+                     height="72"
+                     style="border-color: #F1F5F9 !important; background: #F8FAFC;">
+            {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center profile-image mx-auto mb-2 border p-1"
+                     title="Profile image not uploaded yet"
+                     style="width: 72px; height: 72px; border-color: #F1F5F9 !important; background: #F8FAFC;">
+                    <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                </div>
+            {% endif %}
+            
+            <h6 class="fw-semibold mb-1 text-dark">
+                <a href="{% url 'profiles:profile_public' pandit.public_id %}" 
+                   class="text-decoration-none card-title-link text-dark">
+                    {{ pandit.get_display_name|default:"Pandit" }}
+                </a>
+            </h6>
+            
+            {% if pandit.experience_years %}
+                <p class="text-muted small mb-2">
+                    {{ pandit.experience_years }} year{{ pandit.experience_years|pluralize }} of experience
+                </p>
+            {% endif %}
+            
+            {% if pandit.cities_served.all or pandit.areas_served.all %}
+                <small class="text-muted d-block mb-2">
+                    <i class="bi bi-geo-alt"></i>
+                    {% if pandit.cities_served.all %}
+                        {% for city in pandit.cities_served.all|slice:":1" %}
+                            {{ city.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if pandit.areas_served.all %}
+                        {% for area in pandit.areas_served.all|slice:":1" %}
+                            {% if pandit.cities_served.all %}, {% endif %}{{ area.name }}
+                        {% endfor %}
+                    {% endif %}
+                </small>
+            {% endif %}
+        </div>
+
+        
+        {% if pandit.poojas_performed.all %}
+            <div class="mb-3 pooja-tags">
+                <p class="small text-muted mb-2"><strong>Poojas:</strong></p>
+                <div class="d-flex flex-wrap gap-1 justify-content-center">
+                    {% for pooja in pandit.poojas_performed.all|slice:":3" %}
+                        <span class="pooja-chip">{{ pooja.name }}</span>
+                    {% endfor %}
+                    {% if pandit.poojas_performed.count > 3 %}
+                        <span class="pooja-chip">+{{ pandit.poojas_performed.count|add:"-3" }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        
+        {% if pandit.trust_signals %}
+            <div class="mb-3">
+                {% include "module10_trust/trust_badges.html" with trust_signals=pandit.trust_signals %}
+            </div>
+            
+        {% elif pandit.trust_badges %}
+            
+            <div class="mb-3">
+                {% for badge in pandit.trust_badges %}
+                    <span class="badge bg-info me-1">{{ badge }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        
+        {% if pandit.referred_by_name %}
+            <p class="small text-muted mb-2">
+                <i class="bi bi-arrow-right-circle"></i>
+                Referred by: {{ pandit.referred_by_name }}
+            </p>
+            
+        {% endif %}
+
+        
+        {% if pandit.availability_status %}
+            <div class="mb-3">
+                {% if pandit.availability_status == 'available' %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Available
+                    </span>
+                {% elif pandit.availability_status == 'limited' %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-exclamation-circle"></i> Limited Availability
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-clock"></i> Check Availability
+                    </span>
+                {% endif %}
+            </div>
+            
+        {% endif %}
+
+        
+        <div class="mt-auto">
+            <!-- Primary CTA: Booking Intent (most prominent) -->
+            {% if user.is_authenticated %}
+                {% if pandit.public_id %}
+                    <a href="{% url 'booking_intent_ui:create' pandit.public_id %}" 
+                       class="btn btn-danger w-100 mb-2">
+                        <i class="bi bi-envelope me-1"></i>Send Booking Intent
+                    </a>
+                {% else %}
+                    <button type="button" class="btn btn-danger w-100 mb-2" disabled title="Profile ID not available">
+                        <i class="bi bi-envelope me-1"></i>Send Booking Intent
+                    </button>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'accounts:login' %}" 
+                   class="btn btn-danger w-100 mb-2">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Login to Send Intent
+                </a>
+            {% endif %}
+            
+            <!-- Secondary CTAs: Call and WhatsApp buttons side by side -->
+            {% with contact_info=pandit|pandit_contact_info %}
+            <div class="d-flex gap-2">
+                <div class="flex-fill">
+                    {% if contact_info.has_call %}
+                        <a href="{{ contact_info.call_url }}" 
+                           class="btn btn-success w-100"
+                           aria-label="Call {{ pandit.get_display_name|default:'Pandit' }}"
+                           title="Call {{ pandit.get_display_name|default:'Pandit' }}"
+                           onclick="logContactClick('{{ pandit.public_id }}', 'call')">
+                            <i class="bi bi-telephone-fill me-1"></i>Call
+                        </a>
+                    {% else %}
+                        <button type="button" 
+                                class="btn btn-outline-secondary w-100" 
+                                disabled
+                                style="min-height: 44px;"
+                                title="Pandit has disabled this contact method">
+                            <i class="bi bi-telephone me-1"></i>Call
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="flex-fill">
+                    {% if contact_info.has_whatsapp %}
+                        <a href="{{ contact_info.whatsapp_url }}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="btn w-100" 
+                           style="background-color: #22C55E; border-color: #22C55E; color: white; font-weight: 500; min-height: 44px;"
+                           aria-label="Message {{ pandit.get_display_name|default:'Pandit' }} on WhatsApp"
+                           title="Open WhatsApp chat with {{ pandit.get_display_name|default:'Pandit' }}"
+                           onclick="logContactClick('{{ pandit.public_id }}', 'whatsapp')">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </a>
+                    {% else %}
+                        <button type="button" 
+                                class="btn btn-outline-secondary w-100" 
+                                disabled
+                                style="min-height: 44px;"
+                                title="Pandit has disabled this contact method">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Log contact clicks for engagement tracking (non-blocking)
+function logContactClick(panditPublicId, contactType) {
+    // Use engagement service if available, otherwise skip (non-critical)
+    try {
+        // Log via engagement app if available
+        if (typeof window.logEngagementEvent === 'function') {
+            window.logEngagementEvent({
+                event_type: 'CONTACT_' + contactType.toUpperCase() + '_CLICK',
+                entity_type: 'PanditProfile',
+                entity_public_id: panditPublicId
+            });
+        }
+    } catch (err) {
+        // Silently fail - engagement logging is optional
+        console.debug('Contact click logging failed (non-critical):', err);
+    }
+}
+</script>
+

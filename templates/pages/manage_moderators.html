@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Moderators - {{ page.title }} - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+<style>
+    .moderator-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    .moderator-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .moderator-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+    .moderator-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .moderator-item:last-child {
+        border-bottom: none;
+    }
+    .moderator-info {
+        flex: 1;
+    }
+    .moderator-email {
+        font-weight: 600;
+        color: #333;
+    }
+    .moderator-role {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moderator-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="card moderator-card">
+                    <div class="moderator-header">
+                        <h2 class="mb-0">
+                            <i class="bi bi-people me-2"></i>Manage Moderators
+                        </h2>
+                        <p class="mb-0 mt-2 opacity-75">{{ page.title }}</p>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Page
+                            </a>
+                        </div>
+                        
+                        <h4 class="mb-3">Current Moderators</h4>
+                        
+                        {% if moderators %}
+                            <div class="list-group">
+                                {% for moderator_role in moderators %}
+                                    <div class="moderator-item">
+                                        <div class="moderator-info">
+                                            <div class="moderator-email">{{ moderator_role.pandit.email }}</div>
+                                            <div class="moderator-role">
+                                                <span class="badge bg-info">{{ moderator_role.get_role_display }}</span>
+                                                <span class="ms-2">Assigned: {{ moderator_role.created_at|date:"M d, Y" }}</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger remove-moderator-btn" 
+                                                data-pandit-id="{{ moderator_role.pandit.id }}"
+                                                data-pandit-email="{{ moderator_role.pandit.email }}">
+                                            <i class="bi bi-x-circle me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="bi bi-people fs-1 text-muted mb-3"></i>
+                                <p>No moderators assigned yet.</p>
+                            </div>
+                        {% endif %}
+                        
+                        <hr class="my-4">
+                        <h4 class="mb-3">Assign New Moderator</h4>
+                        
+                        <!-- TASK 1: Pandit Search by Email -->
+                        <div class="mb-4">
+                            <label for="pandit-search" class="form-label">
+                                <i class="bi bi-search me-2"></i>Search Pandit by Email
+                            </label>
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="pandit-search" 
+                                       placeholder="Enter pandit email (e.g., pandit@example.com)"
+                                       autocomplete="off">
+                                <button class="btn btn-primary" type="button" id="search-pandit-btn">
+                                    <i class="bi bi-search me-1"></i>Search
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Search for pandits by email address. Only active pandits will appear.
+                            </small>
+                        </div>
+                        
+                        <!-- Search Results -->
+                        <div id="search-results" class="list-group" style="display: none;">
+                            <!-- Results will be populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div id="search-loading" class="text-center py-3" style="display: none;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Searching...</span>
+                        </div>
+                        
+                        <!-- No Results -->
+                        <div id="search-no-results" class="empty-state" style="display: none;">
+                            <i class="bi bi-info-circle fs-4 text-muted mb-2"></i>
+                            <p>No pandits found matching your search.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pagePublicId = '{{ page.public_id }}';
+        
+        // Assign moderator
+        document.querySelectorAll('.assign-moderator-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const panditId = this.dataset.panditId;
+                const panditEmail = this.dataset.panditEmail;
+                
+                if (!confirm(`Assign ${panditEmail} as moderator?`)) {
+                    return;
+                }
+                
+                fetch(`/pages/${pagePublicId}/moderators/assign/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: `pandit_id=${panditId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
+        });
+        
+        // Remove moderator
+        document.querySelectorAll('.remove-moderator-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const panditId = this.dataset.panditId;
+                const panditEmail = this.dataset.panditEmail;
+                
+                if (!confirm(`Remove ${panditEmail} as moderator?`)) {
+                    return;
+                }
+                
+                fetch(`/pages/${pagePublicId}/moderators/remove/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: `pandit_id=${panditId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% csrf_token %}
+{% endblock %}
+

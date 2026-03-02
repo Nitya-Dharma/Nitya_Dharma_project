@@ -1,0 +1,246 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Edit CMS Page - {{ page.title }}{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block sidebar_wrapper_class %}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}#overview">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_cms_list' %}">
+            <i class="bi bi-file-text me-2"></i>Content Management
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'pages:super_admin_social_settings' %}">
+            <i class="bi bi-share me-2"></i>Social Links
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'branding:manage_logos' %}">
+            <i class="bi bi-palette me-2"></i>Branding
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/pages/cmspage/" target="_blank">
+            <i class="bi bi-gear me-2"></i>CMS (Django Admin)
+        </a>
+    </li>
+{% endblock %}
+
+{% block super_admin_css %}
+{{ block.super }}
+<style>
+    .cms-edit-card {
+        background: var(--card-bg-theme);
+        border: 1px solid var(--border-color-theme);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    
+    .cms-form-section {
+        margin-bottom: 24px;
+    }
+    
+    .cms-form-section h4 {
+        color: var(--text-primary-theme);
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-color-theme);
+    }
+    
+    .form-label {
+        color: var(--text-primary-theme);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    .form-control,
+    .form-select {
+        background-color: var(--bg-primary-theme);
+        color: var(--text-primary-theme);
+        border-color: var(--border-color-theme);
+    }
+    
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+        background-color: var(--bg-secondary-theme);
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--accent-theme);
+        box-shadow: 0 0 0 3px rgba(var(--accent-theme-rgb), 0.15);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--accent-theme);
+        border-color: var(--accent-theme);
+    }
+    
+    .btn-save-cms {
+        background: var(--accent-theme);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-save-cms:hover {
+        background: darken(var(--accent-theme), 8%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--accent-theme-rgb), 0.3);
+    }
+    
+    .btn-back-cms {
+        color: var(--text-secondary-theme);
+        border-color: var(--border-color-theme);
+    }
+    
+    .btn-back-cms:hover {
+        background: var(--bg-secondary-theme);
+        color: var(--text-primary-theme);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_heading %}Edit CMS Page{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">{{ page.get_page_type_display }} - {{ page.slug }}</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="cms-edit-card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Page Content Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-file-text me-2"></i>Page Content</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger small">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.content.id_for_label }}" class="form-label">Content (HTML allowed)</label>
+                {{ form.content }}
+                {% if form.content.errors %}
+                    <div class="text-danger small">{{ form.content.errors }}</div>
+                {% endif %}
+                <small class="text-muted">You can use HTML tags for formatting. Large textarea for WordPress-style editing.</small>
+            </div>
+        </div>
+        
+        <!-- SEO Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-search me-2"></i>SEO Settings</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.seo_title.id_for_label }}" class="form-label">SEO Title</label>
+                {{ form.seo_title }}
+                {% if form.seo_title.errors %}
+                    <div class="text-danger small">{{ form.seo_title.errors }}</div>
+                {% endif %}
+                <small class="text-muted">50-60 characters recommended</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.seo_description.id_for_label }}" class="form-label">SEO Description</label>
+                {{ form.seo_description }}
+                {% if form.seo_description.errors %}
+                    <div class="text-danger small">{{ form.seo_description.errors }}</div>
+                {% endif %}
+                <small class="text-muted">140-160 characters recommended</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.seo_keywords.id_for_label }}" class="form-label">SEO Keywords</label>
+                {{ form.seo_keywords }}
+                {% if form.seo_keywords.errors %}
+                    <div class="text-danger small">{{ form.seo_keywords.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Comma-separated keywords</small>
+            </div>
+        </div>
+        
+        <!-- Open Graph Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-image me-2"></i>Open Graph Image</h4>
+            
+            <div class="mb-3">
+                <label for="{{ form.og_image.id_for_label }}" class="form-label">OG Image</label>
+                {{ form.og_image }}
+                {% if form.og_image.errors %}
+                    <div class="text-danger small">{{ form.og_image.errors }}</div>
+                {% endif %}
+                {% if page.og_image %}
+                    <div class="mt-2">
+                        <img src="{{ page.og_image.url }}" alt="Current OG Image" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                {% endif %}
+                <small class="text-muted">1200x630 recommended for social media previews</small>
+            </div>
+        </div>
+        
+        <!-- Publishing Section -->
+        <div class="cms-form-section">
+            <h4><i class="bi bi-globe me-2"></i>Publishing</h4>
+            
+            <div class="form-check mb-3">
+                {{ form.is_published }}
+                <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                    Publish this page (visible to public)
+                </label>
+                {% if form.is_published.errors %}
+                    <div class="text-danger small">{{ form.is_published.errors }}</div>
+                {% endif %}
+            </div>
+            
+            {% if page.is_published %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle me-2"></i>This page is currently published and visible to the public.
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>This page is in draft mode and not visible to the public.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top" style="border-color: var(--border-color-theme);">
+            <a href="{% url 'pages:super_admin_cms_list' %}" class="btn btn-back-cms">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+            <div>
+                <a href="{% url 'pages:super_admin_cms_revisions' slug=page.slug %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-clock-history me-2"></i>View Revisions
+                </a>
+                <button type="submit" class="btn btn-save-cms">
+                    <i class="bi bi-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

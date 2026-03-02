@@ -1,0 +1,130 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Analytics / GTM Configuration - Super Admin Dashboard{% endblock %}
+
+{% block dashboard_heading %}Analytics / GTM Configuration{% endblock %}
+
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Manage observation-only analytics, fully invisible to others</p>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Global Analytics Configuration</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if active_config %}
+                    <input type="hidden" name="config_id" value="{{ active_config.id }}">
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label for="provider_type" class="form-label">
+                        Provider Type
+                    </label>
+                    <select name="provider_type" id="provider_type" class="form-select">
+                        {% for value, label in provider_choices %}
+                            <option value="{{ value }}" {% if active_config and active_config.provider_type == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">Select the analytics provider (e.g., GTM, Google Analytics)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="head_snippet" class="form-label">
+                        Head Snippet
+                        <small class="text-muted">(Placed in &lt;head&gt; section)</small>
+                    </label>
+                    <textarea name="head_snippet" id="head_snippet" class="form-control" rows="5" placeholder="<!-- GTM or Analytics code for <head> -->">{% if active_config %}{{ active_config.head_snippet }}{% endif %}</textarea>
+                    <small class="form-text text-muted">Paste your analytics code that should be placed in the &lt;head&gt; section</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="body_snippet" class="form-label">
+                        Body Snippet
+                        <small class="text-muted">(Placed after &lt;body&gt; tag)</small>
+                    </label>
+                    <textarea name="body_snippet" id="body_snippet" class="form-control" rows="5" placeholder="<!-- GTM noscript or Analytics code for <body> -->">{% if active_config %}{{ active_config.body_snippet }}{% endif %}</textarea>
+                    <small class="form-text text-muted">Paste your analytics code that should be placed immediately after the &lt;body&gt; tag</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="footer_snippet" class="form-label">
+                        Footer Snippet
+                        <small class="text-muted">(Placed before &lt;/body&gt; tag)</small>
+                    </label>
+                    <textarea name="footer_snippet" id="footer_snippet" class="form-control" rows="5" placeholder="<!-- Additional analytics code -->">{% if active_config %}{{ active_config.footer_snippet }}{% endif %}</textarea>
+                    <small class="form-text text-muted">Paste any additional analytics code that should be placed before the closing &lt;/body&gt; tag</small>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if active_config and active_config.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            Enable Analytics
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">When enabled, analytics snippets will be injected into public pages</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="excluded_route_patterns" class="form-label">
+                        Excluded Route Patterns
+                        <small class="text-muted">(Comma-separated route patterns to exclude from analytics)</small>
+                    </label>
+                    <input type="text" name="excluded_route_patterns" id="excluded_route_patterns" class="form-control" 
+                           value="{% if active_config %}{{ active_config.excluded_route_patterns }}{% endif %}" 
+                           placeholder="/admin/, /dashboard/, /api/">
+                    <small class="form-text text-muted">Routes matching these patterns will not have analytics code injected (e.g., /admin/, /dashboard/)</small>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Save Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if active_config %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Current Configuration</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> 
+                    <span class="badge {% if active_config.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if active_config.is_active %}Enabled{% else %}Disabled{% endif %}
+                    </span>
+                </p>
+                <p><strong>Provider:</strong> {{ active_config.get_provider_type_display }}</p>
+                <p><strong>Last Updated:</strong> {{ active_config.updated_at|date:"M d, Y H:i" }}</p>
+                {% if active_config.excluded_route_patterns %}
+                    <p><strong>Excluded Routes:</strong> {{ active_config.excluded_route_patterns }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
