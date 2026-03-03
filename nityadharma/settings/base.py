@@ -83,7 +83,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'nityadharma.wsgi.application'
+WSGI_APPLICATION = 'nityadharma.wsgi.app'
 
 
 # Database
