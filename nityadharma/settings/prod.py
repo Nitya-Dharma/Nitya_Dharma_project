@@ -25,13 +25,17 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production
 # Render: RENDER_EXTERNAL_HOSTNAME is auto-added when set
 # Vercel: .vercel.app is auto-added when VERCEL=1
+# Railway: .railway.app is auto-added when RAILWAY_PUBLIC_DOMAIN is set
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 _vercel = os.environ.get('VERCEL')
+_railway = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
 _allowed = list(config('ALLOWED_HOSTS', default='', cast=Csv()))
 if _render_host and _render_host not in _allowed:
     _allowed.append(_render_host)
 if _vercel and '.vercel.app' not in _allowed:
     _allowed.append('.vercel.app')
+if _railway and '.railway.app' not in _allowed:
+    _allowed.append('.railway.app')
 ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else ['localhost'])
 
 # Database Configuration
