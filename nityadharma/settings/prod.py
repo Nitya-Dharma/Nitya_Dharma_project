@@ -14,6 +14,9 @@ import os
 from decouple import config, Csv
 from .base import *
 
+# Avoid ManifestStaticFilesStorage so missing static files (e.g. images/logo.png) don't cause 500
+STORAGES['staticfiles'] = {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'}
+
 # SECURITY WARNING: keep the secret key used in production secret!
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production (no default)
 SECRET_KEY = config('SECRET_KEY')  # Will raise error if not set
