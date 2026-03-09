@@ -80,6 +80,8 @@ else:
 
 # Production Security Settings
 # Phase 2 Module 0 Task 0.1 / Phase 9: Security-first defaults for production
+# Trust X-Forwarded-Proto from Railway/Render/etc. so SSL redirect doesn't loop (proxy terminates SSL)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
