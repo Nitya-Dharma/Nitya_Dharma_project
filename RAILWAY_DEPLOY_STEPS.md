@@ -1,6 +1,9 @@
 # Deploy Nitya Dharma to Railway – Step-by-Step (Testing)
 
-Follow these steps in order. Railway will use **PostgreSQL** (they provide it and set `DATABASE_URL` automatically). Your `prod.py` already supports this.
+You can use **PostgreSQL** (default) or **MySQL** on Railway. Your `prod.py` supports both.
+
+- **PostgreSQL:** Railway adds `DATABASE_URL` automatically (Steps 4–5 below).
+- **MySQL:** Add a MySQL service and use `MYSQL_URL` (see **[Using MySQL instead of PostgreSQL](#using-mysql-instead-of-postgresql)** at the end.
 
 ---
 
@@ -219,3 +222,56 @@ After the first successful build and deploy:
 - [ ] App opens in browser at the Railway URL
 
 After this, every **git push to main** can trigger an automatic redeploy on Railway if you enabled “Deploy on push” for the service.
+
+---
+
+## Using MySQL instead of PostgreSQL
+
+Yes, you can use **MySQL** on Railway for testing. The app's prod settings support it.
+
+### 1. Add MySQL (instead of Postgres)
+
+1. In your Railway project, click **"+ New"** (or **Ctrl/Cmd + K**).
+2. Choose **"Database"** → **"MySQL"** (or search for **MySQL** in templates).
+3. Wait until the MySQL service is **Running**.
+
+### 2. Give the web service the MySQL URL
+
+Railway's MySQL service exposes **`MYSQL_URL`** (e.g. `mysql://user:password@host:port/database`).
+
+1. Click your **web service** → **Variables**.
+2. **Option A – Reference (best):** Click **"+ New Variable"** → **"Add reference"** (or similar). Select the **MySQL** service and the variable **`MYSQL_URL`**. Add it to the web service.
+3. **Option B – Copy:** Open the **MySQL** service → **Variables**, copy the value of **`MYSQL_URL`**. In the **web service** → **Variables**, add:
+   - **Name:** `MYSQL_URL`
+   - **Value:** (paste the URL)
+
+**Do not set `DATABASE_URL`** when using MySQL; prod settings use **`MYSQL_URL`** for MySQL.
+
+### 3. Other variables (same as Postgres)
+
+Set these on the **web** service as before:
+
+| Variable | Value |
+|----------|--------|
+| `DJANGO_SETTINGS_MODULE` | `nityadharma.settings.prod` |
+| `SECRET_KEY` | (long random string) |
+| `DEBUG` | `False` |
+| `ALLOWED_HOSTS` | `*` |
+
+### 4. Build, migrate, domain
+
+- **Build command:** same (e.g. `pip install -r requirements.txt && python manage.py collectstatic --noinput`).
+- **Migrations:** run once: `railway run python manage.py migrate` (after linking with Railway CLI).
+- **Domain:** generate a domain for the web service as in Step 9.
+
+### Quick reference – MySQL on Railway (web service)
+
+| Variable | Source |
+|----------|--------|
+| `MYSQL_URL` | From MySQL service (reference or copy) |
+| `DJANGO_SETTINGS_MODULE` | `nityadharma.settings.prod` |
+| `SECRET_KEY` | Your secret key |
+| `DEBUG` | `False` |
+| `ALLOWED_HOSTS` | `*` |
+
+Your app already has **mysqlclient** in `requirements.txt`, so no extra packages are needed for MySQL.

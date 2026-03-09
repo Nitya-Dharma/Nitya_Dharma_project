@@ -43,15 +43,26 @@ ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else [
 
 # Database Configuration
 # Phase 2 Module 0 Task 0.1: Environment-based database config - REQUIRED in production
-# Render: use DATABASE_URL (PostgreSQL) when set; otherwise use MySQL DB_* vars
+# Priority: DATABASE_URL (PostgreSQL) -> MYSQL_URL (Railway MySQL) -> DB_* vars (MySQL)
+import dj_database_url
+
 if os.environ.get('DATABASE_URL'):
-    import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
+elif os.environ.get('MYSQL_URL'):
+    # Railway MySQL template exposes MYSQL_URL (mysql://user:pass@host:port/dbname)
+    _db = dj_database_url.parse(
+        os.environ['MYSQL_URL'],
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+    if _db.get('ENGINE', '').endswith('mysql'):
+        _db.setdefault('OPTIONS', {})['charset'] = 'utf8mb4'
+    DATABASES = {'default': _db}
 else:
     DATABASES = {
         'default': {
