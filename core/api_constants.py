@@ -18,6 +18,7 @@ DEFAULT_SEARCH_PAGE_SIZE = getattr(settings, 'API_DEFAULT_SEARCH_PAGE_SIZE', _DE
 # Dashboard operational limits; lazy-resolved (not import-time frozen)
 _DEFAULT_DASHBOARD_PAGES_PREVIEW = 50
 _DEFAULT_DASHBOARD_AUDIT_EXPORT = 1000
+_DEFAULT_DASHBOARD_AUDIT_FEED_MAX = 2000  # Max audit records to load for governance table (avoids slow request)
 
 
 def get_dashboard_pages_preview_limit():
@@ -28,6 +29,12 @@ def get_dashboard_pages_preview_limit():
 def get_dashboard_audit_export_limit():
     from django.conf import settings
     return getattr(settings, 'DASHBOARD_AUDIT_EXPORT_LIMIT', _DEFAULT_DASHBOARD_AUDIT_EXPORT)
+
+
+def get_dashboard_audit_feed_max():
+    """Max number of audit records to load for super admin governance table (avoids loading full table)."""
+    from django.conf import settings
+    return getattr(settings, 'DASHBOARD_AUDIT_FEED_MAX', _DEFAULT_DASHBOARD_AUDIT_FEED_MAX)
 
 # State Transition Rules
 # These define allowed state transitions for various entities

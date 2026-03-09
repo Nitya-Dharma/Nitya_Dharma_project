@@ -198,6 +198,12 @@ def list_reviews_for_pandit(request, pandit_id):
             {'error': 'Authentication required to view reviews'},
             status=401
         )
+    # Resolve pandit by public_id (URL segment)
+    if reject_bigint_id(str(pandit_id)):
+        return JsonResponse({'error': 'Invalid pandit identifier'}, status=400)
+    pandit = resolve_public_id(User, str(pandit_id))
+    if not pandit:
+        return JsonResponse({'error': 'Pandit not found'}, status=404)
     
     # Get pagination parameters
     try:
@@ -212,6 +218,15 @@ def list_reviews_for_pandit(request, pandit_id):
     except (ValueError, TypeError):
         page = 1
         page_size = DEFAULT_SEARCH_PAGE_SIZE
+    
+    # Phase 14: Behavior analytics (review view; passive)
+    try:
+        from behavior_engine.trackers import track_review_view
+        profile_id = getattr(getattr(pandit, 'pandit_profile', None), 'id', None)
+        if profile_id is not None:
+            track_review_view(request, profile_id, metadata={})
+    except Exception:
+        pass
     
     # Get reviews
     reviews = ReviewService.get_visible_reviews_for_pandit(pandit.id)

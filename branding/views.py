@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
+from django.core.paginator import Paginator
 from .models import BrandingLogo
 from .forms import BrandingLogoUploadForm
 
@@ -20,10 +21,13 @@ def manage_logos(request):
     if not request.user.is_authenticated or not request.user.is_superuser:
         raise Http404("Page not found")
     
-    # Get all logos, ordered by creation date
-    all_logos = BrandingLogo.objects.all().order_by('-created_at')
-    
-    # Group logos by type
+    # Get all logos, ordered by creation date; Phase 8.1: paginate (20 per page)
+    queryset = BrandingLogo.objects.all().order_by('-created_at')
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    all_logos = page_obj.object_list
+
+    # Group logos by type (for current page only)
     logos_by_type = {}
     for logo in all_logos:
         logo_type = logo.get_logo_type_display()
@@ -54,6 +58,7 @@ def manage_logos(request):
         'form': form,
         'all_logos': all_logos,
         'logos_by_type': logos_by_type,
+        'page_obj': page_obj,
         'user_role': 'super_admin',
         'dashboard_has_data': True,
     })

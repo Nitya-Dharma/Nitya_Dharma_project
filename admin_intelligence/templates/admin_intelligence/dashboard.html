@@ -1,0 +1,174 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Intelligence Dashboard{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Home</a> &rsaquo; Intelligence Dashboard
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Admin Intelligence Dashboard</h1>
+<p>Read-only insights from analytics, behavior, and recommendation data.</p>
+
+<div class="module">
+  <h2>Top Performing Pandits</h2>
+  <table>
+    <thead><tr><th>Pandit</th><th>Score</th></tr></thead>
+    <tbody>
+      {% for item in top_pandits %}
+      <tr><td>{{ item.name }}</td><td>{{ item.score }}</td></tr>
+      {% empty %}
+      <tr><td colspan="2">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>Booking Conversion</h2>
+  <p>Profile views: <strong>{{ conversion.profile_views }}</strong></p>
+  <p>Booking intents: <strong>{{ conversion.booking_intents }}</strong></p>
+  <p>Conversion rate: <strong>{{ conversion.conversion_rate }}</strong></p>
+</div>
+
+<div class="module">
+  <h2>Trending Poojas</h2>
+  <table>
+    <thead><tr><th>Query</th><th>Searches</th></tr></thead>
+    <tbody>
+      {% for item in trending_poojas %}
+      <tr><td>{{ item.name }}</td><td>{{ item.count }}</td></tr>
+      {% empty %}
+      <tr><td colspan="2">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>User Engagement</h2>
+  <p>Total page views: <strong>{{ user_engagement.total_page_views }}</strong></p>
+  <p>Total search queries: <strong>{{ user_engagement.total_search_queries }}</strong></p>
+  <p>Avg events per user: <strong>{{ user_engagement.avg_events_per_user }}</strong></p>
+  <p>Active users (last 7 days): <strong>{{ user_engagement.active_users_last_7_days }}</strong></p>
+</div>
+
+<div class="module">
+  <h2>Platform Growth</h2>
+  <p>Total users: <strong>{{ platform_growth.total_users }}</strong></p>
+  <p>Total pandits: <strong>{{ platform_growth.total_pandits }}</strong></p>
+  <p>Total bookings (intents): <strong>{{ platform_growth.total_bookings }}</strong></p>
+  <p>Total reviews: <strong>{{ platform_growth.total_reviews }}</strong></p>
+  <p>Bookings this week: <strong>{{ platform_growth.bookings_this_week }}</strong> ({{ platform_growth.bookings_weekly_growth_pct }}% vs prev week)</p>
+  <p>Reviews this week: <strong>{{ platform_growth.reviews_this_week }}</strong> ({{ platform_growth.reviews_weekly_growth_pct }}% vs prev week)</p>
+</div>
+
+<div class="module">
+  <h2>Pandit Engagement Trends</h2>
+  <p>From aggregated daily behavior (last 30 days). Views, clicks, booking intents, engagement score.</p>
+  <table>
+    <thead><tr><th>Pandit ID</th><th>Profile views</th><th>Search clicks</th><th>Booking intents</th><th>Score</th></tr></thead>
+    <tbody>
+      {% for item in pandit_engagement_trends %}
+      <tr><td>{{ item.pandit_id }}</td><td>{{ item.profile_views }}</td><td>{{ item.search_clicks }}</td><td>{{ item.booking_intents }}</td><td>{{ item.engagement_score|floatformat:0 }}</td></tr>
+      {% empty %}
+      <tr><td colspan="5">No data (run daily aggregation task)</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>Top Trending Searches</h2>
+  <p>From aggregated search trend daily. Searches, clicks, conversions.</p>
+  <table>
+    <thead><tr><th>Query</th><th>Searches</th><th>Clicks</th><th>Conversions</th></tr></thead>
+    <tbody>
+      {% for item in search_trend_intelligence %}
+      <tr><td>{{ item.query }}</td><td>{{ item.search_count }}</td><td>{{ item.click_count }}</td><td>{{ item.conversion_count }}</td></tr>
+      {% empty %}
+      <tr><td colspan="4">No data (run daily aggregation task)</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>User Engagement Trends</h2>
+  <p>Daily platform engagement from aggregated tables.</p>
+  <table>
+    <thead><tr><th>Date</th><th>Active users</th><th>Sessions</th><th>Page views</th><th>Searches</th><th>Avg session (ms)</th></tr></thead>
+    <tbody>
+      {% for item in user_engagement_trends|slice:":14" %}
+      <tr><td>{{ item.date }}</td><td>{{ item.active_users }}</td><td>{{ item.total_sessions }}</td><td>{{ item.total_page_views }}</td><td>{{ item.total_searches }}</td><td>{{ item.avg_session_duration_ms }}</td></tr>
+      {% empty %}
+      <tr><td colspan="6">No data (run daily aggregation task)</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>Content Interaction Metrics</h2>
+  <p>Impressions, clicks, saves, shares by content (e.g. pandit profiles).</p>
+  <table>
+    <thead><tr><th>Type</th><th>ID</th><th>Impressions</th><th>Clicks</th><th>Saves</th><th>Shares</th></tr></thead>
+    <tbody>
+      {% for item in content_popularity %}
+      <tr><td>{{ item.content_type }}</td><td>{{ item.content_id }}</td><td>{{ item.impressions }}</td><td>{{ item.clicks }}</td><td>{{ item.saves }}</td><td>{{ item.shares }}</td></tr>
+      {% empty %}
+      <tr><td colspan="6">No data (run daily aggregation task)</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>User Interest Intelligence</h2>
+  <p>Aggregated interest signals (from UserInterestSignal / UserInterestAggregate). Powers personalized feeds and recommendations.</p>
+  <h3>Top Pooja Interests</h3>
+  <table>
+    <thead><tr><th>Pooja / Category</th><th>Users</th><th>Total score</th></tr></thead>
+    <tbody>
+      {% for item in user_interest_insights.pooja_category %}
+      <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <h3>Top City Interests</h3>
+  <table>
+    <thead><tr><th>City</th><th>Users</th><th>Total score</th></tr></thead>
+    <tbody>
+      {% for item in user_interest_insights.city %}
+      <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <h3>Most Engaged Pandits (by interest score)</h3>
+  <table>
+    <thead><tr><th>Pandit ID</th><th>Users</th><th>Total score</th></tr></thead>
+    <tbody>
+      {% for item in user_interest_insights.pandit %}
+      <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module">
+  <h2>Feed Performance</h2>
+  <p>From feed impressions (Phase 14.x). Impressions, clicks, engagement rate.</p>
+  <p>Feed impressions: <strong>{{ feed_performance.feed_impressions }}</strong></p>
+  <p>Feed clicks: <strong>{{ feed_performance.feed_clicks }}</strong></p>
+  <p>Feed engagement rate: <strong>{{ feed_performance.feed_engagement_rate }}</strong></p>
+</div>
+{% endblock %}

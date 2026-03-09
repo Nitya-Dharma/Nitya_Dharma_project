@@ -4,19 +4,20 @@ Search API views.
 Tasks:
 - 7.14: Search API (Read-Only)
 - 7.15: Search Safety, Validation & Rate Limit Hooks
-
-Read-only GET endpoints for search functionality.
-No mutations, no side effects.
+Phase 10C: Search result caching (5 min TTL, cache hit/miss logging).
 """
 
 import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator, EmptyPage
+from django.core.cache import cache
 from core.api_constants import MAX_PAGE_SIZE, DEFAULT_SEARCH_PAGE_SIZE
+from core.public_id import resolve_public_id, reject_bigint_id
 from .serializers import PanditSearchResultSerializer
-from .services import SearchService
+from .services import SearchService, SearchAnalyticsService, SearchClickTrackingService, RecommendationService, SEARCH_CACHE_TIMEOUT
 from .logging import log_search_request
+from profiles.models import PanditProfile
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ def search_pandits(request):
     GET /api/search/pandits/
     
     Query Parameters:
+        - q (or query): Optional text search (name/bio); uses FULLTEXT on MySQL, icontains fallback
         - city_id: Optional City ID
         - area_id: Optional LocalArea ID
         - pooja_id: Optional Pooja ID
@@ -130,6 +132,12 @@ def search_pandits(request):
             )
         validated_data['end_time'] = end_time
     
+    # Phase 10B: Optional text search (FULLTEXT on MySQL, icontains fallback)
+    if 'q' in query_params and query_params['q']:
+        validated_data['query'] = query_params['q'].strip()
+    elif 'query' in query_params and query_params['query']:
+        validated_data['query'] = query_params['query'].strip()
+
     # Filter by call availability
     if 'enable_call' in query_params and query_params['enable_call']:
         enable_call_str = query_params['enable_call'].lower()
@@ -178,9 +186,57 @@ def search_pandits(request):
     # Task 7.15: Rate limit hooks (delegated to Module 12)
     # TODO: When Module 12 (Security) is implemented, add rate limiting here
     # For now, this is a placeholder hook
+
+    # Phase 10C: Only cache meaningful searches (Steps 5–6)
+    cacheable = SearchService.is_search_cacheable(validated_data.get('query'))
+    cache_key = None
+    if cacheable:
+        cache_key = SearchService.build_search_cache_key(
+            query=validated_data.get('query'),
+            page=page,
+            page_size=page_size,
+            city_id=validated_data.get('city_id'),
+            area_id=validated_data.get('area_id'),
+            pooja_id=validated_data.get('pooja_id'),
+            day_of_week=validated_data.get('day_of_week'),
+            specific_date=validated_data.get('specific_date'),
+            start_time=validated_data.get('start_time'),
+            end_time=validated_data.get('end_time'),
+            enable_call=validated_data.get('enable_call'),
+            enable_whatsapp=validated_data.get('enable_whatsapp'),
+        )
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.debug("search cache hit for key=%s", cache_key)
+            return JsonResponse(cached_result)
+        logger.debug("search cache miss for key=%s", cache_key)
     
     try:
-        # Perform search
+        # Phase 10E: Track search query for trending (only valid queries)
+        if validated_data.get("query"):
+            SearchAnalyticsService.track_search_query(validated_data.get("query"))
+        # Phase 14: Behavior analytics (passive; does not change results)
+        try:
+            from behavior_engine.trackers import track_search_query
+            track_search_query(request, validated_data.get("query"), metadata={
+                "query": (validated_data.get("query") or "")[:200],
+                "city": validated_data.get("city_id"),
+            })
+        except Exception:
+            pass
+
+        # Phase 10F: Session-based related search tracking (previous → current)
+        current_sanitized = (
+            SearchService._sanitize_search_query(validated_data.get("query"))
+            if validated_data.get("query")
+            else ""
+        )
+        if current_sanitized and len(current_sanitized) >= 3:
+            previous_query = request.session.get("last_search_query")
+            SearchAnalyticsService.track_related_search(previous_query, current_sanitized)
+            request.session["last_search_query"] = current_sanitized
+
+        # Perform search (Phase 10B: optional query for FULLTEXT/icontains)
         queryset = SearchService.search_pandits(
             city_id=validated_data.get('city_id'),
             area_id=validated_data.get('area_id'),
@@ -191,7 +247,8 @@ def search_pandits(request):
             end_time=validated_data.get('end_time'),
             exclude_fully_blocked=True,
             enable_call=validated_data.get('enable_call'),
-            enable_whatsapp=validated_data.get('enable_whatsapp')
+            enable_whatsapp=validated_data.get('enable_whatsapp'),
+            query=validated_data.get('query'),
         )
         
         # Pagination
@@ -211,8 +268,7 @@ def search_pandits(request):
             result_count=len(results)
         )
         
-        # Return paginated response
-        return JsonResponse({
+        response_data = {
             'results': results,
             'pagination': {
                 'page': page,
@@ -222,7 +278,21 @@ def search_pandits(request):
                 'has_next': page_obj.has_next(),
                 'has_previous': page_obj.has_previous(),
             }
-        })
+        }
+        # Phase 10E: Empty search result suggestions
+        if len(results) == 0:
+            response_data['suggested_searches'] = SearchAnalyticsService.get_trending_searches()
+        # Phase 10F: Related searches when a query was used
+        if validated_data.get("query"):
+            response_data["related_searches"] = SearchAnalyticsService.get_related_searches(
+                validated_data.get("query")
+            )
+
+        # Phase 10C: Cache result (Step 4) — 5 minutes
+        if cacheable and cache_key:
+            cache.set(cache_key, response_data, timeout=SEARCH_CACHE_TIMEOUT)
+        
+        return JsonResponse(response_data)
     
     except Exception as e:
         # Log error but don't expose internal details
@@ -231,3 +301,120 @@ def search_pandits(request):
             {'error': 'An error occurred while performing search'},
             status=500
         )
+
+
+@require_http_methods(["GET"])
+def search_suggestions(request):
+    """
+    Phase 10D: Autocomplete suggestions for search.
+    GET /api/search/suggestions/?q=pu
+    Returns {"suggestions": ["puja", "puja pandit", ...]}.
+    No auth required; query length and count limited to prevent abuse.
+    """
+    q = (request.GET.get("q") or "").strip()
+    suggestions = SearchService.get_search_suggestions(q)
+    return JsonResponse({"suggestions": suggestions})
+
+
+@require_http_methods(["GET"])
+def trending_searches(request):
+    """
+    Phase 10E: Trending search queries for homepage and empty-result suggestions.
+    GET /api/search/trending/
+    Returns {"trending": ["puja pandit hyderabad", "temple puja", ...]}.
+    Cached 10 minutes.
+    """
+    trending = SearchAnalyticsService.get_trending_searches()
+    return JsonResponse({"trending": trending})
+
+
+@require_http_methods(["GET"])
+def related_searches(request):
+    """
+    Phase 10F: Related searches ("People also searched for") for a given query.
+    GET /api/search/related/?q=puja hyderabad
+    Returns {"related": ["temple puja", "griha pravesh puja", ...]}.
+    Cached 10 minutes.
+    """
+    q = (request.GET.get("q") or "").strip()
+    related = SearchAnalyticsService.get_related_searches(q)
+    return JsonResponse({"related": related})
+
+
+@require_http_methods(["POST"])
+def search_result_click(request):
+    """
+    Phase 11C1: Track which pandit profile was clicked from search results.
+    POST /api/search/click/
+    Body: {"query": "puja hyderabad", "pandit_id": "<public_id>"}
+    Returns: {"status": "ok"}
+    Abuse protection: query length >= 3, valid pandit, no duplicate same session within 5s.
+    """
+    import json
+    from core.security_utils import safe_json_loads
+    from django.core.exceptions import ValidationError
+
+    try:
+        allowed_fields = ["query", "pandit_id"]
+        data = safe_json_loads(request.body, allowed_fields=allowed_fields)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except ValidationError as e:
+        return JsonResponse({"error": "Invalid payload", "message": str(e)}, status=400)
+
+    pandit_public_id = data.get("pandit_id")
+    if not pandit_public_id:
+        return JsonResponse({"error": "pandit_id is required"}, status=400)
+    pandit_public_id = str(pandit_public_id).strip()
+    if reject_bigint_id(pandit_public_id):
+        return JsonResponse({"error": "Invalid pandit identifier"}, status=400)
+
+    pandit_profile = resolve_public_id(PanditProfile, pandit_public_id)
+    if not pandit_profile:
+        return JsonResponse({"error": "Pandit not found"}, status=404)
+
+    session_id = (request.session.session_key or "").strip()
+    if not session_id and request.session:
+        request.session.save()
+        session_id = request.session.session_key or ""
+
+    SearchClickTrackingService.track_click(
+        query=data.get("query"),
+        pandit_profile=pandit_profile,
+        user=request.user,
+        session_id=session_id,
+    )
+    # Phase 14: Behavior analytics (passive)
+    try:
+        from behavior_engine.trackers import track_search_click
+        track_search_click(request, pandit_profile.id, metadata={})
+    except Exception:
+        pass
+    return JsonResponse({"status": "ok"})
+
+
+RECOMMENDATIONS_CACHE_KEY = "recommendations:pandits"
+RECOMMENDATIONS_CACHE_TIMEOUT = 300
+
+
+@require_http_methods(["GET"])
+def recommended_pandits(request):
+    """
+    Phase 11F: Recommended Pandits for homepage, empty-state, and similar pandits.
+    GET /api/recommendations/pandits/
+    Returns {"recommended": [{"public_id": "...", "name": "..."}, ...]}.
+    Cached 5 minutes.
+    """
+    cached = cache.get(RECOMMENDATIONS_CACHE_KEY)
+    if cached is not None:
+        return JsonResponse(cached)
+    profiles = RecommendationService.get_recommended_pandits(limit=10)
+    payload = {
+        "recommended": [
+            {"public_id": (p.public_id or ""), "name": (p.get_display_name() or "")}
+            for p in profiles
+        ],
+    }
+    cache.set(RECOMMENDATIONS_CACHE_KEY, payload, RECOMMENDATIONS_CACHE_TIMEOUT)
+    logger.debug("recommendations generated count=%s", len(profiles))
+    return JsonResponse(payload)

@@ -70,8 +70,8 @@
                         <span class="small">${file.name}</span>
                         <span class="text-muted small">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                     </div>
-                    <button type="button" class="btn btn-sm btn-link text-danger p-0" data-index="${index}">
-                        <i class="bi bi-x-circle"></i>
+                    <button type="button" class="btn btn-sm btn-outline-secondary gallery-remove-file" data-index="${index}" title="Remove this file" aria-label="Remove ${file.name}">
+                        <i class="bi bi-trash"></i> Remove
                     </button>
                 `;
                 
@@ -110,9 +110,10 @@
                     return;
                 }
                 
-                // Check file size (max 10MB per file)
-                if (file.size > 10 * 1024 * 1024) {
-                    errors.push(`${file.name}: File too large (max 10MB)`);
+                // Check file size (max 25MB per file; must match FILE_UPLOAD_MAX_IMAGE_BYTES)
+                const maxBytes = 25 * 1024 * 1024;
+                if (file.size > maxBytes) {
+                    errors.push(`${file.name}: File too large (max 25MB)`);
                     return;
                 }
                 
@@ -144,10 +145,13 @@
             updateFileList();
         }
         
-        // File input change
+        // File input change (fires when user selects file(s) in picker)
         if (fileInput) {
             fileInput.addEventListener('change', function(e) {
-                handleFiles(e.target.files);
+                const files = e.target.files;
+                if (files && files.length) {
+                    handleFiles(files);
+                }
             });
         }
         

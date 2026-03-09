@@ -44,6 +44,11 @@ INSTALLED_APPS = [
     'support',  # Contact Us system
     'branding',  # Branding Logo Management System
     'ads',  # Super Admin–controlled advertisement banners
+    'monitoring',  # Phase 12: Observability (no models, no migrations)
+    'analytics_dashboard',  # Phase 13: Admin analytics (read-only, no models)
+    'recommendation_engine',  # Phase 15: Behavior-driven suggestions (read-only, no models)
+    'admin_intelligence',  # Phase 16: Admin intelligence dashboard (read-only, no models)
+    'feed_engine',  # Phase 17A: Personalized feed ranking engine
 ]
 
 # Custom User Model
@@ -59,6 +64,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'core.middleware_session_validation.SessionValidationMiddleware',  # TASK 18: Force logout for deactivated users
     'django.contrib.messages.middleware.MessageMiddleware',
+    'behavior_engine.middleware.PageViewTrackingMiddleware',  # Phase 14: page view tracking (GET only)
+    'monitoring.middleware.RequestTimingMiddleware',  # Phase 12: request timing (observational only)
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -119,10 +126,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Default: 3 days (259200), Set to 24 hours (86400) for better security
 PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
 
-# Cache Configuration
-# Used for rate limiting and session storage
-# Development: Use local memory cache (simple, no setup required)
-# Production: Should use Redis or Memcached
+# Cache Configuration (Phase 10A: Redis-ready, optional)
+# Used for rate limiting and session storage.
+# Default: in-memory (no Redis required). For production at scale, switch to Redis:
+#   'default': {
+#       'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#       'LOCATION': 'redis://127.0.0.1:6379/1',
+#       'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
+#   }
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -140,7 +151,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -170,6 +181,13 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+# Phase 9: Security hardening (safe defaults; Secure cookie flags are env-driven in dev/prod)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
 # Logging Configuration
 # Phase 2 Module 0 Task 0.1: Centralized logging foundation
 # Phase 2 Module 0 Task 0.5: Logging strategy - observational only, no PII, no payloads
@@ -186,10 +204,16 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'suppress_chrome_devtools_404': {
+            '()': 'core.log_filters.SuppressChromeDevTools404',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['suppress_chrome_devtools_404'],
         },
     },
     'root': {
@@ -208,4 +232,7 @@ LOGGING = {
 # ✅ Allowed: System startup errors, Configuration failures, Unexpected exceptions, Infrastructure warnings
 # ❌ Forbidden: PII, Credentials, Tokens, Request payloads, Business decision traces
 # 📌 Errors are admin-visible only
+
+# File upload max sizes (used by core.file_upload_security and gallery uploads)
+FILE_UPLOAD_MAX_IMAGE_BYTES = 25 * 1024 * 1024   # 25 MB per image (gallery, profile, etc.)
 

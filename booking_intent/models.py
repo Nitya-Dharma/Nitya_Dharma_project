@@ -206,6 +206,7 @@ class BookingIntent(models.Model):
             models.Index(fields=['requester', 'status']),
             models.Index(fields=['pandit', 'status']),
             models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['pandit', '-created_at'], name='booking_pandit_created_idx'),
         ]
     
     def save(self, *args, **kwargs):

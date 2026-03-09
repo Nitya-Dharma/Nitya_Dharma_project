@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
-    <!-- Favicon -->
+    <!-- Favicon (fallback avoids /favicon.ico 404 when no branding is set) -->
     {% if active_favicon and active_favicon.favicon_image %}
     <link rel="icon" type="image/png" href="{{ active_favicon.favicon_image.url }}">
     {% elif active_favicon and active_favicon.logo_image %}
     <link rel="icon" type="image/png" href="{{ active_favicon.logo_image.url }}">
     {% elif site_branding and site_branding.favicon %}
     <link rel="icon" type="image/png" href="{{ site_branding.favicon.url }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='.9em' font-size='28'>🕉️</text></svg>">
     {% endif %}
     
     <title>{% block title %}{% if seo_title %}{{ seo_title }}{% else %}Nitya Dharma - Find Your Perfect Pandit{% endif %}{% endblock %}</title>
@@ -322,6 +324,16 @@
             .pooja-category-header {
                 cursor: pointer;
             }
+            /* Responsive: ensure Poojas panel can be closed by tap; max-height so it scrolls on small screens */
+            .poojas-multilevel-dropdown.active > .poojas-dropdown-menu {
+                max-height: 70vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .poojas-trigger i.bi-chevron-down,
+            .poojas-trigger i.bi-chevron-up {
+                transition: transform 0.2s ease;
+            }
         }
     </style>
 </head>
@@ -462,66 +474,94 @@
     {# Premium Multi-level Poojas Dropdown JavaScript #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const isMobile = window.matchMedia('(max-width: 991.98px)').matches;
             const poojasDropdown = document.querySelector('.poojas-multilevel-dropdown');
             const poojasTrigger = document.querySelector('.poojas-trigger');
+            const poojasChevron = poojasTrigger ? poojasTrigger.querySelector('i.bi-chevron-down, i.bi-chevron-up') : null;
             const categoryHeaders = document.querySelectorAll('.pooja-category-header');
+            const mobileQuery = window.matchMedia('(max-width: 991.98px)');
             
-            // Mobile: Toggle dropdown on click
-            if (isMobile && poojasTrigger) {
-                poojasTrigger.addEventListener('click', function(e) {
+            function setPoojasOpen(open) {
+                if (!poojasDropdown) return;
+                if (open) {
+                    poojasDropdown.classList.add('active');
+                    if (poojasTrigger) poojasTrigger.setAttribute('aria-expanded', 'true');
+                    if (poojasChevron) { poojasChevron.classList.remove('bi-chevron-down'); poojasChevron.classList.add('bi-chevron-up'); }
+                } else {
+                    poojasDropdown.classList.remove('active');
+                    if (poojasTrigger) poojasTrigger.setAttribute('aria-expanded', 'false');
+                    if (poojasChevron) { poojasChevron.classList.remove('bi-chevron-up'); poojasChevron.classList.add('bi-chevron-down'); }
+                    document.querySelectorAll('.poojas-multilevel-dropdown .dropdown-submenu.active').forEach(function(el) { el.classList.remove('active'); });
+                }
+            }
+            
+            function setupMobilePoojas() {
+                if (!mobileQuery.matches || !poojasTrigger) return;
+                // Remove any duplicate listeners by cloning (one-time setup with flag is alternative; we avoid duplicate by only adding once)
+                poojasTrigger.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    poojasDropdown.classList.toggle('active');
-                });
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!poojasDropdown.contains(e.target)) {
-                        poojasDropdown.classList.remove('active');
-                    }
-                });
-                
-                // Mobile: Toggle category submenu on tap
-                categoryHeaders.forEach(function(header) {
-                    header.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const submenu = this.closest('.dropdown-submenu');
-                        if (submenu) {
-                            submenu.classList.toggle('active');
-                        }
-                    });
-                });
+                    var isOpen = poojasDropdown.classList.contains('active');
+                    setPoojasOpen(!isOpen);
+                };
+                poojasTrigger.setAttribute('aria-expanded', poojasDropdown.classList.contains('active') ? 'true' : 'false');
             }
             
-            // Desktop: Prevent category click navigation (hover-only)
-            if (!isMobile) {
-                categoryHeaders.forEach(function(header) {
-                    header.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    });
-                });
+            function setupDesktopPoojas() {
+                if (mobileQuery.matches) return;
+                poojasTrigger.onclick = null;
+                poojasTrigger.removeAttribute('aria-expanded');
+                setPoojasOpen(false);
+                if (poojasChevron) { poojasChevron.classList.remove('bi-chevron-up'); poojasChevron.classList.add('bi-chevron-down'); }
             }
             
-            // Smooth hover behavior - ensure submenu stays open when moving from category to submenu
-            if (!isMobile) {
-                const submenus = document.querySelectorAll('.pooja-submenu');
-                submenus.forEach(function(submenu) {
-                    submenu.addEventListener('mouseenter', function() {
-                        this.style.display = 'block';
-                        this.style.opacity = '1';
-                        this.style.transform = 'translateX(0)';
-                    });
-                    
-                    submenu.addEventListener('mouseleave', function() {
-                        this.style.display = 'none';
-                        this.style.opacity = '0';
-                        this.style.transform = 'translateX(-10px)';
-                    });
+            // Mobile: toggle dropdown on trigger click; close on outside click
+            document.addEventListener('click', function(e) {
+                if (!mobileQuery.matches || !poojasDropdown) return;
+                if (poojasDropdown.contains(e.target)) return;
+                setPoojasOpen(false);
+            });
+            
+            // Mobile: toggle category submenus on tap
+            categoryHeaders.forEach(function(header) {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!mobileQuery.matches) return;
+                    var submenu = this.closest('.dropdown-submenu');
+                    if (submenu) submenu.classList.toggle('active');
                 });
-            }
+            });
+            
+            // Desktop: prevent category header from navigating
+            categoryHeaders.forEach(function(header) {
+                header.addEventListener('click', function(e) {
+                    if (mobileQuery.matches) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            
+            mobileQuery.addEventListener('change', function() {
+                if (mobileQuery.matches) setupMobilePoojas(); else setupDesktopPoojas();
+            });
+            if (mobileQuery.matches) setupMobilePoojas(); else setupDesktopPoojas();
+            
+            // Desktop: smooth hover behavior for submenus
+            var submenus = document.querySelectorAll('.pooja-submenu');
+            submenus.forEach(function(submenu) {
+                submenu.addEventListener('mouseenter', function() {
+                    if (mobileQuery.matches) return;
+                    this.style.display = 'block';
+                    this.style.opacity = '1';
+                    this.style.transform = 'translateX(0)';
+                });
+                submenu.addEventListener('mouseleave', function() {
+                    if (mobileQuery.matches) return;
+                    this.style.display = 'none';
+                    this.style.opacity = '0';
+                    this.style.transform = 'translateX(-10px)';
+                });
+            });
         });
     </script>
 </body>

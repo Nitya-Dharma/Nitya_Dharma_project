@@ -9,6 +9,7 @@ from django.http import Http404
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
+from django.core.paginator import Paginator
 
 from .models import Advertisement
 from .forms import AdvertisementForm
@@ -26,9 +27,12 @@ def _super_admin_required(view_func):
 @_super_admin_required
 @require_http_methods(["GET"])
 def advertisement_list(request):
-    ads = Advertisement.objects.all().order_by('-created_at')
+    queryset = Advertisement.objects.all().order_by('-created_at')
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
     return render(request, 'ads/advertisement_list.html', {
-        'advertisements': ads,
+        'advertisements': page_obj.object_list,
+        'page_obj': page_obj,
         'dashboard_has_data': True,  # Always show our content (we render our own empty state)
     })
 

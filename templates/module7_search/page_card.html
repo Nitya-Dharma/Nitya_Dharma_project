@@ -1,16 +1,23 @@
 {% load static %}
 
 <div class="temple-card">
-    <!-- Temple Image -->
+    <!-- Temple Image - wrapper ensures area stays visible when image is missing or fails to load -->
+    <div class="temple-card-image-wrap">
     {% if page.cover_image %}
         <img src="{{ page.cover_image.url }}" 
              alt="{{ page.title }} cover image"
-             class="temple-card-image">
+             class="temple-card-image"
+             loading="lazy"
+             onerror="this.style.display='none'; this.nextElementSibling && this.nextElementSibling.classList.remove('d-none');">
+        <div class="temple-card-image-placeholder d-none" aria-hidden="true">
+            <i class="bi bi-building"></i>
+        </div>
     {% else %}
         <div class="temple-card-image-placeholder">
             <i class="bi bi-building"></i>
         </div>
     {% endif %}
+    </div>
     
     <div class="temple-card-body">
         <!-- Temple Name -->

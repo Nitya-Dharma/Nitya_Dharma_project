@@ -728,8 +728,9 @@ def dashboard_super_admin(request):
         })
     
     # TASK 5: Pandits list for Super Admin dashboard (with email verification status) - Keep for backward compatibility
+    # Limit to avoid slow request when many pandits exist (Phase 12 slow-query fix)
     from accounts.models import User
-    all_pandits = User.objects.filter(role='pandit').select_related('referred_by').order_by('-date_joined')
+    all_pandits = User.objects.filter(role='pandit').select_related('referred_by').order_by('-date_joined')[: (DEFAULT_PAGE_SIZE * 4)]
     pandits_list = []
     for pandit in all_pandits:
         pandits_list.append({
@@ -760,8 +761,13 @@ def dashboard_super_admin(request):
     page_number = request.GET.get('page', 1)
     
     # UNIT 14: Build unified audit query from all audit tables
-    # Start with PageAuditLog
-    audit_records = PageAuditLog.objects.select_related('page', 'performed_by').order_by('-created_at')
+    # Limit records at DB level to avoid slow request (SLOW REQUEST fix)
+    from core.api_constants import get_dashboard_audit_feed_max
+    audit_feed_max = get_dashboard_audit_feed_max()
+    audit_records = (
+        PageAuditLog.objects.select_related('page', 'performed_by')
+        .order_by('-created_at')[:audit_feed_max]
+    )
     
     # Convert PageAuditLog to unified format for UNIT 14
     unified_audit_records = []

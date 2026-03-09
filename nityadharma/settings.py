@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lmdb&!80_8#16e#6z*u1lq(yu6q@p)d2#mb5et3d-m)0ub)k1b'
+# This file is legacy; app uses nityadharma.settings.dev / .prod. Never commit a real key.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -140,8 +142,8 @@ LOGIN_RATE_LIMIT_WINDOW_SECONDS = 300
 CONTACT_RATE_LIMIT_COUNT = 3
 CONTACT_RATE_LIMIT_WINDOW_SECONDS = 300
 
-# File upload max sizes in bytes (default: 10 MB image, 50 MB document, 5 MB CSV)
-FILE_UPLOAD_MAX_IMAGE_BYTES = 10 * 1024 * 1024
+# File upload max sizes in bytes (default: 25 MB image, 50 MB document, 5 MB CSV)
+FILE_UPLOAD_MAX_IMAGE_BYTES = 25 * 1024 * 1024
 FILE_UPLOAD_MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
 FILE_UPLOAD_MAX_CSV_BYTES = 5 * 1024 * 1024
 

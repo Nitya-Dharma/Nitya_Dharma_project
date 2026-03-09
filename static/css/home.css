@@ -155,7 +155,7 @@ body {
     font-size: 3.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: var(--home-white);
+    color: #FFFFFF !important;
     line-height: 1.2;
 }
 
@@ -294,6 +294,7 @@ body {
     .hero-section h1 {
         font-size: 2.25rem;
         margin-bottom: 1rem;
+        color: #FFFFFF !important;
     }
     
     .hero-section .lead {
@@ -349,6 +350,7 @@ body {
     
     .hero-section h1 {
         font-size: 3rem;
+        color: #FFFFFF !important;
     }
     
     .search-hero-form {

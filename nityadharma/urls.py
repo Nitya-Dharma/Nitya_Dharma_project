@@ -30,6 +30,7 @@ urlpatterns = [
     path('dashboard/super-admin/advertisements/', include(('ads.urls', 'ads'))),
     path('search/', include(('search.urls', 'search'), namespace='search_ui')),  # UI search pages
     path('api/search/', include(('search.urls', 'search'), namespace='search_api')),  # API search endpoints
+    path('api/recommendations/', include(('search.urls', 'search'), namespace='recommendations_api')),  # Phase 11F recommendation API
     path('booking-intent/', include(('booking_intent.urls', 'booking_intent'), namespace='booking_intent_ui')),  # UI booking intent pages
     path('api/booking-intent/', include(('booking_intent.urls', 'booking_intent'), namespace='booking_intent_api')),  # API booking intent endpoints
     path('reviews/', include(('reviews.urls', 'reviews'), namespace='reviews_ui')),  # UI reviews pages
@@ -48,6 +49,11 @@ urlpatterns = [
     
     path('', include('support.urls')),  # Support app URLs (Contact Us)
     path('branding/', include('branding.urls')),  # Branding management
+    path('monitoring/', include('monitoring.urls')),  # Phase 12: observability (health, metrics)
+    path('admin-analytics/', include('analytics_dashboard.urls')),  # Phase 13: admin analytics (read-only)
+    path('recommendations/', include('recommendation_engine.urls')),  # Phase 15: recommendation engine (read-only)
+    # path('admin-intelligence/', include('admin_intelligence.urls')),  # Phase 16: moved to /dashboard/super-admin/intelligence/ (platform UI)
+    path('feed/', include('feed_engine.urls')),  # Phase 17A: personalized feed
 ]
 
 # Serve media files in development

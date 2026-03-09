@@ -25,11 +25,12 @@ urlpatterns = [
     path('private/', views.profile_private, name='profile_private'),
     path('private/<str:public_id>/', views.profile_private, name='profile_private_with_id'),
     
-    # Public profile view - supports both slug and public_id (UUIDv7) for backward compatibility
+    # Public profile view - supports both slug and public_id (Phase 11B.1 / 11B.2)
     # Security: Only approved profiles are accessible
-    # MUST BE LAST - matches any string that isn't "edit" or "private"
-    # Try slug first, fallback to public_id
-    path('<str:identifier>/', views.profile_public, name='profile_public'),
+    # id/<public_id>/ for explicit public_id (templates using public_id=)
+    path('id/<str:public_id>/', views.profile_public, name='profile_public_by_id'),
+    # <slug:identifier>/ for SEO slug or public_id (letters, numbers, hyphens, underscores only)
+    path('<slug:identifier>/', views.profile_public, name='profile_public'),
 ]
 
 

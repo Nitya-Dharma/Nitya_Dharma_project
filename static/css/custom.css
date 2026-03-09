@@ -4,6 +4,11 @@
     No logic, styling only
 */
 
+/* Hide dark-mode toggle from navbar (desktop + mobile); reversible — remove class to show again */
+.hidden-theme-toggle {
+    display: none !important;
+}
+
 /* End User Profile Redesign - PART 1 */
 
 /* Profile Page Container */

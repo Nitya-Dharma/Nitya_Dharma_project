@@ -848,15 +848,14 @@
                         <span id="fileCounter" class="text-muted small">0 / 20 selected</span>
                     </div>
                     
-                    <!-- Drag & Drop Zone -->
-                    <div id="galleryDropZone" class="border border-2 border-dashed rounded p-5 text-center mb-3" style="background: #F8FAFC; border-color: #E5E7EB !important; min-height: 200px; cursor: pointer;">
+                    <!-- Drag & Drop Zone: file input overlaid so mobile can open picker (display:none breaks on iOS) -->
+                    <div id="galleryDropZone" class="border border-2 border-dashed rounded p-5 text-center mb-3 position-relative" style="background: #F8FAFC; border-color: #E5E7EB !important; min-height: 200px; cursor: pointer;">
+                        <input type="file" id="gallery_images" name="images" multiple accept="image/*" class="gallery-file-input-overlay" aria-label="Select images">
                         <i class="bi bi-cloud-upload display-4 text-muted d-block mb-3"></i>
                         <p class="mb-2">
-                            <strong>Drag & drop images here</strong> or
-                            <label for="gallery_images" class="text-primary" style="cursor: pointer; text-decoration: underline;">browse files</label>
+                            <strong>Drag & drop images here</strong> or <strong>browse files</strong>
                         </p>
-                        <p class="text-muted small mb-0">Maximum 20 images, 10MB per file</p>
-                        <input type="file" class="form-control d-none" id="gallery_images" name="images" multiple accept="image/*">
+                        <p class="text-muted small mb-0">Maximum 20 images, 25MB per file</p>
                     </div>
                     
                     <!-- File List -->

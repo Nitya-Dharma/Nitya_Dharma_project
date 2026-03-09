@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_pandit_profile(sender, instance, created, **kwargs):
+def create_pandit_profile(sender, instance, created, raw, **kwargs):
     """
     Automatically create PanditProfile when a User with role='pandit' is created.
     
@@ -24,29 +24,23 @@ def create_pandit_profile(sender, instance, created, **kwargs):
         instance: The User instance that was saved
         created: Boolean indicating if this is a new record
     """
+    if raw:
+        return
     # Only create profile for new Pandit users
     if not created:
         return
-    
     # Only create profile if user has pandit role
     if instance.role != 'pandit':
         return
-    
     # Check if profile already exists (avoid duplicates)
     if hasattr(instance, 'pandit_profile'):
         logger.debug(f"PanditProfile already exists for {instance.email}")
         return
-    
     try:
         from .models import PanditProfile
-        
-        # 🔒 SAFE: Check if profile exists first to avoid unnecessary save() calls
-        profile = PanditProfile.objects.filter(user=instance).first()
-        if not profile:
-            # Create new profile
-            profile = PanditProfile(user=instance)
-            # Save immediately to get primary key (required before any M2M access)
-            profile.save()
+        # Use get_or_create to avoid duplicates during loaddata/fixture load
+        profile, created_profile = PanditProfile.objects.get_or_create(user=instance)
+        if created_profile:
             logger.info(f"✅ PanditProfile created automatically for {instance.email} (User ID: {instance.id})")
         else:
             logger.debug(f"PanditProfile already exists for {instance.email} (User ID: {instance.id})")

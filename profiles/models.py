@@ -311,6 +311,7 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         indexes = [
             models.Index(fields=['id'], name='profile_id_idx'),  # Fast lookup by unique ID
             models.Index(fields=['user', 'is_profile_approved'], name='profile_user_approved_idx'),  # Fast filtering
+            models.Index(fields=['is_profile_approved'], name='profile_approved_idx'),  # Phase 8.1: list approved pandits
         ]
     
     def __str__(self):

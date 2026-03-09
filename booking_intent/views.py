@@ -143,7 +143,14 @@ def create_intent(request):
             optional_requested_time=optional_requested_time,
             message=message
         )
-        
+        # Phase 14: Behavior analytics (conversion signal; passive)
+        try:
+            from behavior_engine.trackers import track_booking_intent
+            profile_id = getattr(getattr(intent.pandit, 'pandit_profile', None), 'id', None)
+            if profile_id is not None:
+                track_booking_intent(request, profile_id, metadata={})
+        except Exception:
+            pass
         return JsonResponse(
             BookingIntentSerializer.serialize(intent),
             status=201

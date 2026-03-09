@@ -56,6 +56,12 @@ db.sqlite3-journal
 *.sql
 *.sql.gz
 
+# DB backups / data dumps (may contain sensitive data)
+full_backup.json
+full_backup_clean.json
+full_backup_utf8.json
+full_backup*.json
+
 # Coverage reports
 htmlcov/
 .tox/

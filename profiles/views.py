@@ -17,11 +17,13 @@ from core.public_id import resolve_public_id, reject_bigint_id
 from seo.schema_builders import build_pandit_schema
 
 
-def profile_public(request, identifier):
+def profile_public(request, identifier=None, public_id=None):
     """
     Public view of a Pandit profile.
     
-    Supports both SEO slug and public_id (UUIDv7) for backward compatibility.
+    Phase 11B.1: Accepts both identifier (slug or legacy) and public_id (explicit route).
+    - URL name profile_public: path <identifier>/ (slug or public_id as segment)
+    - URL name profile_public_by_id: path id/<public_id>/
     
     Security:
     - Uses public_id (UUIDv7) or slug to prevent enumeration
@@ -33,23 +35,27 @@ def profile_public(request, identifier):
     Accessible to all users (logged-in and anonymous) for approved profiles only.
     """
     profile = None
-    
-    # Try to find by slug first (SEO-optimized URLs)
-    try:
-        profile = PanditProfile.objects.get(slug=identifier, is_profile_approved=True)
-    except PanditProfile.DoesNotExist:
-        pass
-    
-    # If not found by slug, try public_id (backward compatibility)
-    if not profile:
-        # Security: Reject BIGINT IDs
-        if reject_bigint_id(identifier):
+
+    if public_id:
+        # Explicit public_id route (profile_public_by_id)
+        if reject_bigint_id(public_id):
             raise Http404("Invalid profile identifier")
-        
-        # Resolve public_id to internal ID
-        profile = resolve_public_id(PanditProfile, identifier)
+        profile = resolve_public_id(PanditProfile, public_id)
         if not profile:
             raise Http404("Profile not found")
+    else:
+        # identifier route (profile_public): slug or public_id as path segment
+        try:
+            profile = PanditProfile.objects.get(slug=identifier, is_profile_approved=True)
+        except PanditProfile.DoesNotExist:
+            pass
+
+        if not profile:
+            if reject_bigint_id(identifier):
+                raise Http404("Invalid profile identifier")
+            profile = resolve_public_id(PanditProfile, identifier)
+            if not profile:
+                raise Http404("Profile not found")
     
     # Check if user is the profile owner
     is_profile_owner = request.user.is_authenticated and request.user == profile.user
@@ -104,6 +110,13 @@ def profile_public(request, identifier):
     try:
         from core.follow_service import get_follower_count as get_follow_count
         follower_count = get_follow_count('pandit', profile.id)
+    except Exception:
+        pass
+
+    # Phase 14: Behavior analytics (passive; profile view engagement)
+    try:
+        from behavior_engine.trackers import track_pandit_view
+        track_pandit_view(request, profile.id, metadata={})
     except Exception:
         pass
 

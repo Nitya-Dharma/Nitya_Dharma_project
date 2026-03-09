@@ -40,7 +40,7 @@ ALLOWED_DOCUMENT_MIME_TYPES = {
 ALLOWED_MIME_TYPES = ALLOWED_IMAGE_MIME_TYPES | ALLOWED_DOCUMENT_MIME_TYPES
 
 # Maximum file sizes (in bytes); overridable via settings, defaults preserved
-_DEFAULT_MAX_IMAGE = 10 * 1024 * 1024   # 10 MB
+_DEFAULT_MAX_IMAGE = 25 * 1024 * 1024   # 25 MB (gallery/profile images)
 _DEFAULT_MAX_DOCUMENT = 50 * 1024 * 1024  # 50 MB
 _DEFAULT_MAX_CSV = 5 * 1024 * 1024   # 5 MB
 MAX_IMAGE_SIZE = getattr(settings, 'FILE_UPLOAD_MAX_IMAGE_BYTES', _DEFAULT_MAX_IMAGE)

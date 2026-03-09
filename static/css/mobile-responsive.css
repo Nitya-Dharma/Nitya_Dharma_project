@@ -10,10 +10,34 @@
 --------------------------------------------------------------------------- */
 html {
     overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Allow touch scroll on mobile */
+    touch-action: manipulation;
 }
 body {
     overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     min-width: 0;
+    min-height: 100vh;
+    touch-action: pan-y;
+}
+body.modal-open {
+    overflow: hidden;
+}
+main {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+}
+/* Mobile: ensure page content can scroll when modal is closed */
+@media (max-width: 991.98px) {
+    .temple-page,
+    .container {
+        overflow-x: hidden;
+        overflow-y: visible;
+    }
 }
 
 img {
@@ -40,6 +64,63 @@ img.img-fluid {
     .container-fluid {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   MOBILE: Scrollable modals + visible scrollbars
+   Ensures all modals (Upload Gallery, Create Post, etc.) fit viewport
+   and modal body scrolls with a visible scrollbar.
+--------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .modal .modal-dialog {
+        max-height: calc(100vh - 2rem);
+        margin: 1rem;
+        display: flex;
+        flex-direction: column;
+        max-width: calc(100vw - 2rem);
+    }
+
+    .modal .modal-content {
+        max-height: calc(100vh - 2rem);
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .modal .modal-body {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        flex: 1 1 auto;
+        min-height: 0;
+        /* Visible scrollbar so users know content can scroll */
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+
+    .modal .modal-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .modal .modal-body::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .modal .modal-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .modal .modal-body::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    .modal .modal-header,
+    .modal .modal-footer {
+        flex-shrink: 0;
     }
 }
 

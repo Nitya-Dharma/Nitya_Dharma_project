@@ -120,6 +120,11 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:super_admin_intelligence' %}">
+            <i class="bi bi-bar-chart-line me-2"></i>Intelligence Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link" href="{% url 'core:home' %}">
             <i class="bi bi-search me-2"></i>Search
         </a>
@@ -135,6 +140,21 @@
 <div class="tab-content" id="superAdminTabContent">
     <!-- Dashboard/Overview Tab -->
     <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <!--
+        Django Admin is intentionally hidden from the frontend UI.
+        Internal operators should access it via /admin/ directly.
+        This prevents exposure of internal system tools.
+        -->
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="h6 mb-0">Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'module5_dashboards:super_admin_intelligence' %}" class="btn btn-primary m-1">Intelligence Dashboard</a>
+            </div>
+        </div>
+
         {% if platform_health_indicators %}
             <!-- PART 3: Premium Platform Health Cards -->
             <div class="super-admin-card">

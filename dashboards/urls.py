@@ -3,6 +3,7 @@ URL configuration for dashboards app.
 """
 from django.urls import path
 from . import views
+from . import views_super_admin_intelligence
 
 app_name = 'module5_dashboards'
 
@@ -11,6 +12,7 @@ urlpatterns = [
     path('pandit/', views.dashboard_pandit, name='dashboard_pandit'),
     path('admin-pandit/', views.dashboard_admin_pandit, name='dashboard_admin_pandit'),
     path('super-admin/', views.dashboard_super_admin, name='dashboard_super_admin'),
+    path('super-admin/intelligence/', views_super_admin_intelligence.intelligence_dashboard, name='super_admin_intelligence'),
     # UNIT 8: Pandit Approval & Rejection (Super Admin only)
     path('super-admin/pandit/<int:user_id>/approve/', views.approve_pandit_super_admin, name='approve_pandit_super_admin'),
     path('super-admin/pandit/<int:user_id>/reject/', views.reject_pandit_super_admin, name='reject_pandit_super_admin'),

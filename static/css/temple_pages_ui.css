@@ -24,17 +24,25 @@
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
 }
 
-/* Temple Image */
-.temple-card-image {
-    border-radius: 14px;
+/* Temple Image - wrapper keeps area visible when image is missing or broken */
+.temple-card-image-wrap {
     width: 100%;
     height: 200px;
-    object-fit: cover;
+    border-radius: 14px;
     margin-bottom: 16px;
+    overflow: hidden;
     background: #F1F5F9;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.temple-card-image {
+    border-radius: 14px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #F1F5F9;
 }
 
 .temple-card-image-placeholder {
@@ -48,6 +56,17 @@
     color: #64748B;
     font-size: 3rem;
     margin-bottom: 16px;
+}
+
+/* Dark theme: keep image area visible so "View" and content are not lost in a dark box */
+[data-theme="dark"] .temple-card-image-wrap,
+[data-theme="dark"] .temple-card-image-placeholder {
+    background: #334155;
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .temple-card-image {
+    background: #334155;
 }
 
 /* Temple Name */
@@ -263,7 +282,7 @@
 
 .temple-btn-secondary {
     background: #1E293B;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     border-radius: 14px;
     height: 48px;
     padding: 12px 24px;
@@ -276,14 +295,40 @@
     gap: 8px;
 }
 
+.temple-btn-secondary,
+.temple-btn-secondary i,
+.temple-btn-secondary .bi {
+    color: #FFFFFF !important;
+    fill: #FFFFFF;
+}
+
 .temple-btn-secondary:hover {
     background: #0F172A;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     transform: translateY(-1px);
+}
+
+.temple-btn-secondary:hover,
+.temple-btn-secondary:hover i,
+.temple-btn-secondary:hover .bi {
+    color: #FFFFFF !important;
 }
 
 .temple-btn-secondary:active {
     transform: translateY(0);
+}
+
+/* View button on event/post cards: always white text and icon so it is visible before click */
+.temple-page .temple-btn-secondary,
+.temple-page .card .temple-btn-secondary,
+.temple-page .temple-section-card .temple-btn-secondary {
+    color: #FFFFFF !important;
+}
+.temple-page .temple-btn-secondary i,
+.temple-page .temple-btn-secondary .bi,
+.temple-page .card .temple-btn-secondary i,
+.temple-page .temple-section-card .temple-btn-secondary i {
+    color: #FFFFFF !important;
 }
 
 /* ============================================
@@ -475,9 +520,14 @@
         padding: 16px;
     }
 
+    .temple-card-image-wrap,
     .temple-card-image,
     .temple-card-image-placeholder {
         height: 150px;
+    }
+
+    .temple-card-image-wrap {
+        min-height: 150px;
     }
 
     .temple-profile-avatar,

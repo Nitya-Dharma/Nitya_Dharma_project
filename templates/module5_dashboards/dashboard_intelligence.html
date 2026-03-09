@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Intelligence Dashboard — Nitya Dharma{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{% url 'module5_dashboards:dashboard_super_admin' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Super Admin
+        </a>
+        <h1 class="h2 mb-0">Intelligence Dashboard</h1>
+    </div>
+    <p class="text-muted">Behavior, analytics and recommendation insights. Read-only.</p>
+
+    <!-- Top Performing Pandits -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Top Performing Pandits</h2>
+        </div>
+        <div class="card-body">
+            {% if top_pandits %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Pandit</th><th>Score</th></tr></thead>
+                    <tbody>
+                        {% for p in top_pandits %}
+                        <tr><td>{{ p.name }}</td><td>{{ p.score }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Booking Conversion -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Booking Conversion</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-1">Profile views: <strong>{{ conversion.profile_views|default:0 }}</strong></p>
+            <p class="mb-1">Booking intents: <strong>{{ conversion.booking_intents|default:0 }}</strong></p>
+            <p class="mb-0">Conversion rate: <strong>{{ conversion.conversion_rate|default:0 }}</strong></p>
+        </div>
+    </div>
+
+    <!-- Trending Poojas -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Trending Poojas</h2>
+        </div>
+        <div class="card-body">
+            {% if trending_poojas %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Query</th><th>Searches</th></tr></thead>
+                    <tbody>
+                        {% for item in trending_poojas %}
+                        <tr><td>{{ item.name }}</td><td>{{ item.count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Engagement -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">User Engagement</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-1">Total page views: <strong>{{ user_engagement.total_page_views|default:0 }}</strong></p>
+            <p class="mb-1">Total search queries: <strong>{{ user_engagement.total_search_queries|default:0 }}</strong></p>
+            <p class="mb-1">Avg events per user: <strong>{{ user_engagement.avg_events_per_user|default:0 }}</strong></p>
+            <p class="mb-0">Active users (7 days): <strong>{{ user_engagement.active_users_last_7_days|default:0 }}</strong></p>
+        </div>
+    </div>
+
+    <!-- Platform Growth -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Platform Growth</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-1">Total users: <strong>{{ platform_growth.total_users|default:0 }}</strong></p>
+            <p class="mb-1">Total pandits: <strong>{{ platform_growth.total_pandits|default:0 }}</strong></p>
+            <p class="mb-1">Total bookings (intents): <strong>{{ platform_growth.total_bookings|default:0 }}</strong></p>
+            <p class="mb-1">Total reviews: <strong>{{ platform_growth.total_reviews|default:0 }}</strong></p>
+            <p class="mb-1">Bookings this week: <strong>{{ platform_growth.bookings_this_week|default:0 }}</strong> ({{ platform_growth.bookings_weekly_growth_pct|default:0 }}% vs prev week)</p>
+            <p class="mb-0">Reviews this week: <strong>{{ platform_growth.reviews_this_week|default:0 }}</strong> ({{ platform_growth.reviews_weekly_growth_pct|default:0 }}% vs prev week)</p>
+        </div>
+    </div>
+
+    <!-- Pandit Engagement Trends -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Pandit Engagement Trends</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">From aggregated daily behavior (last 30 days).</p>
+            {% if pandit_engagement_trends %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Pandit ID</th><th>Profile views</th><th>Search clicks</th><th>Booking intents</th><th>Score</th></tr></thead>
+                    <tbody>
+                        {% for item in pandit_engagement_trends %}
+                        <tr><td>{{ item.pandit_id }}</td><td>{{ item.profile_views }}</td><td>{{ item.search_clicks }}</td><td>{{ item.booking_intents }}</td><td>{{ item.engagement_score|floatformat:0 }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data (run daily aggregation task).</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Trending Searches -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Top Trending Searches</h2>
+        </div>
+        <div class="card-body">
+            {% if search_trend_intelligence %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Query</th><th>Searches</th><th>Clicks</th><th>Conversions</th></tr></thead>
+                    <tbody>
+                        {% for item in search_trend_intelligence %}
+                        <tr><td>{{ item.query }}</td><td>{{ item.search_count }}</td><td>{{ item.click_count }}</td><td>{{ item.conversion_count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data (run daily aggregation task).</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Engagement Trends -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">User Engagement Trends</h2>
+        </div>
+        <div class="card-body">
+            {% if user_engagement_trends %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Date</th><th>Active users</th><th>Sessions</th><th>Page views</th><th>Searches</th><th>Avg session (ms)</th></tr></thead>
+                    <tbody>
+                        {% for item in user_engagement_trends|slice:":14" %}
+                        <tr><td>{{ item.date }}</td><td>{{ item.active_users }}</td><td>{{ item.total_sessions }}</td><td>{{ item.total_page_views }}</td><td>{{ item.total_searches }}</td><td>{{ item.avg_session_duration_ms }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data (run daily aggregation task).</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Content Interaction Metrics -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Content Interaction Metrics</h2>
+        </div>
+        <div class="card-body">
+            {% if content_popularity %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Type</th><th>ID</th><th>Impressions</th><th>Clicks</th><th>Saves</th><th>Shares</th></tr></thead>
+                    <tbody>
+                        {% for item in content_popularity %}
+                        <tr><td>{{ item.content_type }}</td><td>{{ item.content_id }}</td><td>{{ item.impressions }}</td><td>{{ item.clicks }}</td><td>{{ item.saves }}</td><td>{{ item.shares }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data (run daily aggregation task).</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Interest Intelligence -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">User Interest Intelligence</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Aggregated interest signals. Powers personalized feeds and recommendations.</p>
+            <h3 class="h6">Top Pooja Interests</h3>
+            {% if user_interest_insights.pooja_category %}
+            <div class="table-responsive mb-3">
+                <table class="table table-sm">
+                    <thead><tr><th>Pooja / Category</th><th>Users</th><th>Total score</th></tr></thead>
+                    <tbody>
+                        {% for item in user_interest_insights.pooja_category %}
+                        <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-3">No data.</p>
+            {% endif %}
+            <h3 class="h6">Top City Interests</h3>
+            {% if user_interest_insights.city %}
+            <div class="table-responsive mb-3">
+                <table class="table table-sm">
+                    <thead><tr><th>City</th><th>Users</th><th>Total score</th></tr></thead>
+                    <tbody>
+                        {% for item in user_interest_insights.city %}
+                        <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-3">No data.</p>
+            {% endif %}
+            <h3 class="h6">Most Engaged Pandits (by interest score)</h3>
+            {% if user_interest_insights.pandit %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Pandit ID</th><th>Users</th><th>Total score</th></tr></thead>
+                    <tbody>
+                        {% for item in user_interest_insights.pandit %}
+                        <tr><td>{{ item.interest_value }}</td><td>{{ item.user_count }}</td><td>{{ item.total_score|floatformat:1 }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No data.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feed Performance -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0">Feed Performance</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-1">Feed impressions: <strong>{{ feed_performance.feed_impressions|default:0 }}</strong></p>
+            <p class="mb-1">Feed clicks: <strong>{{ feed_performance.feed_clicks|default:0 }}</strong></p>
+            <p class="mb-0">Feed engagement rate: <strong>{{ feed_performance.feed_engagement_rate|default:0 }}</strong></p>
+        </div>
+    </div>
+
+    {% if aggregate_validation_issues %}
+    <div class="card border-warning mb-4">
+        <div class="card-header bg-warning bg-opacity-25">
+            <h2 class="h6 mb-0">Aggregate Validation Issues</h2>
+        </div>
+        <div class="card-body">
+            <ul class="mb-0">
+                {% for issue in aggregate_validation_issues %}
+                <li>{{ issue }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

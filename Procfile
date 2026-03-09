@@ -1,1 +1,1 @@
-web: gunicorn nityadharma.wsgi --log-file -
+web: gunicorn nityadharma.wsgi:application --config gunicorn.conf.py

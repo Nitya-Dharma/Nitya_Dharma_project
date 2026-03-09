@@ -2,8 +2,7 @@
 Search Models
 
 TASK 20: Saved Searches with Removed Entities
-
-Models for storing saved searches and ensuring resilience to removed entities.
+Phase 11C1: Search Result Click Tracking
 """
 
 from django.db import models
@@ -82,3 +81,87 @@ class SavedSearch(models.Model):
         """Validate filters structure."""
         if not isinstance(self.filters, dict):
             raise ValidationError('Filters must be a JSON object')
+
+
+class SearchQueryLog(models.Model):
+    """
+    Phase 10E: Aggregated search query analytics for trending searches.
+    One row per normalized query; search_count and last_searched_at updated on each search.
+    """
+    query = models.CharField(max_length=100, db_index=True)
+    normalized_query = models.CharField(max_length=100, unique=True, db_index=True)
+    search_count = models.PositiveIntegerField(default=1)
+    last_searched_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'search_searchquerylog'
+        verbose_name = 'Search Query Log'
+        verbose_name_plural = 'Search Query Logs'
+        ordering = ['-search_count']
+        indexes = [
+            models.Index(fields=['normalized_query'], name='search_sql_norm_idx'),
+            models.Index(fields=['-search_count'], name='search_sql_count_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.normalized_query} ({self.search_count})"
+
+
+class RelatedSearchLog(models.Model):
+    """
+    Phase 10F: Related search pairs for "People also searched for".
+    One row per (source_query, related_query); pair_count and last_seen updated on each sequence.
+    """
+    source_query = models.CharField(max_length=100, db_index=True)
+    related_query = models.CharField(max_length=100, db_index=True)
+    pair_count = models.PositiveIntegerField(default=1)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "search_relatedsearchlog"
+        verbose_name = "Related Search Log"
+        verbose_name_plural = "Related Search Logs"
+        ordering = ["-pair_count"]
+        indexes = [
+            models.Index(fields=["source_query"], name="search_rsl_source_idx"),
+            models.Index(fields=["related_query"], name="search_rsl_related_idx"),
+            models.Index(fields=["-pair_count"], name="search_rsl_count_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.source_query} → {self.related_query} ({self.pair_count})"
+
+
+class SearchResultClick(models.Model):
+    """
+    Phase 11C1: Tracks which pandit profiles users click from search results.
+    Used for popularity analytics, ranking improvements, and trending pandits.
+    """
+    query = models.CharField(max_length=100, db_index=True)
+    pandit = models.ForeignKey(
+        "profiles.PanditProfile",
+        on_delete=models.CASCADE,
+        related_name="search_result_clicks",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="search_result_clicks",
+    )
+    session_id = models.CharField(max_length=64, db_index=True)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "search_result_click"
+        verbose_name = "Search Result Click"
+        verbose_name_plural = "Search Result Clicks"
+        indexes = [
+            models.Index(fields=["query"]),
+            models.Index(fields=["pandit"]),
+            models.Index(fields=["clicked_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.query} → pandit {self.pandit_id} @ {self.clicked_at}"

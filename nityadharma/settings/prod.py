@@ -24,19 +24,22 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production
 # Render: RENDER_EXTERNAL_HOSTNAME is auto-added when set
-# Vercel: .vercel.app is auto-added when VERCEL=1
-# Railway: .railway.app is auto-added when RAILWAY_PUBLIC_DOMAIN is set
+# Railway: .railway.app, Fly.io, etc. Add hosts via ALLOWED_HOSTS or platform env.
+# For test deployment, ALLOWED_HOSTS can be "*" (set in env).
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 _vercel = os.environ.get('VERCEL')
 _railway = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
-_allowed = list(config('ALLOWED_HOSTS', default='', cast=Csv()))
+_fly = os.environ.get('FLY_APP_NAME')
+_allowed = list(config('ALLOWED_HOSTS', default='*', cast=Csv()))
 if _render_host and _render_host not in _allowed:
     _allowed.append(_render_host)
 if _vercel and '.vercel.app' not in _allowed:
     _allowed.append('.vercel.app')
 if _railway and '.railway.app' not in _allowed:
     _allowed.append('.railway.app')
-ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else ['localhost'])
+if _fly and 'fly.dev' not in str(_allowed):
+    _allowed.append('.fly.dev')
+ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else ['*'])
 
 # Database Configuration
 # Phase 2 Module 0 Task 0.1: Environment-based database config - REQUIRED in production
@@ -65,8 +68,20 @@ else:
     }
 
 # Production Security Settings
-# Phase 2 Module 0 Task 0.1: Security-first defaults for production
+# Phase 2 Module 0 Task 0.1 / Phase 9: Security-first defaults for production
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
-SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
-CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+# Cookie HttpOnly and SameSite are set in base.py; Secure is True for HTTPS-only
+
+# Optional Redis caching for production (safe fallback: runs without Redis if REDIS_URL not set)
+_redis_url = os.environ.get('REDIS_URL', '').strip()
+if _redis_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _redis_url,
+        }
+    }
+# else: keep base.py CACHES (LocMemCache) so system runs normally without Redis
 

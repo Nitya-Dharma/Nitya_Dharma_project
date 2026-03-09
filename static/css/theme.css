@@ -7,6 +7,10 @@
 /* ===========================
    THEME VARIABLES - LIGHT/DARK MODE
    Premium Animated Theme Toggle System
+   CONTRAST RULE: Use only theme variables for text/background.
+   Never assign raw colors (e.g. color: black; color: white).
+   Dark background → theme-text-dark (light in dark mode).
+   Light background → theme-text-dark (dark in light mode).
 =========================== */
 
 /* LIGHT THEME (Default) */
@@ -57,13 +61,26 @@
     --danger-theme: #DC2626;
     --card-bg-theme: #FFFFFF;
     --navbar-bg-theme: #FFFFFF;
+    /* Semantic aliases for dark-mode visibility (used by tables, cards, inputs) */
+    --color-bg: var(--bg-primary-theme);
+    --color-text: var(--text-primary-theme);
+    --color-card-bg: var(--card-bg-theme);
+    --color-border: var(--border-color-theme);
+    --color-muted: var(--text-muted-theme);
+    /* Contrast-based theme (60-30-10): text colour follows background */
+    --theme-bg-light: #ffffff;
+    --theme-bg-card: #f8f9fa;
+    --theme-bg-primary: #0F172A;
+    --theme-text-dark: #212529;
+    --theme-text-light: #f8f9fa;
+    --theme-accent: #E11D48;
 }
 
 /* DARK THEME */
 [data-theme="dark"] {
     --bg-primary-theme: #0F172A;
     --bg-secondary-theme: #1E293B;
-    --text-primary-theme: #FFFFFF;
+    --text-primary-theme: #f8f9fa;
     --text-secondary-theme: #CBD5E1;
     --accent-theme: #E11D48;
     --border-color-theme: #334155;
@@ -73,6 +90,19 @@
     --danger-theme: #DC2626;
     --card-bg-theme: #1E293B;
     --navbar-bg-theme: #0F172A;
+    /* Semantic aliases for dark-mode visibility */
+    --color-bg: var(--bg-primary-theme);
+    --color-text: var(--text-primary-theme);
+    --color-card-bg: var(--card-bg-theme);
+    --color-border: var(--border-color-theme);
+    --color-muted: var(--text-muted-theme);
+    /* Contrast: dark backgrounds → use light text (theme-text-dark becomes light in dark mode) */
+    --theme-bg-light: #1E293B;
+    --theme-bg-card: #1E293B;
+    --theme-bg-primary: #0F172A;
+    --theme-text-dark: #f8f9fa;
+    --theme-text-light: #f8f9fa;
+    --theme-accent: #E11D48;
     
     /* Override existing variables for dark mode */
     --bg-primary: #0F172A;
@@ -93,10 +123,18 @@
                 border-color 0.3s ease;
 }
 
-/* Body Theme Support */
+/* Body Theme Support — contrast: text follows background via theme variables */
 body {
-    background-color: var(--bg-primary-theme);
-    color: var(--text-primary-theme);
+    background-color: var(--color-bg);
+    color: var(--theme-text-dark);
+}
+
+/* Base text inherits from body (theme-text-dark is dark in light mode, light in dark mode) */
+p, span, label, small, td, th, a:not(.btn) {
+    color: inherit;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: var(--theme-text-dark) !important;
 }
 
 /* ===========================
@@ -228,25 +266,25 @@ body {
     color: var(--text-primary-theme) !important;
 }
 
-/* Cards Dark Mode */
+/* Cards — contrast: card bg from theme, text contrasts automatically */
 .card,
 .dashboard-card,
 .notification-card,
 .custom-card {
-    background-color: var(--card-bg-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border: 1px solid var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 .card-header {
     background-color: var(--bg-secondary-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border-bottom: 1px solid var(--border-color-theme) !important;
+    color: var(--theme-text-dark) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 .card-body {
-    background-color: var(--card-bg-theme) !important;
-    color: var(--text-primary-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
 }
 
 /* Tabs Dark Mode */
@@ -282,7 +320,7 @@ body {
 .btn-primary {
     background-color: var(--accent-theme) !important;
     border-color: var(--accent-theme) !important;
-    color: #FFFFFF !important;
+    color: var(--theme-text-light) !important;
 }
 
 .btn-primary:hover {
@@ -298,7 +336,7 @@ body {
 
 .btn-outline-primary:hover {
     background-color: var(--accent-theme) !important;
-    color: #FFFFFF !important;
+    color: var(--theme-text-light) !important;
 }
 
 .btn-secondary {
@@ -313,36 +351,45 @@ body {
 }
 
 /* Forms Dark Mode */
+input,
+select,
+textarea,
 .form-control,
-.form-select,
-textarea {
-    background-color: var(--bg-secondary-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border-color: var(--border-color-theme) !important;
+.form-select {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
 }
 
 .form-control:focus,
 .form-select:focus,
-textarea:focus {
-    background-color: var(--bg-secondary-theme) !important;
-    color: var(--text-primary-theme) !important;
+textarea:focus,
+input:focus,
+select:focus {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
     border-color: var(--accent-theme) !important;
     box-shadow: 0 0 0 0.25rem rgba(225, 29, 72, 0.25) !important;
 }
 
-.form-label {
-    color: var(--text-primary-theme) !important;
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--color-muted) !important;
 }
 
-/* Dropdowns Dark Mode */
+.form-label {
+    color: var(--theme-text-dark) !important;
+}
+
+/* Dropdowns — contrast from theme */
 .dropdown-menu {
-    background-color: var(--card-bg-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border: 1px solid var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 .dropdown-item {
-    color: var(--text-primary-theme) !important;
+    color: var(--theme-text-dark) !important;
 }
 
 .dropdown-item:hover,
@@ -355,10 +402,10 @@ textarea:focus {
     border-top-color: var(--border-color-theme) !important;
 }
 
-/* Badges Dark Mode */
-.badge {
-    background-color: var(--accent-theme) !important;
-    color: #FFFFFF !important;
+/* Badges — on accent/dark surfaces use theme-text-light (no raw white) */
+.badge,
+.label {
+    color: var(--theme-text-light) !important;
 }
 
 /* Alerts Dark Mode */
@@ -386,50 +433,86 @@ textarea:focus {
     border-color: var(--danger-theme) !important;
 }
 
-/* Tables Dark Mode */
+/* Tables — contrast: background from theme, text contrasts automatically */
 .table {
-    color: var(--text-primary-theme) !important;
+    color: var(--theme-text-dark) !important;
 }
 
+.table thead,
 .table thead th {
-    background-color: var(--bg-secondary-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border-color: var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+.table tbody td,
+.table td,
+.table th {
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
 }
 
 .table tbody td {
-    border-color: var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) td {
+    background-color: var(--bg-secondary-theme) !important;
+}
+
+.table-striped tbody tr:nth-of-type(even) td {
+    background-color: var(--theme-bg-card) !important;
 }
 
 .table-striped tbody tr:nth-of-type(odd) {
     background-color: var(--bg-secondary-theme) !important;
 }
 
-/* List Groups Dark Mode */
+.table tbody tr:hover td {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+.table .btn-outline-secondary,
+.table .btn-outline-primary,
+.table .btn-secondary {
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+    background-color: transparent !important;
+}
+
+.table .btn-outline-secondary:hover,
+.table .btn-outline-primary:hover {
+    color: var(--theme-text-light) !important;
+    border-color: var(--theme-accent) !important;
+    background-color: var(--theme-accent) !important;
+}
+
+/* List Groups — contrast from theme */
 .list-group-item {
-    background-color: var(--card-bg-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border-color: var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
 }
 
 .list-group-item:hover {
     background-color: var(--bg-secondary-theme) !important;
 }
 
-/* Modals Dark Mode */
+/* Modals — contrast from theme */
 .modal-content {
-    background-color: var(--card-bg-theme) !important;
-    color: var(--text-primary-theme) !important;
-    border: 1px solid var(--border-color-theme) !important;
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 .modal-header {
     background-color: var(--bg-secondary-theme) !important;
-    border-bottom: 1px solid var(--border-color-theme) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 .modal-footer {
-    border-top: 1px solid var(--border-color-theme) !important;
+    border-top: 1px solid var(--color-border) !important;
 }
 
 /* Strong Override Layer for Dark Theme */
@@ -440,7 +523,7 @@ textarea:focus {
 }
 
 [data-theme="dark"] .text-dark {
-    color: var(--text-primary-theme) !important;
+    color: var(--theme-text-dark) !important;
 }
 
 [data-theme="dark"] .bg-light,
@@ -450,6 +533,143 @@ textarea:focus {
 
 [data-theme="dark"] .border {
     border-color: var(--border-color-theme) !important;
+}
+
+/* Icons and SVG visible in dark mode */
+[data-theme="dark"] svg,
+[data-theme="dark"] i.bi {
+    color: inherit;
+}
+
+[data-theme="dark"] .table i,
+[data-theme="dark"] .table svg {
+    color: var(--theme-text-dark) !important;
+}
+
+/* ===========================
+   SUPER ADMIN TABLE & FORMS — OPPOSITE COLOUR CONTRAST
+   Override super_admin_ui.css hard-coded colours so:
+   Light bg → dark text. Dark bg → light text. (All roles, all tabs.)
+=========================== */
+/* Light mode: white/light background + black/dark text */
+:root .dashboard-container .super-admin-page .table-container,
+:root .super-admin-page .table-container {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+}
+
+:root .dashboard-container .super-admin-page .table thead,
+:root .dashboard-container .super-admin-page .table thead th,
+:root .super-admin-page .table thead,
+:root .super-admin-page .table thead th {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+:root .dashboard-container .super-admin-page .table tbody td,
+:root .super-admin-page .table tbody td {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+:root .super-admin-page .table tbody tr:hover td {
+    background: var(--bg-secondary-theme) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* Dark mode: dark background + light text */
+[data-theme="dark"] .dashboard-container .super-admin-page .table-container,
+[data-theme="dark"] .super-admin-page .table-container {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .dashboard-container .super-admin-page .table thead,
+[data-theme="dark"] .dashboard-container .super-admin-page .table thead th,
+[data-theme="dark"] .super-admin-page .table thead,
+[data-theme="dark"] .super-admin-page .table thead th {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .dashboard-container .super-admin-page .table tbody td,
+[data-theme="dark"] .super-admin-page .table tbody td {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .super-admin-page .table tbody tr:hover td {
+    background: var(--bg-secondary-theme) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .form-control,
+[data-theme="dark"] .super-admin-page .form-select,
+[data-theme="dark"] .super-admin-page input {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .super-admin-page input::placeholder {
+    color: var(--color-muted) !important;
+}
+
+[data-theme="dark"] .super-admin-page .table .btn {
+    color: var(--theme-text-dark) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .super-admin-page .table .btn:hover {
+    color: var(--theme-text-light) !important;
+    border-color: var(--accent-theme) !important;
+    background-color: var(--accent-theme) !important;
+}
+
+/* All dashboard roles: tables/cards get opposite colour (light bg = dark text, dark bg = light text) */
+:root .dashboard-container .table tbody td,
+:root .dashboard-container .table td {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .dashboard-container .table tbody td,
+[data-theme="dark"] .dashboard-container .table td {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+:root .dashboard-container .super-admin-card,
+:root .dashboard-container .dashboard-card,
+:root .dashboard-container .card {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .dashboard-container .super-admin-card,
+[data-theme="dark"] .dashboard-container .dashboard-card,
+[data-theme="dark"] .dashboard-container .card {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* Card headers and body text — always opposite to card background */
+:root .dashboard-container .dashboard-card-header,
+:root .dashboard-container .dashboard-card-body,
+:root .dashboard-container .super-admin-card .dashboard-card-header,
+:root .dashboard-container .super-admin-card .dashboard-card-body {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .dashboard-container .dashboard-card-header,
+[data-theme="dark"] .dashboard-container .dashboard-card-body,
+[data-theme="dark"] .dashboard-container .super-admin-card .dashboard-card-header,
+[data-theme="dark"] .dashboard-container .super-admin-card .dashboard-card-body {
+    color: var(--theme-text-dark) !important;
 }
 
 /* Navbar Styling */
@@ -495,11 +715,13 @@ textarea:focus {
     border: 3px solid var(--light-color);
 }
 
-/* Premium Animated Theme Toggle Switch */
+/* Theme toggle hidden completely; light theme is default */
+.hidden-theme-toggle,
+.navbar .nav-item:has(.theme-toggle),
+.nav-item:has(.theme-toggle),
+.navbar .theme-toggle,
 .theme-toggle {
-    margin-left: 1rem;
-    display: flex;
-    align-items: center;
+    display: none !important;
 }
 
 .toggle-slider {
@@ -585,7 +807,7 @@ textarea:focus {
 
 .login-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    color: var(--theme-text-light);
     padding: 2rem;
     text-align: center;
 }
@@ -659,5 +881,396 @@ textarea:focus {
     object-fit: contain;
     display: block;
     margin: 0 auto;
+}
+
+/* ===========================
+   PROJECT-WIDE DARK THEME — CONTRAST-BASED
+   Use ONLY theme variables. Text colour follows background contrast.
+   Rule: dark background → theme-text-dark (light in dark mode);
+         light background → theme-text-dark (dark in light mode).
+=========================== */
+
+/* Override utility classes that would force wrong contrast */
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-black {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-light {
+    background-color: var(--theme-bg-card) !important;
+}
+
+/* Dashboard container and section — contrast from theme variables */
+[data-theme="dark"] .dashboard-container {
+    background-color: var(--theme-bg-primary) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .admin-section {
+    background-color: var(--theme-bg-primary) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .dashboard-header,
+[data-theme="dark"] .dashboard-main {
+    background-color: transparent !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .dashboard-header h1,
+[data-theme="dark"] .dashboard-header h2,
+[data-theme="dark"] .dashboard-header .h2,
+[data-theme="dark"] .dashboard-header .text-muted {
+    color: var(--theme-text-dark) !important;
+}
+
+/* Super Admin: page and cards use theme contrast variables */
+[data-theme="dark"] .super-admin-page {
+    background-color: var(--theme-bg-primary) !important;
+}
+
+[data-theme="dark"] .super-admin-page h1,
+[data-theme="dark"] .super-admin-page h2,
+[data-theme="dark"] .super-admin-page h3,
+[data-theme="dark"] .super-admin-page h4,
+[data-theme="dark"] .super-admin-page h5,
+[data-theme="dark"] .super-admin-page h6 {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .text-muted,
+[data-theme="dark"] .super-admin-page .admin-muted {
+    color: var(--color-muted) !important;
+}
+
+[data-theme="dark"] .super-admin-card {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-card *,
+[data-theme="dark"] .dashboard-card *,
+[data-theme="dark"] .admin-card * {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .super-admin-card h1,
+[data-theme="dark"] .super-admin-card h2,
+[data-theme="dark"] .super-admin-card h3,
+[data-theme="dark"] .super-admin-card h4,
+[data-theme="dark"] .dashboard-card-header,
+[data-theme="dark"] .dashboard-card-header h3,
+[data-theme="dark"] .dashboard-card-header h5,
+[data-theme="dark"] .dashboard-card-header h6 {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .dashboard-card-header {
+    background: var(--bg-secondary-theme) !important;
+    border-bottom-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .dashboard-card-body {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .health-indicator {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .super-admin-page .health-indicator:hover {
+    background: var(--bg-secondary-theme) !important;
+}
+
+/* Tab content (all dashboards: Super Admin, Pandit, User, etc.) */
+[data-theme="dark"] .tab-content {
+    background-color: transparent !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .tab-pane {
+    background-color: transparent !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .tab-pane * {
+    color: inherit !important;
+}
+
+[data-theme="dark"] .tab-pane h1,
+[data-theme="dark"] .tab-pane h2,
+[data-theme="dark"] .tab-pane h3,
+[data-theme="dark"] .tab-pane h4,
+[data-theme="dark"] .tab-pane h5,
+[data-theme="dark"] .tab-pane h6,
+[data-theme="dark"] .tab-pane .form-label,
+[data-theme="dark"] .tab-pane label {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .tab-pane .text-muted {
+    color: var(--color-muted) !important;
+}
+
+/* Admin card and Admin Pandit dashboard */
+[data-theme="dark"] .admin-card {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .admin-muted {
+    color: var(--color-muted) !important;
+}
+
+[data-theme="dark"] .admin-auth-page .form-label,
+[data-theme="dark"] .admin-auth-page .form-control,
+[data-theme="dark"] .admin-auth-body {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .admin-auth-page .form-control {
+    background-color: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .admin-info-note {
+    background-color: var(--bg-secondary-theme) !important;
+    color: var(--theme-text-dark) !important;
+    border-left-color: var(--accent-theme) !important;
+}
+
+/* Pandit dashboard */
+[data-theme="dark"] .pandit-page .dashboard-card-header,
+[data-theme="dark"] .pandit-page .dashboard-card-header h3,
+[data-theme="dark"] .pandit-page .dashboard-card-header h5 {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .pandit-page .dashboard-card,
+[data-theme="dark"] .pandit-page .dashboard-card-body {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* User (end-user) dashboard */
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .dashboard-card .dashboard-card-header,
+[data-theme="dark"] .dashboard-card .dashboard-card-body {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* Account / profile pages */
+[data-theme="dark"] .account-content,
+[data-theme="dark"] .account-content .user-profile-page,
+[data-theme="dark"] .account-content .profile-container,
+[data-theme="dark"] .account-content .profile-card,
+[data-theme="dark"] .account-content .profile-edit-card {
+    background-color: var(--color-bg) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .account-content .profile-card h3,
+[data-theme="dark"] .account-content .profile-edit-card h3,
+[data-theme="dark"] .account-content .form-label {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .account-content input::placeholder,
+[data-theme="dark"] .account-content textarea::placeholder {
+    color: var(--color-muted) !important;
+}
+
+/* Contact / support admin */
+[data-theme="dark"] .message-box,
+[data-theme="dark"] .reply-box {
+    background: var(--bg-secondary-theme) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .reply-box {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-color: var(--success-theme) !important;
+}
+
+/* Modals (all roles) */
+[data-theme="dark"] .modal-content {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .modal-header {
+    background: var(--bg-secondary-theme) !important;
+    border-bottom-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .modal-header .modal-title {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .modal-body {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--color-border) !important;
+    background: var(--bg-secondary-theme) !important;
+}
+
+/* Offcanvas (filters, mobile menu, etc.) */
+[data-theme="dark"] .offcanvas {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .offcanvas-header {
+    background: var(--bg-secondary-theme) !important;
+    border-bottom-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .offcanvas-title {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .offcanvas-body {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .mobile-filter-offcanvas-header {
+    background-color: var(--bg-secondary-theme) !important;
+    border-bottom-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .mobile-filter-offcanvas-header .offcanvas-title {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .mobile-filter-offcanvas-body {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* Form labels and muted text everywhere */
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--color-muted) !important;
+}
+
+/* CMS / SEO / FAQ dashboards (super_admin sub-pages) */
+[data-theme="dark"] .container-fluid.py-2,
+[data-theme="dark"] .analytics-dashboard {
+    background: transparent !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] main,
+[data-theme="dark"] .container,
+[data-theme="dark"] .container-fluid {
+    color: inherit !important;
+}
+
+/* Breadcrumb and pagination */
+[data-theme="dark"] .breadcrumb,
+[data-theme="dark"] .breadcrumb-item,
+[data-theme="dark"] .breadcrumb-item a {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .pagination .page-link {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+    background: var(--accent-theme) !important;
+    border-color: var(--accent-theme) !important;
+    color: var(--theme-text-light) !important;
+}
+
+/* List groups and empty states */
+[data-theme="dark"] .list-group-item {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .no-data {
+    color: var(--color-muted) !important;
+}
+
+/* Footer in dark mode */
+[data-theme="dark"] footer,
+[data-theme="dark"] .footer-premium {
+    background-color: var(--navbar-bg-theme) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] footer a,
+[data-theme="dark"] .footer-premium a {
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] footer a:hover,
+[data-theme="dark"] .footer-premium a:hover {
+    color: var(--accent-theme) !important;
+}
+
+/* Auth (login, register, password reset) */
+[data-theme="dark"] .login-container,
+[data-theme="dark"] .login-body,
+[data-theme="dark"] .admin-auth-body {
+    background: var(--color-bg) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .login-card {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+}
+
+/* Search filters sidebar and results area */
+[data-theme="dark"] .search-filters,
+[data-theme="dark"] .filters-sidebar-desktop {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+[data-theme="dark"] .search-filters label,
+[data-theme="dark"] .search-filters .form-label {
+    color: var(--theme-text-dark) !important;
+}
+
+/* Referrals, consistency checks, config audit, master data (super admin sub-pages) */
+[data-theme="dark"] .card.mb-4,
+[data-theme="dark"] .card.mb-3 {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--theme-text-dark) !important;
+}
+
+/* Ensure select dropdowns and options are readable */
+[data-theme="dark"] select option {
+    background: var(--theme-bg-card) !important;
+    color: var(--theme-text-dark) !important;
 }
 

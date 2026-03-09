@@ -197,8 +197,8 @@ def list_pages_for_super_admin(user) -> List[Page]:
         logger.debug(f"User {user.email} is not Super Admin, cannot list all pages")
         return Page.objects.none()
     
-    # Get all pages, all statuses
-    pages = Page.objects.all().order_by('-created_at')
+    # Get all pages, all statuses (select_related to avoid N+1 when rendering owner in dashboard)
+    pages = Page.objects.select_related('created_by').all().order_by('-created_at')
     
     logger.debug(f"Found {pages.count()} pages for Super Admin {user.email}")
     return pages

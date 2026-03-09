@@ -1,0 +1,1907 @@
+Run started:2026-03-05 08:01:25.741557+00:00
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\email_verification.py:149:16
+148	                    )
+149	                except Exception:
+150	                    # Audit logging is optional
+151	                    pass
+152	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\email_verification.py:432:16
+431	                    )
+432	                except Exception:
+433	                    pass
+434	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\email_verification.py:450:16
+449	                    )
+450	                except Exception:
+451	                    pass
+452	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\email_verification.py:462:12
+461	                )
+462	            except Exception:
+463	                # Audit logging is optional
+464	                pass
+465	            
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: '0'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\accounts\services_email_verification_authority.py:150:16
+149	            return {
+150	                'token_count': 0,
+151	                'tokens_affected': [],
+152	                'message': 'No verification tokens to transfer'
+153	            }
+154	        
+155	        # sent_by is preserved (SET_NULL on delete, but we're deactivating, not deleting)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:33:22
+32	            email='pandit@test.com',
+33	            password='testpass123',
+34	            role='pandit',
+35	            status='pending',
+36	            email_verified=False,
+37	            email_verified_at=None,
+38	            is_active=False
+39	        )
+40	        
+41	        # Create an Admin Pandit
+42	        self.admin_pandit = User.objects.create_user(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:44:28
+43	            email='admin@test.com',
+44	            password='testpass123',
+45	            role='admin',
+46	            status='active',
+47	            email_verified=True,
+48	            is_active=True,
+49	            is_staff=True
+50	        )
+51	        
+52	        # Create a Super Admin
+53	        self.super_admin = User.objects.create_superuser(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:55:27
+54	            email='superadmin@test.com',
+55	            password='testpass123',
+56	            role='admin',
+57	            status='active'
+58	        )
+59	    
+60	    def test_resend_for_unverified_pandit(self):
+61	        """Test resending verification email for unverified Pandit."""
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:132:22
+131	            email='pandit@test.com',
+132	            password='testpass123',
+133	            role='pandit',
+134	            status='pending',
+135	            email_verified=False,
+136	            email_verified_at=None,
+137	            is_active=False
+138	        )
+139	        
+140	        # Create another Pandit
+141	        self.other_pandit = User.objects.create_user(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:143:28
+142	            email='otherpandit@test.com',
+143	            password='testpass123',
+144	            role='pandit',
+145	            status='pending',
+146	            email_verified=False,
+147	            email_verified_at=None,
+148	            is_active=False
+149	        )
+150	        
+151	        # Create an Admin Pandit
+152	        self.admin_pandit = User.objects.create_user(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:154:28
+153	            email='admin@test.com',
+154	            password='testpass123',
+155	            role='admin',
+156	            status='active',
+157	            email_verified=True,
+158	            is_active=True,
+159	            is_staff=True
+160	        )
+161	        
+162	        # Create a Super Admin
+163	        self.super_admin = User.objects.create_superuser(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:165:27
+164	            email='superadmin@test.com',
+165	            password='testpass123',
+166	            role='admin',
+167	            status='active'
+168	        )
+169	    
+170	    def test_pandit_can_resend_for_self(self):
+171	        """Test that Pandit can resend verification for themselves."""
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:172:8
+171	        """Test that Pandit can resend verification for themselves."""
+172	        self.client.login(username='pandit@test.com', password='testpass123')
+173	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:185:8
+184	        """Test that Pandit cannot resend verification for other Pandits."""
+185	        self.client.login(username='pandit@test.com', password='testpass123')
+186	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:198:8
+197	        """Test that Admin Pandit can resend verification for any Pandit."""
+198	        self.client.login(username='admin@test.com', password='testpass123')
+199	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:211:8
+210	        """Test that Super Admin can resend verification for any Pandit."""
+211	        self.client.login(username='superadmin@test.com', password='testpass123')
+212	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:233:8
+232	        """Test that cooldown message is shown when resend is too soon."""
+233	        self.client.login(username='pandit@test.com', password='testpass123')
+234	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:255:8
+254	        
+255	        self.client.login(username='admin@test.com', password='testpass123')
+256	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:277:22
+276	            email='pandit@test.com',
+277	            password='testpass123',
+278	            role='pandit',
+279	            status='pending',
+280	            email_verified=False,
+281	            email_verified_at=None,
+282	            is_active=False
+283	        )
+284	    
+285	    def test_full_resend_flow(self):
+286	        """Test the full flow: resend → verify email → cannot resend again."""
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\accounts\tests_resend_verification.py:288:8
+287	        # Step 1: Pandit resends verification
+288	        self.client.login(username='pandit@test.com', password='testpass123')
+289	        
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'None'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\accounts\views.py:103:12
+102	        return render(request, 'accounts/pandit_register.html', {
+103	            'referral_token': None,
+104	            'referral_valid': False,
+105	            'error': 'Invalid referral token'
+106	        })
+107	    
+108	    # Validate referral link exists and is valid (for GET request or initial validation)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\views.py:561:16
+560	                    )
+561	                except Exception:
+562	                    # Audit logging is optional
+563	                    pass
+564	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\accounts\views.py:617:12
+616	                )
+617	            except Exception:
+618	                # Audit logging is optional
+619	                pass
+620	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\booking_intent\services_deactivation.py:55:12
+54	                )
+55	            except Exception:
+56	                pass
+57	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\branding\models.py:111:16
+110	                            errors['logo_image'] = 'Logo width must be between 100px and 800px.'
+111	                except Exception:
+112	                    # If image can't be opened, let Django handle it
+113	                    pass
+114	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\core\config.py:22:4
+21	            return cached
+22	    except Exception:
+23	        pass
+24	    try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\core\config.py:36:8
+35	            cache.set(cache_key, resolved, timeout=_CONFIG_TTL_SECONDS)
+36	        except Exception:
+37	            pass
+38	    return resolved
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\core\config.py:51:4
+50	            cache.delete(f"system_config:{key}")
+51	    except Exception:
+52	        pass
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'django-insecure-'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\core\environment_audit.py:64:23
+63	        })
+64	    elif secret_key == 'django-insecure-' or len(secret_key) < 50:
+65	        if os.environ.get('DJANGO_ENV') == 'production':
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\core\index_audit.py:142:8
+141	            field = model_class._meta.get_field(field_name)
+142	        except:
+143	            # Field doesn't exist, skip
+144	            continue
+145	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\core\middleware_session_validation.py:69:16
+68	                    )
+69	                except Exception:
+70	                    pass
+71	                
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard.py:141:15
+140	            email="test@example.com",
+141	            password="testpass123"
+142	        )
+143	        
+144	        # Attempting delete should raise ValidationError
+145	        # Note: User model should inherit DeletionGuardMixin or override delete()
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard.py:170:19
+169	                email="pandit@example.com",
+170	                password="testpass123",
+171	                role='pandit'
+172	            )
+173	            
+174	            # Create profile if it doesn't exist
+175	            profile, created = PanditProfile.objects.get_or_create(user=user)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:29:15
+28	            email="test@example.com",
+29	            password="testpass123"
+30	        )
+31	        user_id = user.id
+32	        
+33	        # Attempt delete - should raise ValidationError
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:48:16
+47	        # Create test users
+48	        user1 = User.objects.create_user(email="user1@example.com", password="pass")
+49	        user2 = User.objects.create_user(email="user2@example.com", password="pass")
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:49:16
+48	        user1 = User.objects.create_user(email="user1@example.com", password="pass")
+49	        user2 = User.objects.create_user(email="user2@example.com", password="pass")
+50	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:71:19
+70	                email="pandit@example.com",
+71	                password="testpass123",
+72	                role='pandit'
+73	            )
+74	            
+75	            profile, created = PanditProfile.objects.get_or_create(user=user)
+76	            profile_id = profile.id
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:133:15
+132	            email="test@example.com",
+133	            password="testpass123",
+134	            status='active'
+135	        )
+136	        
+137	        # Deactivate user
+138	        user.deactivate(reason="Test deactivation")
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:164:23
+163	                email="referrer@example.com",
+164	                password="pass",
+165	                role='pandit'
+166	            )
+167	            referrer_profile, _ = PanditProfile.objects.get_or_create(user=referrer)
+168	            
+169	            # Create referred pandit
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:172:23
+171	                email="referred@example.com",
+172	                password="pass",
+173	                role='pandit',
+174	                referred_by=referrer
+175	            )
+176	            referred_profile, _ = PanditProfile.objects.get_or_create(user=referred)
+177	            
+178	            # Attempt to delete referrer - should be blocked
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:218:19
+217	            
+218	            user = User.objects.create_user(email="reviewer@example.com", password="pass")
+219	            pandit = User.objects.create_user(email="pandit@example.com", password="pass", role='pandit')
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:219:21
+218	            user = User.objects.create_user(email="reviewer@example.com", password="pass")
+219	            pandit = User.objects.create_user(email="pandit@example.com", password="pass", role='pandit')
+220	            
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:243:20
+242	            
+243	            actor = User.objects.create_user(email="actor@example.com", password="pass")
+244	            recipient = User.objects.create_user(email="recipient@example.com", password="pass")
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_deletion_guard_comprehensive.py:244:24
+243	            actor = User.objects.create_user(email="actor@example.com", password="pass")
+244	            recipient = User.objects.create_user(email="recipient@example.com", password="pass")
+245	            
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:35:24
+34	            email="user@example.com",
+35	            password="testpass123",
+36	            role='user',
+37	            status='active'
+38	        )
+39	        
+40	        self.pandit = User.objects.create_user(
+41	            email="pandit@example.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:42:22
+41	            email="pandit@example.com",
+42	            password="testpass123",
+43	            role='pandit',
+44	            status='active'
+45	        )
+46	        
+47	        self.admin_pandit = User.objects.create_user(
+48	            email="admin@example.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:49:28
+48	            email="admin@example.com",
+49	            password="testpass123",
+50	            role='admin',
+51	            status='active'
+52	        )
+53	        
+54	        self.super_admin = User.objects.create_user(
+55	            email="superadmin@example.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:56:27
+55	            email="superadmin@example.com",
+56	            password="testpass123",
+57	            role='admin',
+58	            status='active',
+59	            is_superuser=True
+60	        )
+61	    
+62	    def test_end_user_cannot_access_admin_dashboard(self):
+63	        """Test that end users cannot access admin dashboard."""
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:64:8
+63	        """Test that end users cannot access admin dashboard."""
+64	        self.client.login(email="user@example.com", password="testpass123")
+65	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:74:8
+73	        """Test that pandits cannot access admin dashboard."""
+74	        self.client.login(email="pandit@example.com", password="testpass123")
+75	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:84:8
+83	        """Test that admin pandits can access admin dashboard."""
+84	        self.client.login(email="admin@example.com", password="testpass123")
+85	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:95:8
+94	        """Test that super admin can access all features."""
+95	        self.client.login(email="superadmin@example.com", password="testpass123")
+96	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:109:12
+108	            
+109	            self.client.login(email="pandit@example.com", password="testpass123")
+110	            
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:125:27
+124	                email="other@example.com",
+125	                password="testpass123",
+126	                role='pandit',
+127	                status='active'
+128	            )
+129	            other_profile, _ = PanditProfile.objects.get_or_create(user=other_pandit)
+130	            
+131	            self.client.login(email="pandit@example.com", password="testpass123")
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:131:12
+130	            
+131	            self.client.login(email="pandit@example.com", password="testpass123")
+132	            
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:155:23
+154	                email="referrer@example.com",
+155	                password="pass",
+156	                role='pandit',
+157	                status='active'
+158	            )
+159	            referrer_profile, _ = PanditProfile.objects.get_or_create(user=referrer)
+160	            
+161	            # Create referred pandit
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:164:23
+163	                email="referred@example.com",
+164	                password="pass",
+165	                role='pandit',
+166	                status='active',
+167	                referred_by=referrer
+168	            )
+169	            referred_profile, _ = PanditProfile.objects.get_or_create(user=referred)
+170	            
+171	            # Attempt to delete referrer - should be blocked
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:194:20
+193	                email="admin@example.com",
+194	                password="pass",
+195	                role='admin',
+196	                status='active'
+197	            )
+198	            
+199	            # Create page owned by admin
+200	            page = TemplePage.objects.create(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:229:19
+228	                email="follower@example.com",
+229	                password="pass"
+230	            )
+231	            PageFollower.objects.create(page=page, user=user)
+232	            
+233	            # Attempt to delete page - should be blocked
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:255:19
+254	                email="reviewer@example.com",
+255	                password="pass"
+256	            )
+257	            
+258	            pandit = User.objects.create_user(
+259	                email="pandit@example.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:260:21
+259	                email="pandit@example.com",
+260	                password="pass",
+261	                role='pandit',
+262	                status='active'
+263	            )
+264	            
+265	            review = Review.objects.create(
+266	                reviewer=user,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:297:19
+296	                email="user@example.com",
+297	                password="pass"
+298	            )
+299	            
+300	            EngagementEvent.objects.create(
+301	                user=user,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:331:19
+330	                email="test@example.com",
+331	                password="pass"
+332	            )
+333	            
+334	            # First notification should be allowed
+335	            allowed, reason = check_rate_limit(user.id, 'booking_intent_received')
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_prelaunch_regression.py:354:19
+353	                email="test@example.com",
+354	                password="pass"
+355	            )
+356	            
+357	            # First notification should be allowed
+358	            should_send, reason = should_send_notification(
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\core\tests\test_production_readiness.py:41:12
+40	                    pass  # Status may not have db_index, but should be in composite index
+41	            except:
+42	                pass  # Status field may not exist
+43	    
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'pass'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_production_readiness.py:173:19
+172	            # Create page with followers
+173	            user = User.objects.create_user(email="test@example.com", password="pass")
+174	            page = TemplePage.objects.create(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_production_readiness.py:359:15
+358	            email="test@example.com",
+359	            password="testpass123"
+360	        )
+361	        
+362	        # Attempt delete - should be blocked
+363	        with self.assertRaises(ValidationError):
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_safety_matrix.py:37:21
+36	            email="user1@example.com",
+37	            password="testpass123",
+38	            role='user'
+39	        )
+40	        self.pandit1 = User.objects.create_user(
+41	            email="pandit1@example.com",
+42	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_safety_matrix.py:42:23
+41	            email="pandit1@example.com",
+42	            password="testpass123",
+43	            role='pandit',
+44	            status='active'
+45	        )
+46	        self.admin_pandit = User.objects.create_user(
+47	            email="admin@example.com",
+48	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\core\tests\test_safety_matrix.py:48:28
+47	            email="admin@example.com",
+48	            password="testpass123",
+49	            role='admin',
+50	            status='active',
+51	            is_staff=True
+52	        )
+53	    
+54	    def test_scenario_1_pandit_with_referrals_deleted(self):
+55	        """
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'admin123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\create_superuser.py:23:15
+22	    email = 'admin@nityadharma.com'  # Change this to your desired email
+23	    password = 'admin123'  # Change this to a secure password
+24	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\dashboards\views.py:322:8
+321	            })
+322	        except Exception:
+323	            # Skip if error getting chain
+324	            pass
+325	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\masterdata\services_location_merge.py:46:8
+45	            )
+46	        except Exception:
+47	            pass
+48	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\masterdata\services_location_merge.py:79:8
+78	            )
+79	        except Exception:
+80	            pass
+81	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\masterdata\services_location_merge.py:121:8
+120	            )
+121	        except Exception:
+122	            pass
+123	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\masterdata\services_location_merge.py:166:8
+165	            )
+166	        except Exception:
+167	            pass
+168	        
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\masterdata\tests\test_language_model.py:149:25
+148	            email='super@test.com',
+149	            password='testpass123'
+150	        )
+151	        
+152	        # Create regular user
+153	        self.regular_user = User.objects.create_user(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: .\masterdata\tests\test_language_model.py:155:28
+154	            email='user@test.com',
+155	            password='testpass123'
+156	        )
+157	        
+158	        self.language = Language.objects.create(
+159	            code='en',
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'django-insecure-lmdb&!80_8#16e#6z*u1lq(yu6q@p)d2#mb5et3d-m)0ub)k1b'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\nityadharma\settings.py:23:13
+22	# SECURITY WARNING: keep the secret key used in production secret!
+23	SECRET_KEY = 'django-insecure-lmdb&!80_8#16e#6z*u1lq(yu6q@p)d2#mb5et3d-m)0ub)k1b'
+24	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\notifications\views.py:124:8
+123	            return redirect('pages:page_detail', page_public_id=notification.page.public_id)
+124	        except Exception:
+125	            pass  # Fallback to notifications list if redirect fails
+126	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\models.py:385:12
+384	                        )
+385	            except Exception:
+386	                pass  # Ignore if legacy column doesn't exist
+387	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\post_views.py:144:24
+143	                            )
+144	                        except Exception:
+145	                            pass  # Non-blocking
+146	            except Exception as e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\post_views.py:205:8
+204	            )
+205	        except Exception:
+206	            pass  # Don't fail if logging fails
+207	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\post_views.py:309:8
+308	            )
+309	        except Exception:
+310	            pass  # Don't fail if logging fails
+311	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\services.py:251:12
+250	                    has_name_column = 'name' in columns
+251	            except Exception:
+252	                pass
+253	            
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: .\pages\services.py:287:30
+286	                        vals_str = ', '.join(insert_vals)
+287	                        sql = "INSERT INTO pages_page (" + cols_str + ") VALUES (" + vals_str + ")"
+288	                        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\services_announcement_preservation.py:115:4
+114	        )
+115	    except Exception:
+116	        pass
+117	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\services_follower_preservation.py:54:8
+53	            )
+54	        except Exception:
+55	            pass
+56	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\services_follower_preservation.py:102:8
+101	            )
+102	        except Exception:
+103	            pass
+104	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\services_page_deactivation.py:97:8
+96	            )
+97	        except Exception:
+98	            pass
+99	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\templatetags\cms_tags.py:18:4
+17	            return getattr(config, field_name, default)
+18	    except:
+19	        pass
+20	    return default
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\templatetags\cms_tags.py:32:4
+31	            return config.organization_logo.url
+32	    except:
+33	        pass
+34	    # Fallback to default logo
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\views.py:252:8
+251	            )
+252	        except Exception:
+253	            pass  # Don't fail if logging fails
+254	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\views.py:301:4
+300	            is_following = check_is_following(request.user, 'temple', page.id)
+301	    except Exception:
+302	        pass
+303	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\views.py:901:8
+900	            )
+901	        except Exception:
+902	            pass  # Don't fail if logging fails
+903	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\views.py:970:8
+969	                    city_name = pandit.pandit_profile.city.name
+970	        except Exception:
+971	            pass
+972	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\pages\views.py:991:4
+990	        )
+991	    except Exception:
+992	        pass  # Don't fail if audit logging fails
+993	    
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: .\phase7_verify.py:41:22
+40	    try:
+41	        r = run_sql(f"SELECT COUNT(*) FROM {t}")
+42	        counts[t] = r[0][0] if r else 0
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: .\phase7_verify.py:79:14
+78	    try:
+79	        q = f"SELECT {col}, COUNT(*) FROM {table} GROUP BY {col} HAVING COUNT(*) > 1"
+80	        r = run_sql(q)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\profiles\views.py:107:4
+106	        follower_count = get_follow_count('pandit', profile.id)
+107	    except Exception:
+108	        pass
+109	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\referrals\code_generator.py:30:21
+29	    # Generate random suffix (4 chars: A-Z, 0-9)
+30	    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+31	    return f"REF-AP-{suffix}"
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\referrals\services_trust_immutability.py:75:4
+74	        )
+75	    except Exception:
+76	        pass
+77	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\referrals\views.py:146:8
+145	            )
+146	        except Exception:
+147	            pass
+148	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\referrals\views.py:167:8
+166	            )
+167	        except Exception:
+168	            pass
+169	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\search\services_saved_search.py:119:12
+118	                )
+119	            except Exception:
+120	                pass
+121	            
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\search\services_saved_search.py:139:4
+138	        )
+139	    except Exception:
+140	        pass
+141	    
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:109:12
+108	                                    ))
+109	            except Exception:
+110	                continue
+111	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:161:12
+160	                                ))
+161	            except Exception:
+162	                continue
+163	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\security_tests\test_api_abuse_attacks.py:199:12
+198	                                ))
+199	            except Exception:
+200	                pass
+201	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:265:12
+264	                                    ))
+265	            except Exception:
+266	                continue
+267	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:321:12
+320	                                    ))
+321	            except Exception:
+322	                continue
+323	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:379:12
+378	                                ))
+379	            except Exception:
+380	                continue
+381	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_api_abuse_attacks.py:434:12
+433	                                ))
+434	            except Exception:
+435	                continue
+436	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:108:12
+107	                                    ))
+108	            except Exception:
+109	                continue
+110	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:177:12
+176	                                ))
+177	            except Exception:
+178	                continue
+179	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:234:12
+233	                                    ))
+234	            except Exception:
+235	                continue
+236	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:280:12
+279	                                ))
+280	            except Exception:
+281	                continue
+282	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\security_tests\test_infrastructure_attacks.py:319:12
+318	                                ))
+319	            except Exception:
+320	                pass
+321	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:346:12
+345	                                ))
+346	            except Exception:
+347	                continue
+348	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:400:12
+399	                                ))
+400	            except Exception:
+401	                continue
+402	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_infrastructure_attacks.py:444:12
+443	                                ))
+444	            except Exception:
+445	                continue
+446	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:142:12
+141	                                ))
+142	            except Exception as e:
+143	                # Skip files that can't be read
+144	                continue
+145	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:186:12
+185	                                ))
+186	            except Exception:
+187	                continue
+188	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:224:12
+223	                                ))
+224	            except Exception:
+225	                continue
+226	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:249:12
+248	                            ))
+249	            except Exception:
+250	                continue
+251	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:281:12
+280	                                ))
+281	            except Exception:
+282	                continue
+283	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:334:12
+333	                                ))
+334	            except Exception:
+335	                continue
+336	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_injection_attacks.py:377:12
+376	                                    ))
+377	            except Exception:
+378	                continue
+379	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:93:12
+92	                                    ))
+93	            except Exception:
+94	                continue
+95	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\security_tests\test_session_auth_attacks.py:141:12
+140	                            ))
+141	            except Exception:
+142	                pass
+143	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:166:12
+165	                            ))
+166	            except Exception:
+167	                continue
+168	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:226:12
+225	                            ))
+226	            except Exception:
+227	                continue
+228	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:300:12
+299	                                    ))
+300	            except Exception:
+301	                continue
+302	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:365:12
+364	                                ))
+365	            except Exception:
+366	                continue
+367	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:444:12
+443	                                ))
+444	            except Exception:
+445	                continue
+446	        
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\security_tests\test_session_auth_attacks.py:497:12
+496	                                ))
+497	            except Exception:
+498	                continue
+499	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\seo\schema_builders.py:47:4
+46	                schema["url"] = reverse('profiles:profile_public', args=[pandit.public_id])
+47	    except Exception:
+48	        pass  # Fail silently if URL generation fails
+49	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\seo\schema_builders.py:124:4
+123	                schema["url"] = reverse('pages:page_detail', args=[page.public_id])
+124	    except Exception:
+125	        pass  # Fail silently if URL generation fails
+126	    
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_admin_access.py:17:8
+16	        # Anonymous users should be redirected to login (302) or get 302
+17	        assert response.status_code in (302, 200)
+18	        if response.status_code == 302:
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_admin_access.py:19:12
+18	        if response.status_code == 302:
+19	            assert "login" in response.url.lower()
+20	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_admin_access.py:24:8
+23	        # Should not allow access without login
+24	        assert response.status_code in (302, 200)
+25	        # If 200, we're on login page; if 302, redirect to login
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_admin_access.py:27:12
+26	        if response.status_code == 200:
+27	            assert b"login" in response.content.lower() or b"Log in" in response.content
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'wrong'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\tests\security\test_auth_security.py:15:49
+14	            reverse("accounts:login"),
+15	            {"email": "nonexistent@example.com", "password": "wrong"},
+16	            follow=False,
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_auth_security.py:18:8
+17	        )
+18	        assert response.status_code in (200, 302)
+19	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'wrong'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\tests\security\test_auth_security.py:23:49
+22	            reverse("accounts:login"),
+23	            {"email": "nonexistent@example.com", "password": "wrong"},
+24	            follow=True,
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_auth_security.py:27:8
+26	        content = response.content.decode("utf-8", errors="replace")
+27	        assert "does not exist" not in content.lower() or "invalid" in content.lower()
+28	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_auth_security.py:31:8
+30	        response = self.client.get(reverse("accounts:login"))
+31	        assert response.status_code == 200
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_csrf.py:21:8
+20	        )
+21	        assert response.status_code == 403, "POST without CSRF should be 403 Forbidden"
+22	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_csrf.py:29:8
+28	        # With enforce_csrf_checks, missing token -> 403
+29	        assert response.status_code == 403, "Contact form POST without CSRF should be 403"
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_permissions.py:17:8
+16	        response = self.client.get(reverse("support:contact_requests_admin"))
+17	        assert response.status_code in (302, 403, 404), "Unauthorized should not get 200 OK"
+18	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_permissions.py:22:8
+21	        response = self.client.get(reverse("search_api:search_pandits"))
+22	        assert response.status_code in (200, 401, 403), "Search API should respond consistently"
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:22:12
+21	            )
+22	            assert response.status_code in (200, 400), f"Expected 200 or 400 for city_id={payload!r}"
+23	            # Should not expose stack trace or SQL
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:24:12
+23	            # Should not expose stack trace or SQL
+24	            assert b"ProgrammingError" not in response.content
+25	            assert b"OperationalError" not in response.content
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:25:12
+24	            assert b"ProgrammingError" not in response.content
+25	            assert b"OperationalError" not in response.content
+26	            assert b"sqlite3" not in response.content and b"mysql" not in response.content
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:26:12
+25	            assert b"OperationalError" not in response.content
+26	            assert b"sqlite3" not in response.content and b"mysql" not in response.content
+27	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:33:8
+32	        )
+33	        assert response.status_code in (200, 400)
+34	        assert b"ProgrammingError" not in response.content
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:34:8
+33	        assert response.status_code in (200, 400)
+34	        assert b"ProgrammingError" not in response.content
+35	        assert b"OperationalError" not in response.content
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_sql_injection.py:35:8
+34	        assert b"ProgrammingError" not in response.content
+35	        assert b"OperationalError" not in response.content
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_xss_protection.py:18:8
+17	        )
+18	        assert response.status_code in (200, 400)
+19	        content = response.content.decode("utf-8", errors="replace")
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_xss_protection.py:20:8
+19	        content = response.content.decode("utf-8", errors="replace")
+20	        assert "ProgrammingError" not in content and "OperationalError" not in content
+21	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: .\tests\security\test_xss_protection.py:24:8
+23	        response = self.client.get(reverse("support:contact_us"))
+24	        assert response.status_code == 200
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\trust_display\selectors.py:173:4
+172	        governance_data['flagged_reviews_count'] = flagged_reviews_count
+173	    except Exception:
+174	        pass
+175	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\trust_display\selectors.py:185:4
+184	        governance_data['flagged_intents_count'] = flagged_intents_count
+185	    except Exception:
+186	        pass
+187	    
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 41874
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 160
+		Medium: 3
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 3
+		Medium: 62
+		High: 98
+Files skipped (0):

@@ -314,15 +314,19 @@ def contact_requests_admin(request):
     
     # Order by created date (newest first)
     contact_requests = contact_requests.order_by('-created_at')
-    
-    # Evaluate queryset to list to ensure it's properly passed to template
-    contact_requests_list = list(contact_requests)
-    
+
+    # Phase 8.1: Pagination (20 per page)
+    from django.core.paginator import Paginator
+    paginator = Paginator(contact_requests, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    contact_requests_list = list(page_obj)
+
     # Debug: Log the count
-    logger.info(f"Contact requests found: {len(contact_requests_list)}")
+    logger.info(f"Contact requests found: {paginator.count} (page {page_number})")
     if len(contact_requests_list) > 0:
         logger.info(f"First contact request: ID={contact_requests_list[0].id}, Email={contact_requests_list[0].email}")
-    
+
     # Get counts for stats
     stats = {
         'total': ContactRequest.objects.count(),
@@ -331,10 +335,11 @@ def contact_requests_admin(request):
         'resolved': ContactRequest.objects.filter(status='resolved').count(),
         'closed': ContactRequest.objects.filter(status='closed').count(),
     }
-    
+
     return render(request, 'support/contact_requests_admin.html', {
         'contact_requests': contact_requests_list,
-        'contact_requests_count': len(contact_requests_list),
+        'contact_requests_count': paginator.count,
+        'page_obj': page_obj,
         'stats': stats,
         'status_filter': status_filter,
         'role_filter': role_filter,

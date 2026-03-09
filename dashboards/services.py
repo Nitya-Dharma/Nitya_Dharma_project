@@ -32,11 +32,16 @@ class DashboardMetricsService:
     def get_platform_overview():
         """
         Get platform overview metrics (read-only counts).
+        Cached 60s to avoid repeated count queries on every dashboard load (SLOW REQUEST fix).
         
         Returns:
             dict: Platform metrics with counts
         """
-        return {
+        cache_key = 'dashboard:platform_overview'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+        result = {
             'total_users': User.objects.filter(role='user', is_active=True).count(),
             'total_pandits': PanditProfile.objects.count(),
             'active_pandits': User.objects.filter(
@@ -51,6 +56,8 @@ class DashboardMetricsService:
             'pages_count': Page.objects.filter(is_deleted=False).count(),
             'booking_intents_count': BookingIntent.objects.count(),
         }
+        cache.set(cache_key, result, 60)
+        return result
     
     @staticmethod
     def get_system_health():
@@ -155,13 +162,20 @@ class DashboardMetricsService:
         """
         from profiles.models import PanditProfile
         
-        # Base query with essential joins only
+        # Base query with essential joins only; defer heavy columns to avoid slow SELECT (Phase 12 slow-query fix)
         # Note: cities_served is ManyToMany, not ForeignKey, so use prefetch_related
         queryset = PanditProfile.objects.select_related(
             'user',
             'user__referred_by'
         ).prefetch_related(
             'cities_served'  # ManyToMany field, not ForeignKey
+        ).defer(
+            'about_description',
+            'languages_spoken',
+            'profile_image',
+            'cover_image',
+            'seo_description',
+            'seo_keywords',
         ).all()
         
         # Apply status filter
@@ -197,18 +211,23 @@ class DashboardMetricsService:
         """
         seo_list = []
         
+        # Cap result size to avoid slow dashboard load (SLOW REQUEST fix)
+        SEO_OVERSIGHT_MAX_PER_TYPE = 1000
+        
         # Get Pandit Profiles SEO
         if entity_type in ['pandit', 'all']:
             from profiles.models import PanditProfile
-            pandit_profiles = PanditProfile.objects.select_related('user').prefetch_related(
-                'cities_served'
-            ).all()
-            
+            pandit_profiles = (
+                PanditProfile.objects.select_related('user')
+                .prefetch_related('cities_served')
+                .order_by('-updated_at')
+            )
             if search_query:
                 pandit_profiles = pandit_profiles.filter(
                     Q(display_name__icontains=search_query) |
                     Q(user__email__icontains=search_query)
                 )
+            pandit_profiles = pandit_profiles[:SEO_OVERSIGHT_MAX_PER_TYPE]
             
             for profile in pandit_profiles:
                 seo_list.append({
@@ -227,13 +246,16 @@ class DashboardMetricsService:
         # Get Pages SEO
         if entity_type in ['page', 'all']:
             from pages.models import Page
-            pages = Page.objects.select_related('created_by').all()
-            
+            pages = (
+                Page.objects.select_related('created_by')
+                .order_by('-updated_at')
+            )
             if search_query:
                 pages = pages.filter(
                     Q(title__icontains=search_query) |
                     Q(slug__icontains=search_query)
                 )
+            pages = pages[:SEO_OVERSIGHT_MAX_PER_TYPE]
             
             for page in pages:
                 seo_list.append({
