@@ -520,15 +520,14 @@ def upload_pooja_categories_csv(file, actor=None) -> CSVUploadResult:
                 })
                 continue
             
-            # Create category
+            status_val = (row.get('status', 'active').strip().lower() or 'active')
+            if status_val not in [PoojaCategory.STATUS_ACTIVE, PoojaCategory.STATUS_INACTIVE]:
+                status_val = PoojaCategory.STATUS_ACTIVE
             category = PoojaCategory(
                 name=name,
-                status=row.get('status', 'active').strip().lower() or 'active'
+                status=status_val,
+                is_active=(status_val == PoojaCategory.STATUS_ACTIVE),
             )
-            
-            if category.status not in [PoojaCategory.STATUS_ACTIVE, PoojaCategory.STATUS_INACTIVE]:
-                category.status = PoojaCategory.STATUS_ACTIVE
-            
             category.save()
             result.inserted += 1
             

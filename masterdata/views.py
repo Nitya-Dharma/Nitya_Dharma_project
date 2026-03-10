@@ -287,8 +287,9 @@ def download_sample_csv(request, entity_type):
     samples = {
         'cities': 'name,state,status\nMumbai,Maharashtra,active\nDelhi,Delhi,active\nBangalore,Karnataka,active',
         'mandals': 'city,name,status\nMumbai,Andheri,active\nMumbai,Bandra,active\nDelhi,Central Delhi,active',
-        'local_areas': 'mandal,name,status\nAndheri,Andheri East,active\nAndheri,Andheri West,active\nBandra,Bandra East,active',
-        'pooja_categories': 'name,status\nDaily & Common Household Poojas,active\nHouse, Property & Vehicle Poojas,active',
+        # local_areas: city is required; mandal is optional. Upload cities first, then use same city names here.
+        'local_areas': 'city,mandal,name,status\nMumbai,Andheri,Andheri East,active\nMumbai,Andheri,Andheri West,active\nMumbai,Bandra,Bandra East,active\nDelhi,,Central Delhi,active',
+        'pooja_categories': 'name,status\nDaily & Common Household Poojas,active\nHouse Property & Vehicle Poojas,active',
         'poojas': 'name,pooja_category,status\nGanapati Puja,Daily & Common Household Poojas,active\nSatyanarayana Vratam,Daily & Common Household Poojas,active',
     }
     
