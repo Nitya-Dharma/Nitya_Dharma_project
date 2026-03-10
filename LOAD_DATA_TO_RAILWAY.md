@@ -9,7 +9,7 @@ You can copy data from your local MySQL database to Railway in two main ways.
 1. **Railway MySQL must be reachable from your PC**  
    - In Railway dashboard: open your **MySQL** service → **Settings** → **Networking** (or **Public Networking**).  
    - Enable **TCP Proxy** if it’s not already (Railway often enables it by default).  
-   - Note the **public host** and **port** (e.g. `shuttle.proxy.rlwy.net` and `15140`).  
+   - Note the **public host** and **port** (e.g. `*.proxy.rlwy.net` and `15140`).  
    - Note the MySQL **user**, **password**, and **database** from the MySQL service **Variables** (e.g. `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`).
 
 2. **Local DB**  
@@ -59,14 +59,10 @@ You need the **public** MySQL URL (TCP Proxy), not the internal one.
 URL format:
 
 ```text
-mysql://MYSQLUSER:MYSQLPASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/MYSQLDATABASE
+mysql://<username>:<password>@<host>/<database>
 ```
 
-Example (replace with your values):
-
-```text
-mysql://root:abc123@shuttle.proxy.rlwy.net:15140/railway
-```
+Replace placeholders with your Railway Variables and TCP Proxy host:port. **Never commit the real URL or password to Git.**
 
 If the password has special characters, URL-encode them (e.g. `@` → `%40`, `#` → `%23`).
 
@@ -76,7 +72,7 @@ Point Django at Railway’s database and run `loaddata` **once** (this will add/
 
 ```powershell
 # PowerShell (one line)
-$env:DATABASE_URL="mysql://root:YOUR_PASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/railway"; $env:DJANGO_SETTINGS_MODULE="nityadharma.settings.prod"; python manage.py loaddata data_export.json
+$env:DATABASE_URL="mysql://<username>:<password>@<host>/<database>"; $env:DJANGO_SETTINGS_MODULE="nityadharma.settings.prod"; python manage.py loaddata data_export.json
 ```
 
 Replace `DATABASE_URL` with your real Railway MySQL URL and `data_export.json` with the file you created. Use `data_export_full.json` if you exported everything.
@@ -84,7 +80,7 @@ Replace `DATABASE_URL` with your real Railway MySQL URL and `data_export.json` w
 - If you use **Command Prompt** (cmd):
 
   ```cmd
-  set DATABASE_URL=mysql://root:YOUR_PASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/railway
+  set DATABASE_URL=mysql://<username>:<password>@<host>/<database>
   set DJANGO_SETTINGS_MODULE=nityadharma.settings.prod
   python manage.py loaddata data_export.json
   ```

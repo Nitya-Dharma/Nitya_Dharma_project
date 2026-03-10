@@ -167,7 +167,8 @@ STORAGES = {
 
 # Media files (User-uploaded content)
 # https://docs.djangoproject.com/en/6.0/topics/files/
-MEDIA_URL = 'media/'
+# Use leading slash for production compatibility (Railway, GoDaddy, VPS, Docker).
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
@@ -235,4 +236,5 @@ LOGGING = {
 
 # File upload max sizes (used by core.file_upload_security and gallery uploads)
 FILE_UPLOAD_MAX_IMAGE_BYTES = 25 * 1024 * 1024   # 25 MB per image (gallery, profile, etc.)
+FILE_UPLOAD_MAX_CSV_BYTES = 5 * 1024 * 1024     # 5 MB per CSV (master data uploads)
 

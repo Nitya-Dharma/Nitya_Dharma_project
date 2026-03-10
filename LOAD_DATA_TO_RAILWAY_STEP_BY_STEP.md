@@ -1,6 +1,8 @@
 # Load Local DB Data to Railway – Step-by-Step
 
-Follow these steps in order. Use the **public** MySQL URL (TCP Proxy) only on your PC; do not commit or share it.
+Follow these steps in order. Use the **public** MySQL URL (TCP Proxy) only on your PC; **do not commit or share the URL or password in Git or in this file.**
+
+> **If this file previously contained a real MySQL URL/password that was committed:** Rotate the Railway MySQL password immediately (Railway → MySQL service → Variables → change `MYSQLPASSWORD` / reset password). Old commits still contain the secret until you rotate it.
 
 ---
 
@@ -50,7 +52,7 @@ Use the **public** URL so your PC can connect to Railway’s MySQL. Do **not** u
 
 1. Copy this line exactly, then paste it into PowerShell and press **Enter**:
    ```powershell
-   $env:MYSQL_URL="mysql://root:gvAHfqlVjRUCdVipzduMNeWMgJmIwire@centerbeam.proxy.rlwy.net:13686/railway"
+   $env:MYSQL_URL="mysql://<username>:<password>@<host>/<database>"
    ```
 2. Nothing will be printed. The variable is now set for this terminal session only.
 
@@ -77,7 +79,7 @@ Before loading data, confirm that Django is talking to Railway and not your loca
    python manage.py check_db_connection
    ```
 2. You should see something like:
-   - **DB host:** `centerbeam.proxy.rlwy.net` (or similar)
+   - **DB host:** your TCP proxy host (e.g. `*.proxy.rlwy.net`)
    - **DB name:** `railway`
    - **Connected to Railway database.**
 3. If you see **localhost** or a local DB name, stop. The URL in Step 3 is wrong or not set; fix it and repeat from Step 3.
@@ -138,8 +140,8 @@ The file contains a copy of your database and may include sensitive data. Do not
 
 | Where you use it | URL to use |
 |------------------|------------|
-| **Railway web service → Variables (MYSQL_URL)** | Internal: `mysql://root:...@mysql.railway.internal:3306/railway` — so the **deployed app** on Railway can connect. |
-| **Your PC (only when running loaddata)** | Public: `mysql://root:...@centerbeam.proxy.rlwy.net:13686/railway` — so **your computer** can connect. |
+| **Railway web service → Variables (MYSQL_URL)** | Internal: `mysql://<username>:<password>@mysql.railway.internal:3306/<database>` — so the **deployed app** on Railway can connect. |
+| **Your PC (only when running loaddata)** | Public: `mysql://<username>:<password>@<host>/<database>` — use TCP Proxy host:port for &lt;host&gt;. **Do not commit or share.** |
 
 - **Keep** the internal URL in Railway’s web service.
 - **Use** the public URL only in PowerShell on your PC (Steps 3–6), and **do not commit or share** it.
@@ -150,7 +152,7 @@ The file contains a copy of your database and may include sensitive data. Do not
 
 - [ ] Step 1: Exported local data to **data_export.json**
 - [ ] Step 2: Opened PowerShell in project folder, venv activated
-- [ ] Step 3: Set **MYSQL_URL** to the **public** URL (centerbeam.proxy.rlwy.net:13686)
+- [ ] Step 3: Set **MYSQL_URL** to the **public** URL (your TCP Proxy host:port; never commit it)
 - [ ] Step 4: Set **DJANGO_SETTINGS_MODULE** to **nityadharma.settings.prod**
 - [ ] Step 5: Ran **check_db_connection** and saw Railway’s host/DB name
 - [ ] Step 6: Ran **loaddata data_export.json** and saw “Installed … object(s)”

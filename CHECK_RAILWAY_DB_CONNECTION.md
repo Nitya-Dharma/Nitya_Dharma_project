@@ -18,7 +18,7 @@ They are **two different databases**. Data you add on localhost stays in your lo
 3. Open **Variables** (or **Settings** → **Variables**).
 4. You should see **MYSQL_URL** (or **DATABASE_URL** if you use Postgres).
    - If **MYSQL_URL** is set (and no **DATABASE_URL**), the app uses **Railway’s MySQL**.
-   - The value will look like: `mysql://user:password@mysql.railway.internal:3306/railway` (internal) or use a TCP proxy host if set.
+   - The value will look like: `mysql://<username>:<password>@mysql.railway.internal:3306/<database>` (internal) or use a TCP proxy host if set.
 
 If **MYSQL_URL** is missing on the web service, the app cannot use Railway’s MySQL. Add it by referencing the MySQL service’s **MYSQL_URL** (or copy the value from the MySQL service Variables).
 
@@ -60,7 +60,7 @@ You have to **copy data from your local DB into Railway’s DB** (they are not t
 1. Export from local: e.g. `python manage.py dumpdata ... -o data_export.json` (see **LOAD_DATA_TO_RAILWAY.md**).
 2. Import into Railway’s DB (from your PC, pointing at Railway’s MySQL URL), e.g.:
    ```powershell
-   $env:DATABASE_URL="mysql://..."   # Railway MySQL URL (TCP Proxy)
+   $env:DATABASE_URL="mysql://<username>:<password>@<host>/<database>"   # Railway MySQL URL (TCP Proxy); never commit real URL
    $env:DJANGO_SETTINGS_MODULE="nityadharma.settings.prod"
    python manage.py loaddata data_export.json
    ```

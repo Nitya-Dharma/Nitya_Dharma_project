@@ -1,7 +1,8 @@
 # How to Get Railway MySQL URL (Step-by-Step in Detail)
 
 You need this URL to connect from your PC to Railway’s MySQL (e.g. for `loaddata`).  
-Format: **mysql://USER:PASSWORD@TCP_HOST:TCP_PORT/DATABASE**
+Format: **mysql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;**  
+(Use &lt;host&gt;:&lt;port&gt; when connecting via TCP Proxy, e.g. `proxy.rlwy.net:15140`. Never commit real URLs or passwords to Git.)
 
 ---
 
@@ -62,21 +63,20 @@ Railway’s MySQL is inside their network. To connect from **your PC**, you must
 The URL has this form:
 
 ```text
-mysql://USER:PASSWORD@TCP_HOST:TCP_PORT/DATABASE
+mysql://<username>:<password>@<host>/<database>
 ```
 
 **Step A – Write it with your real values (password as-is first):**
 
-- Replace **USER** with the value of `MYSQLUSER`.
-- Replace **PASSWORD** with the value of `MYSQLPASSWORD` (copy exactly).
-- Replace **TCP_HOST** with the TCP Proxy host.
-- Replace **TCP_PORT** with the TCP Proxy port (number only).
-- Replace **DATABASE** with the value of `MYSQLDATABASE`.
+- Replace **&lt;username&gt;** with the value of `MYSQLUSER`.
+- Replace **&lt;password&gt;** with the value of `MYSQLPASSWORD` (copy exactly).
+- Replace **&lt;host&gt;** with the TCP Proxy host and port (e.g. `proxy.rlwy.net:15140`).
+- Replace **&lt;database&gt;** with the value of `MYSQLDATABASE`.
 
-Example (fake values):
+Example format only (do not use real credentials in any file):
 
 ```text
-mysql://root:MyPass@123@shuttle.proxy.rlwy.net:15140/railway
+mysql://<username>:<password>@<host>/<database>
 ```
 
 **Step B – URL-encode the password (important):**
@@ -111,33 +111,18 @@ Replace each special character in the **password only** with the value from this
 | `]`       | `%5D`         |
 
 **Example 1 – Password with `@`:**  
-Password is `MyPass@123`.  
-In the URL, use `MyPass%40123` (the `@` becomes `%40`):
-
-```text
-mysql://root:MyPass%40123@shuttle.proxy.rlwy.net:15140/railway
-```
+In the URL, encode `@` as `%40`: e.g. `MyPass@123` → `MyPass%40123`.
 
 **Example 2 – Password with `#`:**  
-Password is `Secret#99`.  
-In the URL, use `Secret%2399`:
-
-```text
-mysql://root:Secret%2399@shuttle.proxy.rlwy.net:15140/railway
-```
+Encode `#` as `%23`: e.g. `Secret#99` → `Secret%2399`.
 
 **Example 3 – No special characters:**  
-Password is `abc123`.  
-No encoding needed:
-
-```text
-mysql://root:abc123@shuttle.proxy.rlwy.net:15140/railway
-```
+No encoding needed.
 
 **Step C – Final check:**
 
 - No spaces in the URL.
-- Format is exactly: `mysql://` then `USER` then `:` then `ENCODED_PASSWORD` then `@` then `TCP_HOST` then `:` then `TCP_PORT` then `/` then `DATABASE`.
+- Format is exactly: `mysql://<username>:<password>@<host>/<database>` (with password URL-encoded if it has special characters; &lt;host&gt; can include `:port`).
 - The only `@` in the URL should be the one **between** the password and the host (the one that was already there; do not add an extra `@` from the password without encoding it).
 
 Your final line is your **Railway MySQL URL**. Use it only in the next step (e.g. `MYSQL_URL` or `DATABASE_URL`) and do not commit it or share it.
@@ -149,7 +134,7 @@ Your final line is your **Railway MySQL URL**. Use it only in the next step (e.g
 When you run loaddata, you’ll set the URL as an environment variable. In PowerShell, put your **full** URL inside double quotes:
 
 ```powershell
-$env:MYSQL_URL="mysql://root:MyPass%40123@shuttle.proxy.rlwy.net:15140/railway"
+$env:MYSQL_URL="mysql://<username>:<password>@<host>/<database>"
 ```
 
 Replace the entire URL with the one you built. If the URL is correct, the next command will connect to Railway’s MySQL:
@@ -172,6 +157,6 @@ python manage.py loaddata data_export.json
 - [ ] Opened Railway → project → **MySQL** service (not web).
 - [ ] From **Variables**: noted **MYSQLUSER**, **MYSQLPASSWORD**, **MYSQLDATABASE**.
 - [ ] From **Settings / Networking**: turned on **TCP Proxy**, noted **host** and **port**.
-- [ ] Built: `mysql://USER:PASSWORD@TCP_HOST:TCP_PORT/DATABASE`.
+- [ ] Built: `mysql://<username>:<password>@<host>/<database>`.
 - [ ] URL-encoded any special characters in the **password** (e.g. `@` → `%40`).
 - [ ] Used this URL only in `$env:MYSQL_URL="..."` and did not commit it.

@@ -236,7 +236,7 @@ Yes, you can use **MySQL** on Railway for testing. The app's prod settings suppo
 
 ### 2. Give the web service the MySQL URL
 
-Railway's MySQL service exposes **`MYSQL_URL`** (e.g. `mysql://user:password@host:port/database`).
+Railway's MySQL service exposes **`MYSQL_URL`** (format: `mysql://<username>:<password>@<host>/<database>`). Never commit the real URL.
 
 1. Click your **web service** → **Variables**.
 2. **Option A – Reference (best):** Click **"+ New Variable"** → **"Add reference"** (or similar). Select the **MySQL** service and the variable **`MYSQL_URL`**. Add it to the web service.

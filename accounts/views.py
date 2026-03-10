@@ -618,6 +618,24 @@ def pandit_register(request, referral_token):
                 # Audit logging is optional
                 pass
             
+            # Optional: notify admins of new Pandit registration (production-safe; fail_silently)
+            try:
+                from django.conf import settings as django_settings
+                from django.core.mail import send_mail
+                admins = getattr(django_settings, 'ADMINS', ())
+                if admins and user.email:
+                    recipient_list = [email for _, email in admins]
+                    if recipient_list:
+                        send_mail(
+                            subject='[Nitya Dharma] New Pandit registration',
+                            message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                            from_email=django_settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=recipient_list,
+                            fail_silently=True,
+                        )
+            except Exception:
+                pass
+            
             # Return success response
             # TASK 5: Update message to include email verification step
             response_data = {

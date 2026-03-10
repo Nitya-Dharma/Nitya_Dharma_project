@@ -108,11 +108,12 @@ if _redis_url:
 # else: keep base.py CACHES (LocMemCache) so system runs normally without Redis
 
 # ---------------------------------------------------------------------------
-# Email (production)
-# Set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (and optionally EMAIL_PORT,
-# EMAIL_USE_TLS, DEFAULT_FROM_EMAIL) in Railway (or env). If not set, console
-# backend is used so the app does not crash (emails will not be sent).
-# For Gmail: DEFAULT_FROM_EMAIL must equal EMAIL_HOST_USER.
+# Email (production) — env-only, no secrets in code.
+# Works on Railway, GoDaddy, VPS, Docker. Set in host's environment:
+#   EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+#   Optional: EMAIL_PORT (default 587), EMAIL_USE_TLS (default True),
+#   DEFAULT_FROM_EMAIL (for Gmail must equal EMAIL_HOST_USER).
+# If any of the three required are missing, console backend is used (no crash).
 # ---------------------------------------------------------------------------
 _email_host = os.environ.get('EMAIL_HOST', '').strip()
 _email_user = os.environ.get('EMAIL_HOST_USER', '').strip()

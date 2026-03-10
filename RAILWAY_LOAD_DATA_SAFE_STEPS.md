@@ -80,20 +80,15 @@ You need the **public** connection so your PC can reach Railway’s MySQL.
    - `MYSQLDATABASE`
 4. Open **Settings** (or **Networking** / **Public Networking**).
 5. Find **TCP Proxy**. If it’s off, turn it **on**.
-6. Note the **public host** and **port** (e.g. `shuttle.proxy.rlwy.net`, `15140`).
+6. Note the **public host** and **port** (e.g. `something.proxy.rlwy.net`, `15140`).
 
 Build the URL:
 
 ```text
-mysql://MYSQLUSER:MYSQLPASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/MYSQLDATABASE
+mysql://<username>:<password>@<host>/<database>
 ```
 
-**Example:**  
-If user is `root`, password is `MyPass@123`, host is `shuttle.proxy.rlwy.net`, port is `15140`, database is `railway`:
-
-```text
-mysql://root:MyPass%40123@shuttle.proxy.rlwy.net:15140/railway
-```
+Use your Railway Variables (MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE) and TCP Proxy host:port for &lt;host&gt;. **Never commit the real URL or password to Git.**
 
 **Important:** If the password has special characters, URL‑encode them in the URL:
 
@@ -119,13 +114,13 @@ In this step, Django will connect to **Railway’s MySQL** and load the file you
 
    **PowerShell – set MYSQL_URL (recommended for your project):**
    ```powershell
-   $env:MYSQL_URL="mysql://root:YOUR_ENCODED_PASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/MYSQLDATABASE"
+   $env:MYSQL_URL="mysql://<username>:<password>@<host>/<database>"
    ```
    Replace the whole URL with the one you built in Step 3.
 
    **PowerShell – alternative (if your prod uses DATABASE_URL for MySQL):**
    ```powershell
-   $env:DATABASE_URL="mysql://root:YOUR_ENCODED_PASSWORD@TCP_PROXY_HOST:TCP_PROXY_PORT/MYSQLDATABASE"
+   $env:DATABASE_URL="mysql://<username>:<password>@<host>/<database>"
    ```
 
 3. Set production settings so Django uses prod DB config:
@@ -137,7 +132,7 @@ In this step, Django will connect to **Railway’s MySQL** and load the file you
    ```powershell
    python manage.py check_db_connection
    ```
-   You should see **DB host:** the TCP proxy host (e.g. `shuttle.proxy.rlwy.net`) or similar, and **Connected to Railway database.** If you still see **localhost**, stop and fix the URL / variable name.
+   You should see **DB host:** the TCP proxy host (e.g. `*.proxy.rlwy.net`) or similar, and **Connected to Railway database.** If you still see **localhost**, stop and fix the URL / variable name.
 
 5. Run loaddata **once** (use the same filename you created in Step 2):
    ```powershell
