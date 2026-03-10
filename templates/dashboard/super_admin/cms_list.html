@@ -166,7 +166,14 @@
     {% else %}
         <div class="text-center py-5">
             <i class="bi bi-file-earmark-text" style="font-size: 3rem; color: var(--text-muted-theme);"></i>
-            <p class="text-muted mt-3">No CMS pages found. Create pages using the management command.</p>
+            <p class="text-muted mt-3">No CMS pages found.</p>
+            <p class="text-muted small mb-4">Create the default pages (About Us, Privacy Policy, Terms and Conditions) to manage them here.</p>
+            <form method="post" action="{% url 'pages:super_admin_cms_init_defaults' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Create About Us, Privacy Policy & Terms
+                </button>
+            </form>
         </div>
     {% endif %}
 </div>

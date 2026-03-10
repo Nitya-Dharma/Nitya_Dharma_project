@@ -67,6 +67,7 @@ urlpatterns = [
     # Dashboard CMS Management (Super Admin only)
     # IMPORTANT: More specific routes must come before generic slug routes
     path('dashboard/super-admin/content/', dashboard_views.cms_list, name='super_admin_cms_list'),
+    path('dashboard/super-admin/content/init-defaults/', dashboard_views.cms_init_defaults, name='super_admin_cms_init_defaults'),
     path('dashboard/super-admin/content/seo-config/', dashboard_views.cms_seo_config, name='super_admin_cms_seo_config'),
     path('dashboard/super-admin/content/<slug:slug>/revisions/', dashboard_views.cms_revisions, name='super_admin_cms_revisions'),
     path('dashboard/super-admin/content/<slug:slug>/', dashboard_views.cms_edit, name='super_admin_cms_edit'),
