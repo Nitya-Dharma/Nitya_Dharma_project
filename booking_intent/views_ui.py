@@ -237,12 +237,11 @@ def create_booking_intent_form(request, pandit_public_id):
                 user_mobile_number=user_mobile_number
             )
             
-            # Redirect to success page or back to profile
+            # Redirect to success page or back to profile (use profile_public_by_id; profile_public expects identifier)
             from django.shortcuts import redirect
             from django.contrib import messages
             messages.success(request, 'Your booking enquiry has been sent successfully to the Pandit!')
-            # Use public_id for redirect (secure)
-            return redirect('profiles:profile_public', public_id=pandit.pandit_profile.public_id)
+            return redirect('profiles:profile_public_by_id', public_id=pandit.pandit_profile.public_id)
         except ValueError as e:
             from django.contrib import messages
             messages.error(request, f'Validation error: {str(e)}')

@@ -257,8 +257,9 @@ def profile_edit(request, public_id=None):
                 # If not provided, clear it
                 profile.call_mobile_number = None
             
-            # NEW: Update WhatsApp mobile number
-            use_same_number = 'use_same_number_for_call_and_whatsapp' in request.POST
+            # NEW: Update WhatsApp mobile number (works on Railway, GoDaddy, VPS: hidden input sends "0" when unchecked)
+            use_same_val = request.POST.get('use_same_number_for_call_and_whatsapp', '0').strip().lower()
+            use_same_number = use_same_val in ('1', 'on', 'true', 'yes')
             profile.use_same_number_for_call_and_whatsapp = use_same_number
             
             if use_same_number:
@@ -505,11 +506,12 @@ def profile_edit(request, public_id=None):
     # Prepare context for template
     from collections import OrderedDict
     
-    # Get all active poojas ordered by pooja_category (FK) then name
-    # TASK 2.1: Use PoojaCategory FK instead of hardcoded enum
+    # Get all active poojas for selection (Railway, GoDaddy, VPS: include status active or null/empty)
+    from django.db.models import Q
     all_poojas = Pooja.objects.filter(
-        is_active=True,
-        status=Pooja.STATUS_ACTIVE
+        is_active=True
+    ).filter(
+        Q(status=Pooja.STATUS_ACTIVE) | Q(status__isnull=True) | Q(status='')
     ).select_related('pooja_category').order_by('pooja_category__display_order', 'pooja_category__name', 'name')
     
     # Group poojas by PoojaCategory (master data) for better UX
