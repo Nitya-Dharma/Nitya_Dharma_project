@@ -6,6 +6,7 @@ Super Admin only views for CSV upload and master data management.
 
 import logging
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -49,10 +50,11 @@ def upload_cities(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Only Super Admins can upload cities'}, status=403)
     
+    dashboard_url = reverse('module5_dashboards:master_data_management')
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'No CSV file provided.')
-            return redirect('masterdata:management')
+            return redirect(dashboard_url + '#cities')
         
         try:
             # PART 4 FIX: Centralized file upload validation
@@ -62,7 +64,7 @@ def upload_cities(request):
                 sanitized_filename, validated_file = validate_csv_upload(request.FILES['csv_file'])
             except ValidationError as e:
                 messages.error(request, f'CSV file validation failed: {str(e)}')
-                return redirect('masterdata:management')
+                return redirect(dashboard_url + '#cities')
             
             result = upload_cities_csv(validated_file, actor=request.user)
             messages.success(
@@ -90,10 +92,10 @@ def upload_cities(request):
                 )
             messages.error(request, f'Error uploading cities: {error_msg}')
         
-        return redirect('masterdata:management')
+        return redirect(dashboard_url + '#cities')
     
     # GET: No standalone template; redirect to management dashboard (which has the upload form)
-    return redirect('masterdata:management')
+    return redirect(dashboard_url + '#cities')
 
 
 @login_required
@@ -104,10 +106,11 @@ def upload_mandals(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Only Super Admins can upload mandals'}, status=403)
     
+    dashboard_url = reverse('module5_dashboards:master_data_management')
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'No CSV file provided.')
-            return redirect('masterdata:management')
+            return redirect(dashboard_url + '#cities')
         
         try:
             # PART 4 FIX: Centralized file upload validation
@@ -117,7 +120,7 @@ def upload_mandals(request):
                 sanitized_filename, validated_file = validate_csv_upload(request.FILES['csv_file'])
             except ValidationError as e:
                 messages.error(request, f'CSV file validation failed: {str(e)}')
-                return redirect('masterdata:management')
+                return redirect(dashboard_url + '#cities')
             
             result = upload_mandals_csv(validated_file, actor=request.user)
             messages.success(
@@ -134,10 +137,10 @@ def upload_mandals(request):
         except Exception as e:
             messages.error(request, f'Error uploading mandals: {str(e)}')
         
-        return redirect('masterdata:management')
+        return redirect(dashboard_url + '#cities')
     
     # GET: Redirect to management dashboard (which has the upload form)
-    return redirect('masterdata:management')
+    return redirect(dashboard_url + '#cities')
 
 
 @login_required
@@ -148,10 +151,11 @@ def upload_local_areas(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Only Super Admins can upload local areas'}, status=403)
     
+    dashboard_url = reverse('module5_dashboards:master_data_management')
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'No CSV file provided.')
-            return redirect('masterdata:management')
+            return redirect(dashboard_url + '#areas')
         
         try:
             # PART 4 FIX: Centralized file upload validation
@@ -161,7 +165,7 @@ def upload_local_areas(request):
                 sanitized_filename, validated_file = validate_csv_upload(request.FILES['csv_file'])
             except ValidationError as e:
                 messages.error(request, f'CSV file validation failed: {str(e)}')
-                return redirect('masterdata:management')
+                return redirect(dashboard_url + '#areas')
             
             result = upload_local_areas_csv(validated_file, actor=request.user)
             messages.success(
@@ -178,10 +182,10 @@ def upload_local_areas(request):
         except Exception as e:
             messages.error(request, f'Error uploading local areas: {str(e)}')
         
-        return redirect('masterdata:management')
+        return redirect(dashboard_url + '#areas')
     
     # GET: Redirect to management dashboard (which has the upload form)
-    return redirect('masterdata:management')
+    return redirect(dashboard_url + '#areas')
 
 
 @login_required
@@ -192,10 +196,11 @@ def upload_pooja_categories(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Only Super Admins can upload pooja categories'}, status=403)
     
+    dashboard_url = reverse('module5_dashboards:master_data_management')
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'No CSV file provided.')
-            return redirect('masterdata:management')
+            return redirect(dashboard_url + '#categories')
         
         try:
             # PART 4 FIX: Centralized file upload validation
@@ -205,7 +210,7 @@ def upload_pooja_categories(request):
                 sanitized_filename, validated_file = validate_csv_upload(request.FILES['csv_file'])
             except ValidationError as e:
                 messages.error(request, f'CSV file validation failed: {str(e)}')
-                return redirect('masterdata:management')
+                return redirect(dashboard_url + '#categories')
             
             result = upload_pooja_categories_csv(validated_file, actor=request.user)
             messages.success(
@@ -222,10 +227,10 @@ def upload_pooja_categories(request):
         except Exception as e:
             messages.error(request, f'Error uploading pooja categories: {str(e)}')
         
-        return redirect('masterdata:management')
+        return redirect(dashboard_url + '#categories')
     
     # GET: Redirect to management dashboard (which has the upload form)
-    return redirect('masterdata:management')
+    return redirect(dashboard_url + '#categories')
 
 
 @login_required
@@ -236,10 +241,11 @@ def upload_poojas(request):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Only Super Admins can upload poojas'}, status=403)
     
+    dashboard_url = reverse('module5_dashboards:master_data_management')
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'No CSV file provided.')
-            return redirect('masterdata:management')
+            return redirect(dashboard_url + '#poojas')
         
         try:
             # PART 4 FIX: Centralized file upload validation
@@ -249,7 +255,7 @@ def upload_poojas(request):
                 sanitized_filename, validated_file = validate_csv_upload(request.FILES['csv_file'])
             except ValidationError as e:
                 messages.error(request, f'CSV file validation failed: {str(e)}')
-                return redirect('masterdata:management')
+                return redirect(dashboard_url + '#poojas')
             
             result = upload_poojas_csv(validated_file, actor=request.user)
             messages.success(
@@ -266,10 +272,10 @@ def upload_poojas(request):
         except Exception as e:
             messages.error(request, f'Error uploading poojas: {str(e)}')
         
-        return redirect('masterdata:management')
+        return redirect(dashboard_url + '#poojas')
     
     # GET: Redirect to management dashboard (which has the upload form)
-    return redirect('masterdata:management')
+    return redirect(dashboard_url + '#poojas')
 
 
 @login_required

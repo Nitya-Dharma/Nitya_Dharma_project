@@ -2501,13 +2501,17 @@ def master_data_edit(request, entity_type, entity_id):
             
             from django.contrib import messages
             messages.success(request, f'{entity_type.title()} updated successfully.')
-            return redirect('module5_dashboards:master_data_management')
+            from django.urls import reverse
+            tab_fragments = {'city': 'cities', 'localarea': 'areas', 'pooja': 'poojas', 'language': 'languages', 'poojacategory': 'categories'}
+            fragment = tab_fragments.get(entity_type, '')
+            return redirect(reverse('module5_dashboards:master_data_management') + ('#' + fragment if fragment else ''))
     else:
         form = FormClass(instance=entity)
     
     return render(request, 'dashboards/master_data_edit.html', {
         'entity_type': entity_type,
         'entity': entity,
+        'entity_name': str(entity),
         'form': form,
     })
 
@@ -2553,9 +2557,15 @@ def master_data_toggle_status(request, entity_type, entity_id):
         'status': getattr(entity, 'status', None),
     }
     
-    # Toggle status
-    if hasattr(entity, 'deactivate') and entity.is_active:
-        entity.deactivate(reason="Toggled via Super Admin dashboard", actor=request.user)
+    # Toggle status: deactivate or activate (City/LocalArea have no deactivate(), so flip is_active and status)
+    if entity.is_active:
+        if hasattr(entity, 'deactivate'):
+            entity.deactivate(reason="Toggled via Super Admin dashboard", actor=request.user)
+        else:
+            entity.is_active = False
+            if hasattr(entity, 'status'):
+                entity.status = 'inactive'
+            entity.save()
     else:
         entity.is_active = True
         if hasattr(entity, 'status'):
@@ -2577,7 +2587,11 @@ def master_data_toggle_status(request, entity_type, entity_id):
     )
     
     messages.success(request, f'{entity_type.title()} status updated successfully.')
-    return redirect('module5_dashboards:master_data_management')
+    # Redirect back to master data page with same tab active
+    from django.urls import reverse
+    tab_fragments = {'city': 'cities', 'localarea': 'areas', 'pooja': 'poojas', 'language': 'languages', 'poojacategory': 'categories'}
+    fragment = tab_fragments.get(entity_type, '')
+    return redirect(reverse('module5_dashboards:master_data_management') + ('#' + fragment if fragment else ''))
 
 
 # ============================================================================
