@@ -1,16 +1,28 @@
-# How to Get Pandit Registration Emails (Railway, GoDaddy, Any Host)
+# How to Get Emails in Your Mailbox (Railway, GoDaddy, VPS, All Servers)
 
-Your app **only sends real emails** when these three environment variables are set on the server where it runs:
+Emails will **only be delivered to your mailbox** when the app is configured correctly **on the server** where it runs. Use one of the options below and set the variables **on that host** (Railway dashboard, GoDaddy env, VPS `.env`, etc.).
 
-- `EMAIL_HOST`
-- `EMAIL_HOST_USER`
-- `EMAIL_HOST_PASSWORD`
-
-If any of them are **missing**, Django uses the **console** backend: no error, but emails are **not** sent (they only appear in server logs). So you must add these variables **on the host** (Railway, GoDaddy, or wherever the app runs).
+**Quick check:** After setting variables and redeploying/restarting, run:
+`python manage.py check_production_config`  
+You should see either **"SMTP email is configured"** or **"Resend is configured"**. If you see **"Console backend"**, emails are not being sent to real mailboxes.
 
 ---
 
-## Option A: Use Gmail (works from Railway, GoDaddy, VPS, anywhere)
+## Railway (recommended: Resend — SMTP is often blocked)
+
+Railway Free/Hobby plans often **block outbound SMTP** (port 587). Use **Resend** (HTTPS API) so emails still reach mailboxes.
+
+1. Sign up at [resend.com](https://resend.com) and get an API key.
+2. In **Railway** → your service → **Variables**, add:
+   - `RESEND_API_KEY` = your API key (e.g. `re_xxxx`)
+   - `RESEND_FROM_EMAIL` = `Nitya Dharma <onboarding@resend.dev>` (or your verified domain)
+3. Do **not** set `EMAIL_HOST` / `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` if you use Resend (Resend takes priority).
+4. Redeploy. Run `check_production_config` and confirm "Resend is configured".
+5. Test: register a Pandit and check inbox + spam.
+
+---
+
+## Option A: Use Gmail (works from GoDaddy, VPS; Railway may block SMTP)
 
 Gmail SMTP works from any server. You don’t need a server on GoDaddy to use Gmail.
 
@@ -66,18 +78,19 @@ If you have email hosted at GoDaddy (e.g. `you@yourdomain.com`), you can use the
    - **Username:** full email (e.g. `you@yourdomain.com`)
    - **Password:** the mailbox password (or app password if they offer it)
 
-3. Set these **on the host where the app runs** (Railway or GoDaddy):
+3. Set these **on the host** (all three required for SMTP). For **port 465** use `EMAIL_USE_SSL=True` and `EMAIL_USE_TLS=False`:
 
-| Variable | Example (replace with your values) |
-|----------|------------------------------------|
-| `EMAIL_HOST` | `smtpout.secureserver.net` (or what GoDaddy shows) |
-| `EMAIL_PORT` | `587` or `465` |
-| `EMAIL_USE_TLS` | `True` (for 587) or `False` for 465 with SSL |
-| `EMAIL_HOST_USER` | `you@yourdomain.com` |
-| `EMAIL_HOST_PASSWORD` | Your mailbox password |
-| `DEFAULT_FROM_EMAIL` | `you@yourdomain.com` |
+| Variable | Port 587 (TLS) | Port 465 (SSL) |
+|----------|----------------|----------------|
+| `EMAIL_HOST` | `smtpout.secureserver.net` | `smtpout.secureserver.net` |
+| `EMAIL_PORT` | `587` | `465` |
+| `EMAIL_USE_TLS` | `True` | `False` |
+| `EMAIL_USE_SSL` | `False` | `True` |
+| `EMAIL_HOST_USER` | `you@yourdomain.com` | `you@yourdomain.com` |
+| `EMAIL_HOST_PASSWORD` | mailbox password | mailbox password |
+| `DEFAULT_FROM_EMAIL` | `you@yourdomain.com` | `you@yourdomain.com` |
 
-4. Redeploy/restart the app, then test Pandit registration again.
+4. Redeploy/restart, then test registration and check inbox + spam.
 
 ---
 
@@ -124,10 +137,18 @@ If you see `=> Console/other backend`, one of the three required variables is st
 
 ## Quick checklist
 
-- [ ] All three set on the **same** environment where the app runs: `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+- [ ] **Railway:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL` set. **GoDaddy/VPS:** `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` set.
 - [ ] For Gmail: `DEFAULT_FROM_EMAIL` = `EMAIL_HOST_USER` (same address)
 - [ ] App restarted or redeployed after changing variables
 - [ ] Tested with a **new** Pandit registration and checked inbox + spam
-- [ ] Optional: ran `check_production_config` and saw “SMTP email is configured”
+- [ ] `check_production_config` shows SMTP or Resend and saw “SMTP email is configured”
 
-Once these are set correctly on Railway, GoDaddy, or any host, Pandit registration emails will be sent from that server.
+## Emails still not in mailbox?
+
+- **Check backend:** Run `python manage.py check_production_config`. You must see "SMTP email is configured" or "Resend is configured". If "Console backend", set env vars on that host and restart/redeploy.
+- **Spam folder:** Check Spam/Junk; mark as Not Spam.
+- **Gmail:** `DEFAULT_FROM_EMAIL` must equal `EMAIL_HOST_USER`.
+- **GoDaddy 465:** Use `EMAIL_PORT=465`, `EMAIL_USE_SSL=True`, `EMAIL_USE_TLS=False`.
+- **Railway:** Use Resend (`RESEND_API_KEY` + `RESEND_FROM_EMAIL`); SMTP is often blocked.
+
+Once configured, emails will be sent and can appear in your mailbox on Railway, GoDaddy, VPS, and all servers.

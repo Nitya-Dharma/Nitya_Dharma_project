@@ -61,24 +61,22 @@ DATABASES = {
 # For production: Configure SMTP settings via environment variables
 # Uses config() from python-decouple to read from .env file (automatically loads .env)
 
-# Read email settings using config() (python-decouple automatically loads .env)
+# Read email settings (same env vars as prod: GoDaddy, VPS, Railway use these)
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-# CRITICAL FIX: Gmail SMTP silently drops emails when DEFAULT_FROM_EMAIL != EMAIL_HOST_USER
-# For Gmail SMTP, FROM address MUST match the authenticated account
-# If DEFAULT_FROM_EMAIL is set in .env, use it; otherwise default to EMAIL_HOST_USER
+# Gmail/GoDaddy: DEFAULT_FROM_EMAIL should match authenticated account for delivery
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
-# Set EMAIL_BACKEND based on whether credentials are provided
-# This ensures SMTP is used when credentials exist, console backend otherwise
+# Use SMTP only when all three are set (same as prod)
 EMAIL_BACKEND = (
     "django.core.mail.backends.smtp.EmailBackend"
-    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+    if (EMAIL_HOST and EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
     else "django.core.mail.backends.console.EmailBackend"
 )
 

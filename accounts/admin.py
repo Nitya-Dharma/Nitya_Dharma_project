@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm as AuthUserChangeForm
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -103,7 +104,7 @@ class UserAdmin(BaseUserAdmin):
         
         # Role and Status - core business fields
         (_('Role & Status'), {
-            'fields': ('role', 'status')
+            'fields': ('role', 'status', 'email_verified', 'email_verified_at')
         }),
         
         # Permissions
@@ -131,11 +132,17 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     
-    # Read-only fields
-    readonly_fields = ('date_joined', 'last_login', 'created_at', 'updated_at')
+    # Read-only fields (email_verified_at set automatically when email_verified is checked)
+    readonly_fields = ('date_joined', 'last_login', 'created_at', 'updated_at', 'email_verified_at')
     
     # Filter horizontal for many-to-many fields
     filter_horizontal = ('groups', 'user_permissions',)
+
+    def save_model(self, request, obj, form, change):
+        """When admin marks Email verified, set email_verified_at if not already set."""
+        if change and getattr(obj, 'email_verified', False) and not getattr(obj, 'email_verified_at', None):
+            obj.email_verified_at = timezone.now()
+        super().save_model(request, obj, form, change)
     
     def delete_model(self, request, obj):
         """

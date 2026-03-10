@@ -124,12 +124,15 @@ if _resend_key:
     RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', '').strip() or config('RESEND_FROM_EMAIL', default='Nitya Dharma <onboarding@resend.dev>')
     DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL or config('DEFAULT_FROM_EMAIL', default='Nitya Dharma <onboarding@resend.dev>')
     SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
-    EMAIL_HOST = EMAIL_PORT = EMAIL_USE_TLS = None
+    EMAIL_HOST = EMAIL_PORT = EMAIL_USE_TLS = EMAIL_USE_SSL = None
     EMAIL_HOST_USER = EMAIL_HOST_PASSWORD = ''
 else:
+    # SMTP for GoDaddy, VPS, or any host that allows outbound SMTP
     EMAIL_HOST = _email_host or config('EMAIL_HOST', default='')
     EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
     EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+    # GoDaddy port 465: set EMAIL_PORT=465, EMAIL_USE_SSL=True, EMAIL_USE_TLS=False
     EMAIL_HOST_USER = _email_user or config('EMAIL_HOST_USER', default='')
     EMAIL_HOST_PASSWORD = _email_pass or config('EMAIL_HOST_PASSWORD', default='')
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')

@@ -26,15 +26,19 @@ class Command(BaseCommand):
         host_set = bool(getattr(settings, "EMAIL_HOST", ""))
         user_set = bool(getattr(settings, "EMAIL_HOST_USER", ""))
         pass_set = bool(getattr(settings, "EMAIL_HOST_PASSWORD", ""))
+        resend_key = bool(getattr(settings, "RESEND_API_KEY", ""))
         self.stdout.write(f"  EMAIL_HOST set: {host_set}")
         self.stdout.write(f"  EMAIL_HOST_USER set: {user_set}")
         self.stdout.write(f"  EMAIL_HOST_PASSWORD set: {pass_set}")
+        self.stdout.write(f"  RESEND_API_KEY set: {resend_key}")
         from_ok = bool(getattr(settings, "DEFAULT_FROM_EMAIL", ""))
         self.stdout.write(f"  DEFAULT_FROM_EMAIL set: {from_ok}")
-        if "smtp" in backend.lower():
+        if "resend" in backend.lower():
+            self.stdout.write(self.style.SUCCESS("  => Resend is configured (emails will be sent via Resend API)."))
+        elif "smtp" in backend.lower():
             self.stdout.write(self.style.SUCCESS("  => SMTP email is configured (emails will be sent)."))
         else:
-            self.stdout.write(self.style.WARNING("  => Console/other backend (emails not sent via SMTP). Set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD in env."))
+            self.stdout.write(self.style.WARNING("  => Console backend (emails not sent). For Railway: set RESEND_API_KEY. For GoDaddy/VPS: set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD."))
 
         # --- Media (uploads) ---
         self.stdout.write("")
