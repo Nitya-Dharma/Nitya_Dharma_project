@@ -167,8 +167,10 @@
         const searchNoResults = document.getElementById('search-no-results');
 
         function getCsrfToken() {
-            const el = document.querySelector('[name=csrfmiddlewaretoken]');
-            return el ? el.value : '';
+            var el = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (el && el.value) return el.value;
+            var match = document.cookie.match(/csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
         }
 
         // ----- Search pandits by email -----
@@ -239,24 +241,41 @@
                     var panditPublicId = (this.dataset.panditPublicId || '').trim();
                     var panditEmail = this.dataset.panditEmail;
                     if (!confirm('Assign ' + panditEmail + ' as moderator?')) return;
-                    var body = panditPublicId ? ('pandit_public_id=' + encodeURIComponent(panditPublicId)) : ('pandit_id=' + encodeURIComponent(panditId));
+                    var body = (panditPublicId && panditPublicId !== 'None') ? ('pandit_public_id=' + encodeURIComponent(panditPublicId)) : ('pandit_id=' + encodeURIComponent(panditId));
+                    var csrf = getCsrfToken();
+                    if (!csrf) {
+                        alert('Security token missing. Please refresh the page and try again.');
+                        return;
+                    }
                     fetch('/pages/' + encodeURIComponent(pagePublicId) + '/moderators/assign/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-CSRFToken': getCsrfToken()
+                            'X-CSRFToken': csrf
                         },
                         body: body,
                         credentials: 'same-origin'
                     })
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data.success) location.reload();
-                        else alert('Error: ' + (data.error || 'Could not assign moderator.'));
+                    .then(function(r) {
+                        return r.text().then(function(text) {
+                            try {
+                                return { ok: r.ok, status: r.status, data: text ? JSON.parse(text) : {} };
+                            } catch (e) {
+                                return { ok: false, status: r.status, data: { error: 'Server returned invalid response (status ' + r.status + ')' } };
+                            }
+                        });
+                    })
+                    .then(function(result) {
+                        if (result.ok && result.data.success) {
+                            location.reload();
+                        } else {
+                            var msg = (result.data && result.data.error) ? result.data.error : ('Request failed (status ' + result.status + '). Please try again.');
+                            alert('Error: ' + msg);
+                        }
                     })
                     .catch(function(err) {
                         console.error('Assign error:', err);
-                        alert('An error occurred. Please try again.');
+                        alert('Network or other error. Please check your connection and try again.');
                     });
                 };
             });
