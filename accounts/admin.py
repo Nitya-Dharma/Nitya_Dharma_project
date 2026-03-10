@@ -1,9 +1,32 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserChangeForm as AuthUserChangeForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from .models import User
+
+
+class UserChangeForm(AuthUserChangeForm):
+    """
+    Custom change form so optional username (null/blank) does not break admin.
+    Django's default UsernameField calls len(value) and fails when value is None.
+    """
+    username = forms.CharField(
+        max_length=150,
+        required=False,
+        label=_('Username (Display)'),
+        help_text=_('Optional display name for public URLs/profiles. Email is used for login.'),
+    )
+
+    class Meta(AuthUserChangeForm.Meta):
+        model = User
+        fields = '__all__'
+
+    def clean_username(self):
+        value = self.cleaned_data.get('username') or ''
+        return value.strip() or None  # Store None in DB when empty (model allows null)
 
 # Import referral models to handle PROTECT constraints
 try:
@@ -36,7 +59,8 @@ class UserAdmin(BaseUserAdmin):
     - Rule 1: Email is used for authentication/search (not username)
     - Rule 3: Username is for display only (can be shown in admin)
     """
-    
+    form = UserChangeForm
+
     # List display - email is primary identifier (Rule 1)
     list_display = (
         'email',
