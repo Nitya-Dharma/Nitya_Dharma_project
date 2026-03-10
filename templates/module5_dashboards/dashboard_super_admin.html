@@ -512,6 +512,9 @@
             <div class="super-admin-card">
                 <div class="dashboard-card-header d-flex justify-content-between align-items-center">
                     <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-file-earmark-text me-2"></i>Page Governance</h3>
+                    <a href="{% url 'pages:page_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+                    </a>
                 </div>
                 <div class="dashboard-card-body">
                     <!-- Filters -->
@@ -624,6 +627,22 @@
                     {% endif %}
                 </div>
             </div>
+        {% else %}
+            <!-- Empty state: no pages yet – show Create Temple Page (same as Admin Pandit) -->
+            <div class="super-admin-card">
+                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-building me-2"></i>Temple Pages Management</h3>
+                    <a href="{% url 'pages:page_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+                    </a>
+                </div>
+                <div class="dashboard-card-body text-center py-4">
+                    <p class="text-muted mb-3">No temple pages yet. Create your first temple page to get started.</p>
+                    <a href="{% url 'pages:page_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+                    </a>
+                </div>
+            </div>
         {% endif %}
 
         <!-- UNIT 14: Governance Action Review (Unified Audit Feed) -->
@@ -730,6 +749,15 @@
             </div>
             <div class="dashboard-card-body">
                 <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi bi-building me-2"></i>Create Temple Page</h6>
+                                <p class="card-text text-muted small">Create a new temple, brand, trust, or social service page (same as Admin Pandit)</p>
+                                <a href="{% url 'pages:page_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>Create Temple Page</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-6">
                         <div class="card border">
                             <div class="card-body">
@@ -918,6 +946,17 @@
 
     <!-- Pages Tab -->
     <div class="tab-pane fade" id="pages" role="tabpanel" aria-labelledby="pages-tab" style="display: none;">
+        <div class="super-admin-card mb-3">
+            <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                <h3 class="h5 mb-0 fw-semibold"><i class="bi bi-building me-2"></i>Temple Pages Management</h3>
+                <a href="{% url 'pages:page_create' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Create Temple Page
+                </a>
+            </div>
+            <div class="dashboard-card-body py-2">
+                <p class="text-muted small mb-0">Create and manage temple, brand, trust, and social service pages (same as Admin Pandit).</p>
+            </div>
+        </div>
         {% if page_overview %}
             <div class="super-admin-card">
                 <div class="dashboard-card-header">
