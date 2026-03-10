@@ -1098,16 +1098,34 @@ def assign_moderator(request, page_public_id):
     existing_role = PageRole.objects.filter(page=page, pandit=pandit).first()
     if existing_role:
         return JsonResponse({'success': False, 'error': f'Pandit already has role: {existing_role.get_role_display()}'}, status=400)
-    
-    # Create moderator role
+
+    from django.db import IntegrityError, OperationalError
+
     try:
         PageRole.objects.create(
             page=page,
             pandit=pandit,
             role=PageRole.ROLE_MODERATOR
         )
-        
-        # Log audit
+    except IntegrityError as e:
+        logger.warning(f"Assign moderator IntegrityError: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'This pandit may already be assigned to this page. Refresh the list and try again.',
+        }, status=400)
+    except OperationalError as e:
+        logger.error(f"Assign moderator OperationalError (table/schema?): {e}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': 'Database error. Ensure migrations are run (e.g. python manage.py migrate).',
+        }, status=500)
+    except ValidationError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error assigning moderator: {str(e)}", exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    try:
         from .models import PageAuditLog
         from .constants import AUDIT_ACTION_UPDATE
         PageAuditLog.objects.create(
@@ -1115,33 +1133,26 @@ def assign_moderator(request, page_public_id):
             action=AUDIT_ACTION_UPDATE,
             performed_by=request.user
         )
-        
-        # TASK 3: Create notification when moderator access is granted
-        try:
-            from notifications.services import NotificationService
-            from notifications.constants import NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED
-            from core.public_id import get_public_id
-            
-            NotificationService.create_notification(
-                recipient=pandit,
-                notification_type=NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED,
-                source_module='pages',
-                payload={
-                    'page_public_id': page.public_id,
-                    'page_title': page.title,
-                    'role_assigned': 'MODERATOR',
-                }
-            )
-        except Exception as e:
-            logger.warning(f"Failed to create notification for moderator assignment: {str(e)}")
-            # Don't fail the assignment if notification fails
-        
-        return JsonResponse({'success': True, 'message': f'Moderator {pandit.email} assigned successfully'})
-    except ValidationError as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     except Exception as e:
-        logger.error(f"Error assigning moderator: {str(e)}", exc_info=True)
-        return JsonResponse({'success': False, 'error': f'Error assigning moderator: {str(e)}'}, status=500)
+        logger.warning(f"Audit log failed for moderator assign: {e}")
+
+    try:
+        from notifications.services import NotificationService
+        from notifications.constants import NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED
+        NotificationService.create_notification(
+            recipient=pandit,
+            notification_type=NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED,
+            source_module='pages',
+            payload={
+                'page_public_id': getattr(page, 'public_id', None) or '',
+                'page_title': page.title,
+                'role_assigned': 'MODERATOR',
+            }
+        )
+    except Exception as e:
+        logger.warning(f"Failed to create notification for moderator assignment: {str(e)}")
+
+    return JsonResponse({'success': True, 'message': f'Moderator {pandit.email} assigned successfully'})
 
 
 @login_required

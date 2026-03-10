@@ -97,14 +97,15 @@ You can use **PostgreSQL** (default) or **MySQL** on Railway. Your `prod.py` sup
 ## Step 7: Set build and start commands (if needed)
 
 1. Click the **web service** → **“Settings”** (or **“Configure”**)
-2. **Build Command** (optional but recommended so static files are collected):
+2. **Build Command** (recommended: install deps, collect static, **and run migrations**):
    ```bash
-   pip install -r requirements.txt && python manage.py collectstatic --noinput
+   pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
    ```
-   If Railway already runs `pip install -r requirements.txt` by default, you can use only:
+   If Railway already runs `pip install -r requirements.txt` by default, use:
    ```bash
-   python manage.py collectstatic --noinput
+   python manage.py collectstatic --noinput && python manage.py migrate --noinput
    ```
+   This way migrations run on every deploy, so tables like `pages_page_role` stay in sync.
 3. **Start Command** (optional – Railway should detect **Procfile**):
    - If it uses the Procfile, you should see: `web: gunicorn nityadharma.wsgi:application --config gunicorn.conf.py`
    - If you must set it manually:  
@@ -114,43 +115,42 @@ You can use **PostgreSQL** (default) or **MySQL** on Railway. Your `prod.py` sup
 
 ---
 
-## Step 8: Run migrations (first deploy)
+## Step 8: Run migrations (first deploy or when you see 500)
 
-Migrations must run **on Railway's network** (so the app can reach `mysql.railway.internal`). Running `railway run python manage.py migrate` from your PC will fail with "Unknown server host 'mysql.railway.internal'" because that host only exists inside Railway.
+Migrations must run **on Railway's network** (database is not reachable from your PC). Use one of the options below.
 
-**Option A – Railway SSH (run migrate inside Railway)**
+### Quick: Run migrate now (one-time)
 
-1. Ensure your **web** service is deployed and running.
-2. In your project folder (with Railway CLI installed and `railway link` already done):
+**Option A – Railway dashboard “Run command” (easiest)**
+
+1. Open **Railway** → your project → click your **web service** (not the database).
+2. Open the **“Deployments”** or **“Settings”** tab.
+3. Look for **“Run command”**, **“One-off command”**, or **“Shell”** / **“Console”**.
+4. Run:
    ```bash
-   railway ssh -- python manage.py migrate
+   python manage.py migrate --noinput
    ```
-   This runs the command **inside** the deployed container on Railway, where the database is reachable.
+5. Wait for it to finish. Then try the app again (e.g. assign moderator).
 
-**Option A2 – Railway CLI run (only if you use a public DB URL)**
+**Option B – Railway CLI: do NOT use `railway run` for migrate**
 
-`railway run python manage.py migrate` runs the command **on your PC** with Railway's env vars; your PC cannot resolve `mysql.railway.internal`. Use Option A (SSH) or Option B (build command) instead.
+- `railway run python manage.py migrate` runs **on your PC** with Railway’s env vars. Your PC cannot reach `mysql.railway.internal` or `postgres.railway.internal`, so you get: **"Unknown server host 'mysql.railway.internal' (11001)"**. That is expected.
+- To run migrate **on Railway**, use either:
+  - **Option A** (dashboard Run command / Shell), or
+  - **Option C** (add migrate to Build Command and redeploy).
+- If your plan has **SSH**, you can run inside the container: `railway ssh -- python manage.py migrate --noinput` (this runs on Railway, not your PC).
 
-3. (Optional) Create a superuser (also via SSH so it runs on Railway):
-   ```bash
-   railway ssh -- python manage.py createsuperuser
-   ```
+**Option C – Build command (run on every deploy)**
 
-**Option B – Deploy hook / one-off command (if your plan supports it)**
+- In **Step 7** above, the Build Command already includes `python manage.py migrate --noinput`. If you set that and **redeploy** (push a commit or click “Redeploy”), migrations will run automatically on each deploy. No need to run migrate manually after that.
+- To run migrate **right now** without a code change: use Option A or B once, or temporarily change Build Command to include `migrate`, save, redeploy, then change it back if you prefer.
 
-- In Railway dashboard, open your **web service** → **“Settings”** or **“Deploy”**
-- If there is a **“One-off command”** or **“Run command”**, run:
-  ```bash
-  python manage.py migrate
-  ```
+### Optional: Create superuser (via Railway CLI)
 
-**Option C – Build command (run every deploy)**
-
-- You can add to **Build Command**:
-  ```bash
-  pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
-  ```
-  Then migrations run on every build (fine for testing; for production you may prefer running them once or via release phase).
+```bash
+railway run python manage.py createsuperuser
+```
+(Or use the dashboard Shell/Console if your plan has it.)
 
 ---
 
@@ -200,9 +200,10 @@ Migrations must run **on Railway's network** (so the app can reach `mysql.railwa
 |-------|----------------|
 | Build fails | **Logs** tab: missing dependency in `requirements.txt`, wrong Python version. Railway usually uses a recent Python 3. |
 | 500 on open | **Logs** for Python traceback; **Variables** for `SECRET_KEY`, `DATABASE_URL`, `DJANGO_SETTINGS_MODULE`. |
+| **500 when assigning moderator** | 1. Run migrations (Step 8). 2. **View Logs**: Web service → Deployments → View Logs; trigger Assign again and check for the traceback. 3. Deploy latest code (assign view returns JSON on errors). |
 | DisallowedHost | Set `ALLOWED_HOSTS=*` or add your Railway domain; ensure `RAILWAY_PUBLIC_DOMAIN` is set if your prod.py uses it. |
 | Static files missing | Build command includes: `python manage.py collectstatic --noinput`. |
-| DB errors | `DATABASE_URL` is from the Postgres service; migrations were run (`railway run python manage.py migrate`). |
+| DB errors | `DATABASE_URL` is from the Postgres service; migrations were run (Step 8). |
 
 ---
 
