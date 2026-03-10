@@ -236,7 +236,23 @@ def create_booking_intent_form(request, pandit_public_id):
                 message=combined_message,
                 user_mobile_number=user_mobile_number
             )
-            
+            # Notify the pandit about the new booking intent
+            try:
+                from notifications.services import NotificationService
+                from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+                requester_name = (getattr(intent.requester, 'get_full_name', None) and intent.requester.get_full_name()) or getattr(intent.requester, 'email', 'A user')
+                NotificationService.create_notification(
+                    recipient=intent.pandit,
+                    notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                    source_module='booking_intent',
+                    payload={
+                        'title': 'New booking intent',
+                        'message': f'{requester_name} sent you a booking enquiry.',
+                        'booking_intent_public_id': getattr(intent, 'public_id', None) or str(intent.id),
+                    },
+                )
+            except Exception:
+                pass
             # Redirect to success page or back to profile (use profile_public_by_id; profile_public expects identifier)
             from django.shortcuts import redirect
             from django.contrib import messages

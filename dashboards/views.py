@@ -147,14 +147,28 @@ def dashboard_pandit(request):
     
     # TASK 4 & 5: Get pages for Pandit (Temple Pages tab)
     from pages.page_permissions import get_pages_for_pandit
+    from booking_intent.models import BookingIntent
     temple_pages = get_pages_for_pandit(request.user)
     has_temple_pages = len(temple_pages) > 0
-    
+
+    # Booking intents received by this pandit (for card and badge)
+    pandit_booking_intents = BookingIntent.objects.filter(pandit=request.user)
+    booking_intent_count = pandit_booking_intents.count()
+    pending_booking_intents_count = pandit_booking_intents.filter(
+        status__in=[BookingIntent.STATUS_SUBMITTED, BookingIntent.STATUS_VIEWED]
+    ).count()
+    booking_intent_summary = None
+    if pending_booking_intents_count > 0:
+        booking_intent_summary = f"{pending_booking_intents_count} pending (awaiting your response)"
+
     return render(request, 'module5_dashboards/dashboard_pandit.html', {
         'user': request.user,
         'user_role': 'pandit',
         'temple_pages': temple_pages,
         'has_temple_pages': has_temple_pages,
+        'booking_intent_count': booking_intent_count,
+        'booking_intent_summary': booking_intent_summary,
+        'pending_booking_intents_count': pending_booking_intents_count,
     })
 
 

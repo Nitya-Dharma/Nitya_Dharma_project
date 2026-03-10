@@ -151,6 +151,23 @@ def create_intent(request):
                 track_booking_intent(request, profile_id, metadata={})
         except Exception:
             pass
+        # Notify the pandit about the new booking intent
+        try:
+            from notifications.services import NotificationService
+            from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+            requester_name = (getattr(intent.requester, 'get_full_name', None) and intent.requester.get_full_name()) or getattr(intent.requester, 'email', 'A user')
+            NotificationService.create_notification(
+                recipient=intent.pandit,
+                notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                source_module='booking_intent',
+                payload={
+                    'title': 'New booking intent',
+                    'message': f'{requester_name} sent you a booking enquiry.',
+                    'booking_intent_public_id': getattr(intent, 'public_id', None) or str(intent.id),
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Could not create pandit notification for booking intent: {e}")
         return JsonResponse(
             BookingIntentSerializer.serialize(intent),
             status=201
