@@ -296,7 +296,7 @@ def profile_edit(request, public_id=None):
                 profile.enable_call = True
                 profile.allow_call = True
             
-            # If whatsapp_mobile_number exists or use_same_number is checked, enable WhatsApp by default
+            # If whatsapp_mobile_number exists or use_same_number is checked, enable WhatsApp (so WhatsApp button shows)
             if profile.whatsapp_mobile_number or (getattr(profile, 'use_same_number_for_call_and_whatsapp', False) and profile.call_mobile_number):
                 profile.enable_whatsapp = True
                 profile.allow_whatsapp = True

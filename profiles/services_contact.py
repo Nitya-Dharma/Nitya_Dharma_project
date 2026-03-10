@@ -124,7 +124,10 @@ def get_whatsapp_url(pandit_profile: PanditProfile, message: str = None) -> str 
     if not pandit_profile.user.is_active or pandit_profile.user.status != 'active':
         return None
     
-    if not pandit_profile.allow_whatsapp:
+    # Allow WhatsApp if explicitly enabled, or if "use same number for Call & WhatsApp" is set (so button shows)
+    allow_whatsapp = getattr(pandit_profile, 'allow_whatsapp', False) or getattr(pandit_profile, 'enable_whatsapp', False)
+    use_same = getattr(pandit_profile, 'use_same_number_for_call_and_whatsapp', False)
+    if not allow_whatsapp and not (use_same and pandit_profile.call_mobile_number):
         return None
     
     whatsapp_number = None
