@@ -12,6 +12,7 @@ Rules:
 """
 
 import logging
+import threading
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -107,48 +108,35 @@ def create_email_verification(user, sent_by=None):
                 logger.warning(f"[EMAIL DEBUG] Token: {verification_token.token[:20]}...")
                 logger.warning(f"[EMAIL DEBUG] Token expires_at: {verification_token.expires_at}")
                 
-                # Send verification email
-                # STEP 8: Hard logging with fail_silently=False (already set in send_verification_email)
-                # STEP 6: Enhanced error handling - don't re-raise in on_commit callback
-                # Errors in on_commit callbacks can't be caught by outer try/except blocks
-                try:
-                    logger.warning(f"[EMAIL DEBUG] About to call send_verification_email()...")
-                    send_verification_email(user, verification_token)
-                    logger.warning(f"[EMAIL DEBUG] ✓✓✓ Email sending completed successfully ✓✓✓")
-                    logger.warning(f"[EMAIL DEBUG] Email should arrive at: {user.email}")
-                except Exception as email_error:
-                    logger.error(f"[EMAIL DEBUG] ========================================")
-                    logger.error(f"[EMAIL DEBUG] ✗✗✗ CRITICAL: send_verification_email() FAILED ✗✗✗")
-                    logger.error(f"[EMAIL DEBUG] ========================================")
-                    logger.error(f"[EMAIL DEBUG] Error Type: {type(email_error).__name__}")
-                    logger.error(f"[EMAIL DEBUG] Error Message: {str(email_error)}")
-                    logger.error(f"[EMAIL DEBUG] Full Traceback:", exc_info=True)
-                    logger.error(f"[EMAIL DEBUG] User: {user.email}")
-                    logger.error(f"[EMAIL DEBUG] Token: {verification_token.token[:20]}...")
-                    logger.error(f"[EMAIL DEBUG] Email Backend: {email_backend}")
-                    logger.error(f"[EMAIL DEBUG] ========================================")
-                    # DO NOT re-raise here - on_commit callbacks run after transaction commits
-                    # Re-raising would cause unhandled exception. Log and continue.
-                    # The token is already created, user can request resend later.
-                    # However, we MUST log this error prominently so it's visible
-                
-                logger.warning(f"[EMAIL DEBUG] ========================================")
-                
-                # TASK 9: Log audit event (after email is sent)
-                try:
-                    from analytics.audit_events import log_audit_event
-                    from referrals.constants import AUDIT_ACTION_EMAIL_VERIFICATION_SENT
-                    log_audit_event(
-                        event_type=AUDIT_ACTION_EMAIL_VERIFICATION_SENT,
-                        user=user,
-                        metadata={
-                            'token_id': verification_token.public_id,
-                            'expires_at': verification_token.expires_at.isoformat(),
-                        }
-                    )
-                except Exception:
-                    # Audit logging is optional
-                    pass
+                # Send verification email in a background thread so the HTTP request returns
+                # immediately and does not hit Gunicorn/platform timeouts (e.g. Railway).
+                def _send_in_thread():
+                    try:
+                        send_verification_email(user, verification_token)
+                        logger.info(f"Verification email sent to {user.email}")
+                        # TASK 9: Log audit event (after email is sent)
+                        try:
+                            from analytics.audit_events import log_audit_event
+                            from referrals.constants import AUDIT_ACTION_EMAIL_VERIFICATION_SENT
+                            log_audit_event(
+                                event_type=AUDIT_ACTION_EMAIL_VERIFICATION_SENT,
+                                user=user,
+                                metadata={
+                                    'token_id': verification_token.public_id,
+                                    'expires_at': verification_token.expires_at.isoformat(),
+                                }
+                            )
+                        except Exception:
+                            pass
+                    except Exception as email_error:
+                        logger.error(
+                            f"Verification email failed for {user.email}: {type(email_error).__name__}: {email_error}",
+                            exc_info=True,
+                        )
+
+                thread = threading.Thread(target=_send_in_thread, daemon=True)
+                thread.start()
+                logger.warning(f"[EMAIL DEBUG] Email send started in background for {user.email}")
             
             # Schedule email to be sent after transaction commits
             transaction.on_commit(send_email_after_commit)
