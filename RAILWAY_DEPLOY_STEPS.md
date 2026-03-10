@@ -116,25 +116,24 @@ You can use **PostgreSQL** (default) or **MySQL** on Railway. Your `prod.py` sup
 
 ## Step 8: Run migrations (first deploy)
 
-After the first successful build and deploy:
+Migrations must run **on Railway's network** (so the app can reach `mysql.railway.internal`). Running `railway run python manage.py migrate` from your PC will fail with "Unknown server host 'mysql.railway.internal'" because that host only exists inside Railway.
 
-**Option A – Railway CLI (recommended)**
+**Option A – Railway SSH (run migrate inside Railway)**
 
-1. Install Railway CLI: https://docs.railway.app/develop/cli  
-   (e.g. Windows: `winget install Railway.CLI` or use npm: `npm i -g @railway/cli`)
-2. In your project folder:
+1. Ensure your **web** service is deployed and running.
+2. In your project folder (with Railway CLI installed and `railway link` already done):
    ```bash
-   railway login
-   railway link
+   railway ssh -- python manage.py migrate
    ```
-   Choose the project and the **web** service when asked.
-3. Run migrations:
+   This runs the command **inside** the deployed container on Railway, where the database is reachable.
+
+**Option A2 – Railway CLI run (only if you use a public DB URL)**
+
+`railway run python manage.py migrate` runs the command **on your PC** with Railway's env vars; your PC cannot resolve `mysql.railway.internal`. Use Option A (SSH) or Option B (build command) instead.
+
+3. (Optional) Create a superuser (also via SSH so it runs on Railway):
    ```bash
-   railway run python manage.py migrate
-   ```
-4. (Optional) Create a superuser:
-   ```bash
-   railway run python manage.py createsuperuser
+   railway ssh -- python manage.py createsuperuser
    ```
 
 **Option B – Deploy hook / one-off command (if your plan supports it)**

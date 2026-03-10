@@ -21,7 +21,8 @@ class Command(BaseCommand):
         self.stdout.write(f"DB engine: {engine}")
         self.stdout.write(f"DB host:  {host}")
         self.stdout.write(f"DB name:  {name}")
-        if "railway" in str(host).lower() or "railway.internal" in str(host).lower():
+        host_lower = str(host).lower()
+        if "railway" in host_lower or "railway.internal" in host_lower or "rlwy.net" in host_lower:
             self.stdout.write(self.style.SUCCESS("Connected to Railway database."))
         else:
             self.stdout.write(self.style.WARNING("Not Railway (e.g. local or other)."))

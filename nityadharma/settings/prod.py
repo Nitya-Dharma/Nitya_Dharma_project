@@ -17,6 +17,10 @@ from .base import *
 # Avoid ManifestStaticFilesStorage so missing static files (e.g. images/logo.png) don't cause 500
 STORAGES['staticfiles'] = {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'}
 
+# Serve uploaded media (e.g. branding logo) from the app. OK for testing; use S3/Volume for persistence.
+# On Railway, uploads are lost on redeploy unless you add a Volume or use external storage.
+SERVE_MEDIA_IN_PROD = True
+
 # SECURITY WARNING: keep the secret key used in production secret!
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production (no default)
 SECRET_KEY = config('SECRET_KEY')  # Will raise error if not set
@@ -65,6 +69,8 @@ elif os.environ.get('MYSQL_URL'):
     )
     if _db.get('ENGINE', '').endswith('mysql'):
         _db.setdefault('OPTIONS', {})['charset'] = 'utf8mb4'
+        # Longer connect_timeout for external TCP Proxy (avoids "Lost connection at handshake")
+        _db['OPTIONS'].setdefault('connect_timeout', 30)
     DATABASES = {'default': _db}
 else:
     DATABASES = {
@@ -100,4 +106,27 @@ if _redis_url:
         }
     }
 # else: keep base.py CACHES (LocMemCache) so system runs normally without Redis
+
+# ---------------------------------------------------------------------------
+# Email (production)
+# Set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (and optionally EMAIL_PORT,
+# EMAIL_USE_TLS, DEFAULT_FROM_EMAIL) in Railway (or env). If not set, console
+# backend is used so the app does not crash (emails will not be sent).
+# For Gmail: DEFAULT_FROM_EMAIL must equal EMAIL_HOST_USER.
+# ---------------------------------------------------------------------------
+_email_host = os.environ.get('EMAIL_HOST', '').strip()
+_email_user = os.environ.get('EMAIL_HOST_USER', '').strip()
+_email_pass = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
+EMAIL_HOST = _email_host or config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = _email_user or config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = _email_pass or config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')
+SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if (EMAIL_HOST and EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+    else "django.core.mail.backends.console.EmailBackend"
+)
 

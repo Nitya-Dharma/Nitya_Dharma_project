@@ -61,6 +61,13 @@ full_backup.json
 full_backup_clean.json
 full_backup_utf8.json
 full_backup*.json
+data_export*.json
+data_small.json
+data_small_utf8.json
+
+# Local binaries (e.g. Railway CLI)
+railway.exe
+railway
 
 # Coverage reports
 htmlcov/

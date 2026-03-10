@@ -56,6 +56,7 @@ urlpatterns = [
     path('feed/', include('feed_engine.urls')),  # Phase 17A: personalized feed
 ]
 
-# Serve media files in development
-if settings.DEBUG:
+# Serve media files (dev always; prod for testing - e.g. Railway ephemeral disk)
+# In production with persistent storage (S3/Volume), use that instead of serving from app.
+if settings.DEBUG or getattr(settings, 'SERVE_MEDIA_IN_PROD', False):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
