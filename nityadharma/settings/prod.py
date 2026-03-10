@@ -109,25 +109,34 @@ if _redis_url:
 
 # ---------------------------------------------------------------------------
 # Email (production) — env-only, no secrets in code.
-# Works on Railway, GoDaddy, VPS, Docker. Set in host's environment:
-#   EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
-#   Optional: EMAIL_PORT (default 587), EMAIL_USE_TLS (default True),
-#   DEFAULT_FROM_EMAIL (for Gmail must equal EMAIL_HOST_USER).
-# If any of the three required are missing, console backend is used (no crash).
+# Railway Free/Hobby blocks outbound SMTP (port 587) → use Resend (HTTPS) when on Railway.
+# Priority: RESEND_API_KEY → SMTP (EMAIL_HOST + USER + PASSWORD) → console.
 # ---------------------------------------------------------------------------
+_resend_key = os.environ.get('RESEND_API_KEY', '').strip()
 _email_host = os.environ.get('EMAIL_HOST', '').strip()
 _email_user = os.environ.get('EMAIL_HOST_USER', '').strip()
 _email_pass = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
-EMAIL_HOST = _email_host or config('EMAIL_HOST', default='')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = _email_user or config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = _email_pass or config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')
-SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
-EMAIL_BACKEND = (
-    "django.core.mail.backends.smtp.EmailBackend"
-    if (EMAIL_HOST and EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
-    else "django.core.mail.backends.console.EmailBackend"
-)
+
+if _resend_key:
+    # Resend over HTTPS — works when SMTP is blocked (e.g. Railway Free/Hobby).
+    EMAIL_BACKEND = "core.email_backends.ResendBackend"
+    RESEND_API_KEY = _resend_key
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', '').strip() or config('RESEND_FROM_EMAIL', default='Nitya Dharma <onboarding@resend.dev>')
+    DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL or config('DEFAULT_FROM_EMAIL', default='Nitya Dharma <onboarding@resend.dev>')
+    SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+    EMAIL_HOST = EMAIL_PORT = EMAIL_USE_TLS = None
+    EMAIL_HOST_USER = EMAIL_HOST_PASSWORD = ''
+else:
+    EMAIL_HOST = _email_host or config('EMAIL_HOST', default='')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_HOST_USER = _email_user or config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = _email_pass or config('EMAIL_HOST_PASSWORD', default='')
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')
+    SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+    EMAIL_BACKEND = (
+        "django.core.mail.backends.smtp.EmailBackend"
+        if (EMAIL_HOST and EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+        else "django.core.mail.backends.console.EmailBackend"
+    )
 

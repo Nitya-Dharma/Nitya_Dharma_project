@@ -47,9 +47,6 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Cities</h5>
                     <div class="btn-group btn-group-sm">
-                        <a href="{% url 'masterdata:upload_cities' %}" class="btn btn-success btn-sm">
-                            <i class="bi bi-upload me-1"></i>Upload CSV
-                        </a>
                         <a href="{% url 'masterdata:download_sample' entity_type='cities' %}" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-download me-1"></i>Sample CSV
                         </a>
@@ -59,6 +56,20 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="bi bi-upload me-1"></i>Upload CSV</h6>
+                        <form method="post" action="{% url 'masterdata:upload_cities' %}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                            {% csrf_token %}
+                            <div class="col-auto">
+                                <label for="cities_csv" class="form-label visually-hidden">CSV file</label>
+                                <input type="file" class="form-control form-control-sm" id="cities_csv" name="csv_file" accept=".csv" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>Upload</button>
+                            </div>
+                        </form>
+                        <small class="text-muted">Format: name, state, status</small>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -118,9 +129,6 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-geo me-2"></i>Local Areas</h5>
                     <div class="btn-group btn-group-sm">
-                        <a href="{% url 'masterdata:upload_local_areas' %}" class="btn btn-success btn-sm">
-                            <i class="bi bi-upload me-1"></i>Upload CSV
-                        </a>
                         <a href="{% url 'masterdata:download_sample' entity_type='local_areas' %}" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-download me-1"></i>Sample CSV
                         </a>
@@ -130,6 +138,20 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="bi bi-upload me-1"></i>Upload CSV</h6>
+                        <form method="post" action="{% url 'masterdata:upload_local_areas' %}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                            {% csrf_token %}
+                            <div class="col-auto">
+                                <label for="areas_csv" class="form-label visually-hidden">CSV file</label>
+                                <input type="file" class="form-control form-control-sm" id="areas_csv" name="csv_file" accept=".csv" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>Upload</button>
+                            </div>
+                        </form>
+                        <small class="text-muted">Format: city, mandal, name, status (or as per sample)</small>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -185,9 +207,6 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-star me-2"></i>Poojas</h5>
                     <div class="btn-group btn-group-sm">
-                        <a href="{% url 'masterdata:upload_poojas' %}" class="btn btn-success btn-sm">
-                            <i class="bi bi-upload me-1"></i>Upload CSV
-                        </a>
                         <a href="{% url 'masterdata:download_sample' entity_type='poojas' %}" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-download me-1"></i>Sample CSV
                         </a>
@@ -197,6 +216,20 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="bi bi-upload me-1"></i>Upload CSV</h6>
+                        <form method="post" action="{% url 'masterdata:upload_poojas' %}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                            {% csrf_token %}
+                            <div class="col-auto">
+                                <label for="poojas_csv" class="form-label visually-hidden">CSV file</label>
+                                <input type="file" class="form-control form-control-sm" id="poojas_csv" name="csv_file" accept=".csv" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>Upload</button>
+                            </div>
+                        </form>
+                        <small class="text-muted">Format: name, pooja_category, status</small>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -315,9 +348,6 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-folder me-2"></i>Pooja Categories</h5>
                     <div class="btn-group btn-group-sm">
-                        <a href="{% url 'masterdata:upload_pooja_categories' %}" class="btn btn-success btn-sm">
-                            <i class="bi bi-upload me-1"></i>Upload CSV
-                        </a>
                         <a href="{% url 'masterdata:download_sample' entity_type='pooja_categories' %}" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-download me-1"></i>Sample CSV
                         </a>
@@ -327,6 +357,20 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="bi bi-upload me-1"></i>Upload CSV</h6>
+                        <form method="post" action="{% url 'masterdata:upload_pooja_categories' %}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                            {% csrf_token %}
+                            <div class="col-auto">
+                                <label for="categories_csv" class="form-label visually-hidden">CSV file</label>
+                                <input type="file" class="form-control form-control-sm" id="categories_csv" name="csv_file" accept=".csv" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>Upload</button>
+                            </div>
+                        </form>
+                        <small class="text-muted">Format: name, status</small>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
