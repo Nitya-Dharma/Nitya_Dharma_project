@@ -5,7 +5,7 @@ These decorators enforce role-based access to views.
 They require authentication and check user roles before allowing access.
 """
 from functools import wraps
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .utils import is_admin, is_pandit
 
@@ -29,14 +29,12 @@ def admin_required(view_func):
     @login_required
     def _wrapped_view(request, *args, **kwargs):
         if not is_admin(request.user):
-            # Return 403 Forbidden for unauthorized roles
-            return HttpResponseForbidden(
-                JsonResponse({
-                    'error': 'Access denied',
-                    'message': 'Admin role required',
-                    'user_role': request.user.role if request.user.is_authenticated else 'anonymous'
-                })
-            )
+            # Return 403 Forbidden with JSON body (JsonResponse with status=403)
+            return JsonResponse({
+                'error': 'Access denied',
+                'message': 'Admin role required',
+                'user_role': request.user.role if request.user.is_authenticated else 'anonymous'
+            }, status=403)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -60,14 +58,12 @@ def pandit_required(view_func):
     @login_required
     def _wrapped_view(request, *args, **kwargs):
         if not is_pandit(request.user):
-            # Return 403 Forbidden for unauthorized roles
-            return HttpResponseForbidden(
-                JsonResponse({
-                    'error': 'Access denied',
-                    'message': 'Pandit role required',
-                    'user_role': request.user.role if request.user.is_authenticated else 'anonymous'
-                })
-            )
+            # Return 403 Forbidden with JSON body (JsonResponse with status=403)
+            return JsonResponse({
+                'error': 'Access denied',
+                'message': 'Pandit role required',
+                'user_role': request.user.role if request.user.is_authenticated else 'anonymous'
+            }, status=403)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

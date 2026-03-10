@@ -92,9 +92,8 @@ def upload_cities(request):
         
         return redirect('masterdata:management')
     
-    # GET: Show upload form
-    cities = City.objects.all().order_by('name')[:100]  # Show first 100
-    return render(request, 'masterdata/upload_cities.html', {'cities': cities})
+    # GET: No standalone template; redirect to management dashboard (which has the upload form)
+    return redirect('masterdata:management')
 
 
 @login_required
@@ -137,9 +136,8 @@ def upload_mandals(request):
         
         return redirect('masterdata:management')
     
-    # GET: Show upload form
-    mandals = Mandal.objects.all().select_related('city').order_by('city__name', 'name')[:100]
-    return render(request, 'masterdata/upload_mandals.html', {'mandals': mandals})
+    # GET: Redirect to management dashboard (which has the upload form)
+    return redirect('masterdata:management')
 
 
 @login_required
@@ -182,9 +180,8 @@ def upload_local_areas(request):
         
         return redirect('masterdata:management')
     
-    # GET: Show upload form
-    areas = LocalArea.objects.all().select_related('city', 'mandal').order_by('city__name', 'name')[:100]
-    return render(request, 'masterdata/upload_local_areas.html', {'areas': areas})
+    # GET: Redirect to management dashboard (which has the upload form)
+    return redirect('masterdata:management')
 
 
 @login_required
@@ -227,9 +224,8 @@ def upload_pooja_categories(request):
         
         return redirect('masterdata:management')
     
-    # GET: Show upload form
-    categories = PoojaCategory.objects.all().order_by('name')[:100]
-    return render(request, 'masterdata/upload_pooja_categories.html', {'categories': categories})
+    # GET: Redirect to management dashboard (which has the upload form)
+    return redirect('masterdata:management')
 
 
 @login_required
@@ -272,9 +268,8 @@ def upload_poojas(request):
         
         return redirect('masterdata:management')
     
-    # GET: Show upload form
-    poojas = Pooja.objects.all().select_related('pooja_category').order_by('pooja_category__name', 'name')[:100]
-    return render(request, 'masterdata/upload_poojas.html', {'poojas': poojas})
+    # GET: Redirect to management dashboard (which has the upload form)
+    return redirect('masterdata:management')
 
 
 @login_required
