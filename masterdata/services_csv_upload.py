@@ -433,17 +433,11 @@ def upload_local_areas_csv(file, actor=None) -> CSVUploadResult:
                 })
                 continue
             
-            # Find mandal if provided
+            # Find mandal if provided (optional: if not found, create area without mandal)
             mandal = None
             if mandal_name:
                 mandal = Mandal.objects.filter(name__iexact=mandal_name, city=city).first()
-                if not mandal:
-                    result.failed += 1
-                    result.failure_reasons.append({
-                        'row': row_num,
-                        'reason': f'Mandal "{mandal_name}" not found in {city_name}'
-                    })
-                    continue
+                # Mandal is optional: if not found, still create local area with mandal=None
             
             # Check for duplicates
             if LocalArea.objects.filter(name__iexact=area_name, city=city).exists():
@@ -546,12 +540,11 @@ def upload_pooja_categories_csv(file, actor=None) -> CSVUploadResult:
 @transaction.atomic
 def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
     """
-    Upload poojas from CSV file.
+    Upload poojas from CSV file (sub-items under Pooja Categories).
     
-    Expected CSV format:
-    name,category,status
-    
-    Note: category can be either category name (FK lookup) or category code (deprecated)
+    Expected CSV format: name, pooja_category, status (or name, category, status).
+    Upload Pooja Categories first; pooja_category must match a category name exactly.
+    Category can also be a legacy code (e.g. daily_household) for backward compatibility.
     
     Args:
         file: Django uploaded file object
@@ -584,10 +577,10 @@ def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
                 })
                 continue
             
-            # Find category if provided
+            # Find category if provided (column can be 'pooja_category' or 'category')
             pooja_category = None
             category_code = None
-            category_name = row.get('category', '').strip()
+            category_name = (row.get('pooja_category') or row.get('category') or '').strip()
             
             if category_name:
                 # Try to find by PoojaCategory name first
