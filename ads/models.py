@@ -24,6 +24,17 @@ RECOMMENDED_SIZES = {
     "dashboard_sidebar": (250, 250),
 }
 
+# Mobile-optimized banner sizes (shown on viewports ≤768px when mobile_image is set).
+# Use these for Mobile image upload to get crisp display on phones.
+RECOMMENDED_MOBILE_SIZES = {
+    "top": (320, 50),           # Mobile leaderboard
+    "sidebar": (300, 250),      # Same or use 320×50
+    "footer": (320, 50),
+    "in_content": (320, 50),
+    "dashboard_top": (320, 50),
+    "dashboard_sidebar": (250, 250),
+}
+
 ALLOWED_IMAGE_FORMATS = ("JPEG", "JPG", "PNG", "WEBP", "JFIF")
 MAX_IMAGE_SIZE_BYTES = 1 * 1024 * 1024  # 1MB
 
@@ -67,7 +78,7 @@ class Advertisement(models.Model):
         upload_to='ads/banners/',
         null=True,
         blank=True,
-        help_text="Recommended sizes: Top 970×90, Sidebar 300×250, Footer 728×90, Dashboard 250×250. JPG, PNG or WEBP, max 1MB.",
+        help_text="Desktop banner. Sizes: Top 970×90, Sidebar 300×250, Footer 728×90, In Content 336×280, Dashboard Top 728×90, Dashboard Sidebar 250×250. JPG/PNG/WEBP, max 1MB.",
     )
     redirect_url = models.URLField(max_length=500, blank=True)
     # Optional fixed dimensions; used when is_responsive=False
@@ -78,6 +89,7 @@ class Advertisement(models.Model):
         upload_to='ads/mobile/',
         null=True,
         blank=True,
+        help_text="Optional. Shown on screens ≤768px for better mobile display. Recommended: 320×50 (leaderboard) or 320×100. JPG/PNG/WEBP, max 1MB.",
     )
 
     exclude_urls = models.TextField(

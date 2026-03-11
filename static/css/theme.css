@@ -883,6 +883,23 @@ select:focus {
     margin: 0 auto;
 }
 
+/* Mobile: prevent overflow and keep ads readable */
+@media (max-width: 768px) {
+    .ad-container,
+    .dashboard-ad-top,
+    .dashboard-ad-sidebar {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .ad-container img,
+    .ad-container-img,
+    .dashboard-ad-top img,
+    .dashboard-ad-sidebar img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
 /* ===========================
    PROJECT-WIDE DARK THEME — CONTRAST-BASED
    Use ONLY theme variables. Text colour follows background contrast.

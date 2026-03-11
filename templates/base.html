@@ -355,7 +355,7 @@
     <!-- Main Content -->
     <main>
         {% if ads_sidebar %}
-        {{ ads_sidebar.script_code|safe }}
+        {% include 'partials/ad_unit.html' with ad=ads_sidebar %}
         {% endif %}
         {% block content %}{% endblock %}
     </main>

@@ -21,6 +21,18 @@ STORAGES['staticfiles'] = {'BACKEND': 'whitenoise.storage.CompressedStaticFilesS
 # On Railway, uploads are lost on redeploy unless you add a Volume or use external storage.
 SERVE_MEDIA_IN_PROD = True
 
+# Persistent media on Railway: set MEDIA_ROOT to a path on a Railway Volume (e.g. /data/media).
+# In Railway: add a Volume with mount path /data, then set env MEDIA_ROOT=/data/media (or RAILWAY_VOLUME_MOUNT_PATH=/data and we use /data/media).
+_volume_path = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '').strip()
+_media_root_env = os.environ.get('MEDIA_ROOT', '').strip()
+if _media_root_env:
+    MEDIA_ROOT = _media_root_env
+elif _volume_path:
+    MEDIA_ROOT = os.path.join(_volume_path, 'media')
+else:
+    # Default from base: BASE_DIR / 'media' (ephemeral on Railway; fine for GoDaddy VPS persistent disk)
+    pass
+
 # SECURITY WARNING: keep the secret key used in production secret!
 # Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production (no default)
 SECRET_KEY = config('SECRET_KEY')  # Will raise error if not set

@@ -31,12 +31,12 @@ After this, **new** Pandit registrations will receive verification emails, and a
 
 ## Step 2: Send verification email to an existing user (e.g. you)
 
-If you already registered (e.g. `kshruthi1167@gmail.com`) but never got the email, send a **new** verification email from Railway:
+If you already registered (e.g. `your-email@example.com`) but never got the email, send a **new** verification email from Railway:
 
 1. **Resend must be configured** (Step 1).
 2. **From your PC** (with Railway CLI linked to the project):
    ```bash
-   railway run python manage.py resend_verification kshruthi1167@gmail.com
+   railway run python manage.py resend_verification your-email@example.com
    ```
    Or in **Railway** → your service → **Settings** → run a one-off command, or use **Shell** if available, and run:
    ```bash
@@ -53,7 +53,7 @@ If you need the user to log in immediately and cannot wait for the verification 
 1. Open **Django Admin** on Railway:  
    `https://web-production-7256f4.up.railway.app/admin/` (or your Railway URL + `/admin/`).
 2. Log in as a **superuser**.
-3. Go to **Users** → find the user (e.g. by email `kshruthi1167@gmail.com`) → open the user.
+3. Go to **Users** → find the user (e.g. by email `your-email@example.com`) → open the user.
 4. Check **Email verified** → Save.
 5. The user can now log in without clicking the verification link.
 

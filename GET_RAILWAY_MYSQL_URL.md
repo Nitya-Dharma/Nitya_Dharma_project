@@ -1,8 +1,9 @@
 # How to Get Railway MySQL URL (Step-by-Step in Detail)
 
 You need this URL to connect from your PC to Railway’s MySQL (e.g. for `loaddata`).  
-Format: **mysql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;**  
-(Use &lt;host&gt;:&lt;port&gt; when connecting via TCP Proxy, e.g. `proxy.rlwy.net:15140`. Never commit real URLs or passwords to Git.)
+**Do not put real credentials or connection URLs in this file.** Store the real URL in `.env` or env vars only.
+
+Format: **mysql://USERNAME:PASSWORD@HOST/DATABASE** (replace with values from Railway; never commit the real URL.)
 
 ---
 
@@ -28,7 +29,7 @@ Format: **mysql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt
    | Variable name   | What to note              | Example value        |
    |-----------------|---------------------------|----------------------|
    | **MYSQLUSER**   | MySQL username            | `root`               |
-   | **MYSQLPASSWORD** | MySQL password         | `abc123xyz` or `My@Pass#1` |
+   | **MYSQLPASSWORD** | MySQL password         | *(copy from Railway; do not paste real values here)* |
    | **MYSQLDATABASE** | Database name          | `railway`            |
 
 3. Write them down in a temporary note (e.g. Notepad):
@@ -134,8 +135,9 @@ Your final line is your **Railway MySQL URL**. Use it only in the next step (e.g
 When you run loaddata, you’ll set the URL as an environment variable. In PowerShell, put your **full** URL inside double quotes:
 
 ```powershell
-$env:MYSQL_URL="mysql://<username>:<password>@<host>/<database>"
+$env:MYSQL_URL="mysql://YOUR_USER:YOUR_PASSWORD@YOUR_HOST:PORT/YOUR_DATABASE"
 ```
+Replace YOUR_USER, YOUR_PASSWORD, YOUR_HOST, PORT, YOUR_DATABASE with the values you noted from Railway. Do not commit this URL.
 
 Replace the entire URL with the one you built. If the URL is correct, the next command will connect to Railway’s MySQL:
 

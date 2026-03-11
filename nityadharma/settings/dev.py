@@ -42,7 +42,7 @@ DATABASES = {
         'ENGINE': config('DB_ENGINE', default='django.db.backends.mysql'),
         'NAME': config('DB_NAME', default='nityadharma_db'),
         'USER': config('DB_USER', default='nitya_user'),
-        'PASSWORD': config('DB_PASSWORD', default='StrongPassword123!'),
+        'PASSWORD': config('DB_PASSWORD', default=''),  # Set DB_PASSWORD in .env; no default to avoid leaking secrets
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {

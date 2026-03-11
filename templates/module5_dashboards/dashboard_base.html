@@ -42,7 +42,14 @@
                             <div class="dashboard-ad-sidebar mb-3">
                                 {% if ads.dashboard_sidebar.ad_type == 'image' and ads.dashboard_sidebar.image %}
                                 <a href="{{ ads.dashboard_sidebar.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
+                                    {% if ads.dashboard_sidebar.mobile_image %}
+                                    <picture>
+                                        <source media="(max-width: 768px)" srcset="{{ ads.dashboard_sidebar.mobile_image.url }}">
+                                        <img src="{{ ads.dashboard_sidebar.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                                    </picture>
+                                    {% else %}
                                     <img src="{{ ads.dashboard_sidebar.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                                    {% endif %}
                                 </a>
                                 {% else %}
                                 {{ ads.dashboard_sidebar.script_code|safe }}
@@ -65,7 +72,14 @@
                     <div class="dashboard-ad-top text-center my-3">
                         {% if ads.dashboard_top.ad_type == 'image' and ads.dashboard_top.image %}
                         <a href="{{ ads.dashboard_top.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
+                            {% if ads.dashboard_top.mobile_image %}
+                            <picture>
+                                <source media="(max-width: 768px)" srcset="{{ ads.dashboard_top.mobile_image.url }}">
+                                <img src="{{ ads.dashboard_top.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                            </picture>
+                            {% else %}
                             <img src="{{ ads.dashboard_top.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                            {% endif %}
                         </a>
                         {% else %}
                         {{ ads.dashboard_top.script_code|safe }}

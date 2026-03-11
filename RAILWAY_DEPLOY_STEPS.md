@@ -84,7 +84,9 @@ You can use **PostgreSQL** (default) or **MySQL** on Railway. Your `prod.py` sup
    - `PORT` – Railway sets this automatically; your `gunicorn.conf.py` uses it.
    - `RAILWAY_PUBLIC_DOMAIN` – Railway sets this when you generate a domain; your `prod.py` already adds `.railway.app` to `ALLOWED_HOSTS` when this is set.
 
-4. Save / Apply the variables. Railway will usually redeploy when variables change.
+4. **Uploaded images (logos, profile/cover photos) not displaying?** Railway’s container disk is ephemeral—uploads are lost on redeploy. Add a **Volume** (see **UPLOAD_IMAGES_RAILWAY_VPS.md**), then set **`MEDIA_ROOT`** = **`/data/media`** (if volume is mounted at `/data`) or **`RAILWAY_VOLUME_MOUNT_PATH`** = **`/data`**.
+
+5. Save / Apply the variables. Railway will usually redeploy when variables change.
 
 ---
 

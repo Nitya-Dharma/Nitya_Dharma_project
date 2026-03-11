@@ -118,7 +118,7 @@ Nitya Dharma Email System
         print("   - Gmail may automatically filter emails to spam (not user filters)")
         print("   - Check 'All Mail' folder - emails may be there but not in inbox")
         print("   - Gmail may delay delivery by 2-3 minutes")
-        print("   - Try searching for: 'from:nityadharma3@gmail.com' in Gmail")
+        print("   - Try searching for: 'from:YOUR_SENDER_EMAIL' in Gmail (use the value of EMAIL_HOST_USER)")
     else:
         print("   [ERROR] Email send returned 0 (failure)")
         print("   Check SMTP credentials and network connection")
