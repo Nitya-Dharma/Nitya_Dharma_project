@@ -45,14 +45,14 @@ class BrandingLogo(models.Model):
     
     logo_image = models.ImageField(
         upload_to='branding/logos/',
-        help_text='Logo image file (PNG, SVG, or WEBP, max 500KB, 100-800px width)'
+        help_text='Logo image file (PNG, SVG, or WEBP, max 20MB, 100-800px width recommended)'
     )
     
     favicon_image = models.ImageField(
         upload_to='branding/favicons/',
         blank=True,
         null=True,
-        help_text='Favicon image (optional, 16x16 or 32x32 recommended)'
+        help_text='Favicon image (optional, 16x16 or 32x32 recommended, max 20MB)'
     )
     
     is_active = models.BooleanField(
@@ -87,21 +87,20 @@ class BrandingLogo(models.Model):
     
     def clean(self):
         """Validate logo file size, format, and dimensions."""
+        from django.conf import settings
+        max_image_bytes = getattr(settings, 'FILE_UPLOAD_MAX_IMAGE_BYTES', 20 * 1024 * 1024)
         errors = {}
         
         # Validate logo_image if provided
         if self.logo_image:
-            # Check file size (500KB max)
-            if self.logo_image.size > 500 * 1024:
-                errors['logo_image'] = 'Logo file size must be less than 500KB.'
+            if self.logo_image.size > max_image_bytes:
+                errors['logo_image'] = f'Logo file size must be under {max_image_bytes // (1024*1024)} MB.'
             
-            # Check file extension
             ext = os.path.splitext(self.logo_image.name)[1].lower()
             allowed_extensions = ['.png', '.svg', '.webp', '.jpg', '.jpeg']
             if ext not in allowed_extensions:
                 errors['logo_image'] = f'Invalid file format. Allowed: {", ".join(allowed_extensions)}'
             
-            # Check dimensions (for non-SVG files)
             if ext != '.svg' and PIL_AVAILABLE:
                 try:
                     with Image.open(self.logo_image) as img:
@@ -109,19 +108,20 @@ class BrandingLogo(models.Model):
                         if width < 100 or width > 800:
                             errors['logo_image'] = 'Logo width must be between 100px and 800px.'
                 except Exception:
-                    # If image can't be opened, let Django handle it
                     pass
         
-        # Validate favicon if provided
         if self.favicon_image:
-            if self.favicon_image.size > 50 * 1024:
-                errors['favicon_image'] = 'Favicon file size must be less than 50KB.'
+            if self.favicon_image.size > max_image_bytes:
+                errors['favicon_image'] = f'Favicon file size must be under {max_image_bytes // (1024*1024)} MB.'
         
         if errors:
             raise ValidationError(errors)
     
     def save(self, *args, **kwargs):
         """Override save to ensure only one active logo per type."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'logo_image')
+        optimize_image_if_new(self, 'favicon_image')
         # Validate before saving
         self.full_clean()
         
@@ -136,6 +136,8 @@ class BrandingLogo(models.Model):
             
             # Save the logo
             super().save(*args, **kwargs)
+            process_derived_images_after_save(self, 'logo_image')
+            process_derived_images_after_save(self, 'favicon_image')
     
     def delete(self, *args, **kwargs):
         """Prevent deletion - logos should remain for history."""

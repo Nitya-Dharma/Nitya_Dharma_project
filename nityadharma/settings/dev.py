@@ -37,24 +37,35 @@ CSRF_COOKIE_SECURE = False
 # Database Configuration
 # Phase 2 Module 0 Task 0.1: Environment-based database config with SQLite fallback
 # Phase 4: MySQL for local development (Schema Clone). Set DB_* in .env to override.
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.mysql'),
-        'NAME': config('DB_NAME', default='nityadharma_db'),
-        'USER': config('DB_USER', default='nitya_user'),
-        'PASSWORD': config('DB_PASSWORD', default=''),  # Set DB_PASSWORD in .env; no default to avoid leaking secrets
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
-        # Phase 11F.1: Stable test database name so Django creates/destroys it consistently
-        'TEST': {
-            'NAME': 'test_nityadharma_db',
-        },
+# Use DB_ENGINE=django.db.backends.sqlite3 and DB_NAME=db.sqlite3 when MySQL is not running.
+_db_engine = config('DB_ENGINE', default='django.db.backends.mysql')
+if _db_engine == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / config('DB_NAME', default='db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': _db_engine,
+            'NAME': config('DB_NAME', default='nityadharma_db'),
+            'USER': config('DB_USER', default='nitya_user'),
+            'PASSWORD': config('DB_PASSWORD', default=''),  # Set DB_PASSWORD in .env; no default to avoid leaking secrets
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='3306'),
+            'CONN_MAX_AGE': 60,  # Persistent DB connections — reduces overhead, improves response time
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            },
+            # Phase 11F.1: Stable test database name so Django creates/destroys it consistently
+            'TEST': {
+                'NAME': 'test_nityadharma_db',
+            },
+        }
+    }
 
 # Email Configuration
 # For development: Use SMTP if credentials provided, otherwise console backend
@@ -106,4 +117,12 @@ if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
                 f"Gmail will silently drop emails. "
                 f"Fix: Set DEFAULT_FROM_EMAIL={EMAIL_HOST_USER} in .env file."
             )
+
+# Database SQL logging: WARNING = quiet terminal; set to 'DEBUG' when debugging queries
+if DEBUG:
+    LOGGING.setdefault('loggers', {})['django.db.backends'] = {
+        'level': 'WARNING',
+        'handlers': ['console'],
+        'propagate': False,
+    }
 

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'support',  # Contact Us system
     'branding',  # Branding Logo Management System
     'ads',  # Super Admin–controlled advertisement banners
+    'ads_analytics',  # Ad event tracking, aggregation, and KPI (no change to ad serving)
     'monitoring',  # Phase 12: Observability (no models, no migrations)
     'analytics_dashboard',  # Phase 13: Admin analytics (read-only, no models)
     'recommendation_engine',  # Phase 15: Behavior-driven suggestions (read-only, no models)
@@ -57,6 +58,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -235,6 +237,7 @@ LOGGING = {
 # 📌 Errors are admin-visible only
 
 # File upload max sizes (used by core.file_upload_security and gallery uploads)
-FILE_UPLOAD_MAX_IMAGE_BYTES = 25 * 1024 * 1024   # 25 MB per image (gallery, profile, etc.)
+# Image limit: 20 MB project-wide for profile, cover, gallery, logos, ads (consistent across all roles)
+FILE_UPLOAD_MAX_IMAGE_BYTES = 20 * 1024 * 1024   # 20 MB per image
 FILE_UPLOAD_MAX_CSV_BYTES = 5 * 1024 * 1024     # 5 MB per CSV (master data uploads)
 

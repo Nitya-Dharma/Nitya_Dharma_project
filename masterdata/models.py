@@ -55,12 +55,14 @@ class City(models.Model):
         verbose_name='Is Active',
         help_text='Whether this city is available for selection'
     )
-    # TASK 24: Status field
+    # TASK 24: Status field. Pending = user-requested (Pandit "Others"), awaiting admin approval.
     STATUS_ACTIVE = 'active'
     STATUS_INACTIVE = 'inactive'
+    STATUS_PENDING = 'pending'
     STATUS_CHOICES = [
         (STATUS_ACTIVE, 'Active'),
         (STATUS_INACTIVE, 'Inactive'),
+        (STATUS_PENDING, 'Pending'),
     ]
     status = models.CharField(
         max_length=20,
@@ -68,7 +70,7 @@ class City(models.Model):
         default=STATUS_ACTIVE,
         db_index=True,
         verbose_name='Status',
-        help_text='City status: ACTIVE or INACTIVE'
+        help_text='City status: ACTIVE, INACTIVE, or PENDING (user-requested)'
     )
     # TASK 24: Merged into (for merge scenarios)
     merged_into = models.ForeignKey(

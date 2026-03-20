@@ -3,24 +3,26 @@
 {% load phone_filters %}
 {% load contact_tags %}
 
-{% load static %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <link rel="stylesheet" href="{% static 'css/end_user_ui.css' %}">
 
-<div class="premium-card border-accent h-100">
+<div class="premium-card border-accent listing-card-cinematic h-100">
     <div class="card-body d-flex flex-column p-4">
         <div class="text-center mb-3">
             {% if pandit.profile_image %}
-                <img src="{{ pandit.profile_image.url }}" 
-                     alt="{{ pandit.get_display_name|default:'Pandit' }} profile photo"
-                     class="rounded-circle profile-image mb-2 border p-1"
-                     width="72"
-                     height="72"
-                     style="border-color: #F1F5F9 !important; background: #F8FAFC;">
+                <div class="pandit-avatar">
+                    <img src="{{ pandit.profile_image.url }}"
+                         alt="{{ pandit.get_display_name|default:'Pandit' }} profile photo"
+                         class="profile-image border p-1"
+                         width="72" height="72"
+                         loading="lazy" decoding="async"
+                         onerror="this.onerror=null; this.src='{% static 'images/default-avatar.svg' %}';"
+                         style="border-color: #F1F5F9 !important; background: #F8FAFC;">
+                </div>
             {% else %}
-                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center profile-image mx-auto mb-2 border p-1"
+                <div class="pandit-avatar rounded-circle bg-secondary d-flex align-items-center justify-content-center border p-1"
                      title="Profile image not uploaded yet"
-                     style="width: 72px; height: 72px; border-color: #F1F5F9 !important; background: #F8FAFC;">
+                     style="border-color: #F1F5F9 !important; background: #F8FAFC;">
                     <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
                 </div>
             {% endif %}
@@ -38,18 +40,23 @@
                 </p>
             {% endif %}
             
-            {% if pandit.cities_served.all or pandit.areas_served.all %}
+            {% if pandit.cities_served.all or pandit.areas_served.all or pandit.custom_city_name or pandit.custom_area_name %}
                 <small class="text-muted d-block mb-2">
                     <i class="bi bi-geo-alt"></i>
                     {% if pandit.cities_served.all %}
                         {% for city in pandit.cities_served.all|slice:":1" %}
                             {{ city.name }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
+                    {% elif pandit.custom_city_name %}
+                        {{ pandit.custom_city_name }}{% if pandit.custom_state_name %}, {{ pandit.custom_state_name }}{% endif %}
                     {% endif %}
+                    
                     {% if pandit.areas_served.all %}
                         {% for area in pandit.areas_served.all|slice:":1" %}
-                            {% if pandit.cities_served.all %}, {% endif %}{{ area.name }}
+                            {% if pandit.cities_served.all or pandit.custom_city_name %}, {% endif %}{{ area.name }}
                         {% endfor %}
+                    {% elif pandit.custom_area_name %}
+                        {% if pandit.cities_served.all or pandit.custom_city_name %}, {% endif %}{{ pandit.custom_area_name }}
                     {% endif %}
                 </small>
             {% endif %}
@@ -116,7 +123,11 @@
 
         
         <div class="mt-auto">
-            <!-- Primary CTA: Booking Intent (most prominent) -->
+            <!-- View Profile CTA -->
+            <a href="{% url 'profiles:profile_public' pandit.public_id %}" class="btn btn-view-profile w-100 mb-2">
+                <i class="bi bi-person me-1"></i>View Profile
+            </a>
+            <!-- Primary CTA: Booking Intent -->
             {% if user.is_authenticated %}
                 {% if pandit.public_id %}
                     <a href="{% url 'booking_intent_ui:create' pandit.public_id %}" 

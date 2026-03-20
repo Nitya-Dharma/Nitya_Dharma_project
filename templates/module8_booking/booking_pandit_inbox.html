@@ -61,6 +61,12 @@
                                         <i class="bi bi-bell me-1"></i>
                                         New booking intent - awaiting your response
                                     </p>
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-sm mt-2 mark-viewed-btn"
+                                            data-intent-public-id="{{ intent.public_id }}"
+                                            aria-label="Mark as read">
+                                        <i class="bi bi-check-circle me-1"></i>Mark as Read
+                                    </button>
                                 {% elif intent.status == 'viewed' %}
                                     <p class="text-muted small mb-0 mt-2">
                                         <i class="bi bi-eye me-1"></i>
@@ -92,7 +98,55 @@
 {% endblock %}
 
 {% block extra_js %}
-    
-    
+{% load static %}
+<script>
+(function () {
+    function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    document.querySelectorAll('.mark-viewed-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var publicId = this.getAttribute('data-intent-public-id');
+            if (!publicId) return;
+            var row = this.closest('.list-group-item');
+            this.disabled = true;
+
+            fetch('/booking-intent/' + encodeURIComponent(publicId) + '/mark-viewed/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success !== undefined && data.success) {
+                    var badge = document.getElementById('booking-intent-badge');
+                    if (badge) {
+                        if (data.unread_count > 0) {
+                            badge.textContent = data.unread_count;
+                            badge.setAttribute('aria-label', data.unread_count + ' unread');
+                        } else {
+                            badge.remove();
+                        }
+                    }
+                    if (row) {
+                        var statusArea = row.querySelector('.text-muted.small.mb-0.mt-2');
+                        var btnWrap = row.querySelector('.mark-viewed-btn');
+                        if (statusArea) {
+                            statusArea.innerHTML = '<i class="bi bi-eye me-1"></i>You have viewed this intent';
+                        }
+                        if (btnWrap) btnWrap.remove();
+                    }
+                }
+            })
+            .catch(function () { btn.disabled = false; });
+        });
+    });
+})();
+</script>
 {% endblock %}
 

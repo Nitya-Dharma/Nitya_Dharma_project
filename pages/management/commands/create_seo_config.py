@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 f'  Organization Logo: {"Set" if config.organization_logo else "Not set"}\n'
                 f'  Default OG Image: {"Set" if config.default_og_image else "Not set"}\n\n'
                 f'To configure:\n'
-                f'  Visit: /admin/pages/siteseoconfig/\n'
+                f'  Visit: /nd-control-panel/pages/siteseoconfig/\n'
                 f'  Upload organization logo and default OG image (1200x630 recommended)'
             )
         )

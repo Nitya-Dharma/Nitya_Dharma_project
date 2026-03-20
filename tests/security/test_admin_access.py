@@ -10,13 +10,13 @@ class TestAdminAccess(TestCase):
         self.client = Client()
 
     def test_admin_login_redirects_anonymous(self):
-        response = self.client.get("/admin/", follow=False)
+        response = self.client.get("/nd-control-panel/", follow=False)
         self.assertIn(response.status_code, (302, 200))
         if response.status_code == 302:
             self.assertIn("login", response.url.lower())
 
     def test_admin_requires_authentication(self):
-        response = self.client.get("/admin/")
+        response = self.client.get("/nd-control-panel/")
         self.assertIn(response.status_code, (302, 200))
         if response.status_code == 200:
             self.assertTrue(

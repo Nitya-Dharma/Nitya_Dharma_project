@@ -32,15 +32,19 @@ venv.bak/
 
 # Django
 *.log
+logs/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.sqlite3
 /media
 /staticfiles
 /static_collected
 
-# Environment Variables
+# Environment Variables (never commit secrets)
 .env
+*.env
+.env.*
 .env.local
 .env.*.local
 

@@ -1,13 +1,13 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-premium" style="background-color: var(--navbar-bg-theme) !important; color: var(--text-primary-theme) !important;">
+<nav class="navbar navbar-expand-lg navbar-premium navbar-cinematic" style="background-color: var(--navbar-bg-theme) !important; color: var(--text-primary-theme) !important;">
     <div class="container" style="color: var(--text-primary-theme) !important;">
         <a class="navbar-brand" href="{% url 'core:home' %}">
             {% if active_navbar_logo and active_navbar_logo.logo_image %}
-                <img src="{{ active_navbar_logo.logo_image.url }}" alt="Nitya Dharma" class="brand-logo">
+                <img src="{{ active_navbar_logo.logo_image.url }}" alt="Nitya Dharma" class="brand-logo navbar-logo" loading="lazy" decoding="async">
             {% elif site_branding and site_branding.primary_logo %}
-                <img src="{{ site_branding.primary_logo.url }}" alt="{% if site_branding.site_name %}{{ site_branding.site_name }}{% else %}Nitya Dharma{% endif %}" class="brand-logo">
+                <img src="{{ site_branding.primary_logo.url }}" alt="{% if site_branding.site_name %}{{ site_branding.site_name }}{% else %}Nitya Dharma{% endif %}" class="brand-logo navbar-logo" loading="lazy" decoding="async">
             {% else %}
-                <img src="{% static 'images/logo.png' %}" alt="Nitya Dharma" class="brand-logo">
+                <img src="{% static 'images/logo.png' %}" alt="Nitya Dharma" class="brand-logo navbar-logo" loading="lazy" decoding="async">
             {% endif %}
         </a>
         <button class="navbar-toggler" 
@@ -24,13 +24,10 @@
                 <li class="nav-item {% if request.path == '/' or request.path == '' %}active{% endif %}">
                     <a class="nav-link" href="{% url 'core:home' %}">Home</a>
                 </li>
-                {% comment %} Feed hidden until behavioral data is sufficient; backend feed engine still powers recommendations and intelligence. {% endcomment %}
-                {% if user.is_authenticated %}
-                {% comment %}
+                {% if user.is_authenticated and news_feed_enabled %}
                 <li class="nav-item {% if request.path == '/feed/' or request.path == '/feed' %}active{% endif %}">
                     <a class="nav-link" href="{% url 'feed_engine:feed_page' %}">Feed</a>
                 </li>
-                {% endcomment %}
                 {% endif %}
                 <li class="nav-item {% if '/search/' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'search_ui:search_results' %}">Search</a>
@@ -98,7 +95,7 @@
                 {% if user.is_authenticated %}
                     <!-- Notification Icon -->
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="{% if user.is_superuser or user.role == 'admin' %}{% url 'accounts:admin_notification_list' user_id=user.id %}{% else %}{% url 'notifications:list' %}{% endif %}" title="Notifications">
+                        <a class="nav-link nav-icon position-relative" href="{% if user.is_superuser or user.role == 'admin' %}{% url 'accounts:admin_notification_list' user_id=user.id %}{% else %}{% url 'notifications:list' %}{% endif %}" title="Notifications">
                             <i class="bi bi-bell"></i>
                             <span class="d-md-none ms-1">Notifications</span>
                             {% if unread_notification_count and unread_notification_count > 0 %}
@@ -111,7 +108,7 @@
                     
                     <!-- Settings Icon -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:profile_settings' %}" title="Account Settings">
+                        <a class="nav-link nav-icon" href="{% url 'accounts:profile_settings' %}" title="Account Settings">
                             <i class="bi bi-gear"></i>
                             <span class="d-md-none ms-1">Settings</span>
                         </a>

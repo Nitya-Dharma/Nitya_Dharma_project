@@ -15,6 +15,15 @@
             </p>
         {% endif %}
         
+        {% if not pandit.cities_served.all and pandit.custom_city_name %}
+            <p class="mb-2">
+                <strong>Cities Served:</strong>
+                <span>
+                    {{ pandit.custom_city_name }}{% if pandit.custom_state_name %}, {{ pandit.custom_state_name }}{% endif %}
+                </span>
+            </p>
+        {% endif %}
+        
         {% if pandit.areas_served.all %}
             <p class="mb-0">
                 <strong>Areas Served:</strong> 
@@ -26,7 +35,14 @@
             </p>
         {% endif %}
         
-        {% if not pandit.cities_served.all and not pandit.areas_served.all %}
+        {% if not pandit.areas_served.all and pandit.custom_area_name %}
+            <p class="mb-0">
+                <strong>Areas Served:</strong>
+                <span>{{ pandit.custom_area_name }}</span>
+            </p>
+        {% endif %}
+        
+        {% if not pandit.cities_served.all and not pandit.areas_served.all and not pandit.custom_city_name and not pandit.custom_area_name %}
             <p class="muted mb-0">Location information not available.</p>
         {% endif %}
     </div>

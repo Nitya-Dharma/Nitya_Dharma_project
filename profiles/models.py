@@ -299,6 +299,70 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         help_text='User who last updated this profile'
     )
     
+    # -------------------------------------------------------------------------
+    # Location (STEP-1 Backend Location Infrastructure)
+    # Latitude/longitude for distance-based search. No existing fields modified.
+    # -------------------------------------------------------------------------
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude coordinate of the pandit's current service location"
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude coordinate of the pandit's current service location"
+    )
+    location_source = models.CharField(
+        max_length=20,
+        choices=[
+            ("gps", "GPS"),
+            ("manual", "Manual"),
+            ("admin", "Admin"),
+        ],
+        default="manual",
+        help_text="Indicates how the location was set"
+    )
+    location_updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Timestamp when the location was last updated"
+    )
+    is_location_verified = models.BooleanField(
+        default=False,
+        help_text="Indicates whether the location has been verified"
+    )
+
+    # -------------------------------------------------------------------------
+    # Custom Location Inputs (safe "Others" storage - no master pollution)
+    # These fields are used when the Pandit selects "Others" for State/City/Area
+    # in profile edit. They are NOT used by public search filters yet.
+    # -------------------------------------------------------------------------
+    custom_state_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Custom State',
+        help_text='User-submitted state when selecting "Others" (pending master approval)'
+    )
+    custom_city_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Custom City',
+        help_text='User-submitted city when selecting "Others" (pending master approval)'
+    )
+    custom_area_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Custom Area',
+        help_text='User-submitted area when selecting "Others" (pending master approval)'
+    )
+    
     class Meta:
         verbose_name = 'Pandit Profile'
         verbose_name_plural = 'Pandit Profiles'
@@ -312,6 +376,9 @@ class PanditProfile(DeletionGuardMixin, models.Model):
             models.Index(fields=['id'], name='profile_id_idx'),  # Fast lookup by unique ID
             models.Index(fields=['user', 'is_profile_approved'], name='profile_user_approved_idx'),  # Fast filtering
             models.Index(fields=['is_profile_approved'], name='profile_approved_idx'),  # Phase 8.1: list approved pandits
+            models.Index(fields=['latitude'], name='profile_latitude_idx'),  # STEP-1: location search
+            models.Index(fields=['longitude'], name='profile_longitude_idx'),  # STEP-1: location search
+            models.Index(fields=['latitude', 'longitude'], name='profile_lat_lon_idx'),  # Combined: WHERE lat BETWEEN ... AND lon BETWEEN ...
         ]
     
     def __str__(self):
@@ -362,6 +429,9 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         ManyToMany fields (cities_served, poojas_performed, languages) which require
         the object to have a primary key.
         """
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'profile_image')
+        optimize_image_if_new(self, 'cover_image')
         if not self.public_id:
             self.public_id = generate_public_id()
         
@@ -369,6 +439,8 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         # This must happen BEFORE generating slug that accesses M2M fields
         is_new = self.pk is None
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'profile_image')
+        process_derived_images_after_save(self, 'cover_image')
         
         # Auto-generate SEO slug if not provided or empty (AFTER save so M2M fields are accessible)
         if not self.slug or self.slug.strip() == "":
@@ -432,8 +504,10 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         return {
             'full_name': bool(self.user.first_name and self.user.last_name),
             'profile_image': self.has_profile_image(),
-            'city': self.cities_served.exists(),
-            'area': self.areas_served.exists(),
+            # City/Area can be satisfied by approved master selections
+            # OR by safe "Others" custom values stored on this profile.
+            'city': self.cities_served.exists() or bool((self.custom_city_name or '').strip()),
+            'area': self.areas_served.exists() or bool((self.custom_area_name or '').strip()),
             'poojas': self.poojas_performed.exists(),
             'description': bool(self.about_description),  # Optional
         }
@@ -511,3 +585,98 @@ class PanditProfile(DeletionGuardMixin, models.Model):
                 missing.append(field_labels[field])
         
         return missing
+
+
+class PendingLocation(models.Model):
+    """
+    Pending user-submitted location entries for admin review.
+
+    Governance:
+    - Completely isolated from master data tables (City/LocalArea/etc.).
+    - Admin is the only actor that can approve and insert into master data.
+    - This model does not affect search filters or frontend behavior.
+    """
+
+    TYPE_STATE = "state"
+    TYPE_CITY = "city"
+    TYPE_AREA = "area"
+    TYPE_CHOICES = [
+        (TYPE_STATE, "State"),
+        (TYPE_CITY, "City"),
+        (TYPE_AREA, "Area"),
+    ]
+
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Name",
+        help_text="Display name submitted by user (state/city/area depending on type).",
+    )
+    normalized_name = models.CharField(
+        max_length=220,
+        db_index=True,
+        verbose_name="Normalized Name",
+        help_text="Lowercased normalization used for duplicate prevention.",
+    )
+
+    type = models.CharField(
+        max_length=10,
+        choices=TYPE_CHOICES,
+        db_index=True,
+        verbose_name="Type",
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pending_locations_created",
+        verbose_name="Created By",
+    )
+    related_profile = models.ForeignKey(
+        "profiles.PanditProfile",
+        on_delete=models.CASCADE,
+        related_name="pending_locations",
+        verbose_name="Related Profile",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        db_index=True,
+        default=STATUS_PENDING,
+        verbose_name="Status",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pending_locations_reviewed",
+        verbose_name="Reviewed By",
+    )
+
+    class Meta:
+        verbose_name = "Pending Location"
+        verbose_name_plural = "Pending Locations"
+        db_table = "profiles_pending_location"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["type", "normalized_name"], name="pendingloc_type_norm_idx"),
+            models.Index(fields=["status", "type", "created_at"], name="pl_status_type_created_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.type}:{self.name} [{self.status}]"

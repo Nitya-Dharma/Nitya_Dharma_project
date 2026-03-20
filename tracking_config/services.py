@@ -42,7 +42,7 @@ def is_route_excluded(path, config):
     # Always exclude dashboards and admin routes
     excluded_patterns = [
         '/dashboard/',
-        '/admin/',
+        '/nd-control-panel/',  # Django admin (production custom path)
         '/accounts/settings/',
         '/accounts/logout/',
     ]

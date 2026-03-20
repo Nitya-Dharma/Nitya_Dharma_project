@@ -1,15 +1,18 @@
-
 <div class="media-section mb-4">
     <h2 class="h4 mb-3">Media</h2>
     
     
     {% if pandit.profile_image %}
         <div class="profile-image mb-3">
-            <img src="{{ pandit.profile_image.url }}" 
-                 alt="{{ pandit.display_name|default:'Pandit' }} Profile Image" 
-                 class="img-fluid rounded"
+            <img src="{{ pandit.profile_image.url }}"
+                 alt="{{ pandit.display_name|default:'Pandit' }} Profile Image"
+                 class="img-fluid rounded profile-image-img"
                  style="max-width: 100%; height: auto;"
-                 loading="lazy">
+                 loading="lazy"
+                 onerror="this.onerror=null; this.style.display='none'; var next=this.nextElementSibling; if(next) next.classList.remove('d-none');">
+            <div class="profile-image-placeholder-fallback d-none bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="bi bi-image text-white" style="font-size: 48px;"></i>
+            </div>
         </div>
     {% else %}
         <div class="profile-image-placeholder mb-3">

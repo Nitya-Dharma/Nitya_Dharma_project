@@ -1,5 +1,15 @@
 from django.contrib import admin
 from .models_follow import Follow
+from .models import FeatureToggle
+
+
+@admin.register(FeatureToggle)
+class FeatureToggleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'enabled', 'description', 'created_at')
+    list_editable = ('enabled',)
+    list_filter = ('enabled',)
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at',)
 
 
 @admin.register(Follow)

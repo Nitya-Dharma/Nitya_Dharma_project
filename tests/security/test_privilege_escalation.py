@@ -16,7 +16,7 @@ class TestPrivilegeEscalation(TestCase):
 
     def test_normal_user_admin_redirect_or_forbidden(self):
         self.client.force_login(self.normal_user)
-        response = self.client.get("/admin/", follow=False)
+        response = self.client.get("/nd-control-panel/", follow=False)
         self.assertIn(response.status_code, (302, 403))
         if response.status_code == 302:
             self.assertIn("login", response.url.lower())

@@ -16,18 +16,46 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.defaults import page_not_found, server_error
+from django.views.generic import TemplateView
+from core import views as core_views
 from pages import views_static
+
+
+def custom_404(request, exception):
+    return page_not_found(request, exception, template_name='errors/404.html')
+
+
+def custom_500(request):
+    return server_error(request, template_name='errors/500.html')
+
+
+handler404 = custom_404
+handler500 = custom_500
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('nd-control-panel/', RedirectView.as_view(url='/admin/', permanent=False)),
+    path(
+        'service-worker.js',
+        TemplateView.as_view(
+            template_name='pwa/service-worker.js',
+            content_type='application/javascript',
+        ),
+        name='service-worker',
+    ),
     path('', include('core.urls')),
+    path('offline/', core_views.offline, name='offline'),
     path('accounts/', include('accounts.urls')),
     path('profiles/', include('profiles.urls')),  # Profiles app URLs
+    path('api/pandit/', include('profiles.api.urls')),  # STEP-2: Pandit location update API
     path('referrals/', include('referrals.urls')),
     path('dashboard/', include('dashboards.urls')),
     path('dashboard/super-admin/advertisements/', include(('ads.urls', 'ads'))),
+    path('track/ad/', include('ads_analytics.urls')),
     path('search/', include(('search.urls', 'search'), namespace='search_ui')),  # UI search pages
     path('api/search/', include(('search.urls', 'search'), namespace='search_api')),  # API search endpoints
     path('api/recommendations/', include(('search.urls', 'search'), namespace='recommendations_api')),  # Phase 11F recommendation API

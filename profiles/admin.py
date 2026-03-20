@@ -4,9 +4,10 @@ Admin configuration for Profiles app.
 Allows Super Admins and Admin Pandits to manage Pandit profiles.
 """
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import PanditProfile
+from .models import PanditProfile, PendingLocation
 
 
 @admin.register(PanditProfile)
@@ -26,6 +27,9 @@ class PanditProfileAdmin(admin.ModelAdmin):
         'is_profile_approved',
         'approval_status_badge',
         'profile_completion',
+        'latitude',
+        'longitude',
+        'location_updated_at',
         'created_at',
         'approve_reject_actions',
     ]
@@ -64,6 +68,16 @@ class PanditProfileAdmin(admin.ModelAdmin):
         ('Master Data', {
             'fields': ('cities_served', 'areas_served', 'poojas_performed'),
             'description': 'Select cities, areas, and poojas from approved master data only.'
+        }),
+        ('Location (STEP-1)', {
+            'fields': (
+                'latitude',
+                'longitude',
+                'location_source',
+                'location_updated_at',
+                'is_location_verified',
+            ),
+            'description': 'Service location for distance-based search. Coordinates are read-only in admin.'
         }),
         ('Approval Status', {
             'fields': (
@@ -124,15 +138,16 @@ class PanditProfileAdmin(admin.ModelAdmin):
     
     def approve_reject_actions(self, obj):
         """Display approve/reject action buttons."""
+        base = reverse('admin:index').rstrip('/')
         if obj.is_profile_approved:
             return format_html(
                 '<a href="{}" class="button" style="background-color: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">Reject</a>',
-                f'/admin/profiles/panditprofile/{obj.id}/reject/'
+                f'{base}/profiles/panditprofile/{obj.id}/reject/'
             )
         else:
             return format_html(
                 '<a href="{}" class="button" style="background-color: #28a745; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">Approve</a>',
-                f'/admin/profiles/panditprofile/{obj.id}/approve/'
+                f'{base}/profiles/panditprofile/{obj.id}/approve/'
             )
     approve_reject_actions.short_description = 'Actions'
     approve_reject_actions.allow_tags = True
@@ -184,3 +199,139 @@ class PanditProfileAdmin(admin.ModelAdmin):
                 obj.profile_approved_by = None
         
         super().save_model(request, obj, form, change)
+
+
+@admin.register(PendingLocation)
+class PendingLocationAdmin(admin.ModelAdmin):
+    """
+    Clean admin dashboard for reviewing user-submitted "Others" locations.
+
+    Governance:
+    - Only Super Admin can approve/reject (manual, explicit actions).
+    - Approval creates master data (City/LocalArea) safely; it does not modify user profile data.
+    """
+
+    list_display = (
+        "name",
+        "type",
+        "status_badge",
+        "created_by",
+        "related_profile",
+        "created_at",
+        "reviewed_by",
+    )
+    list_filter = ("status", "type", "created_at")
+    search_fields = ("name", "normalized_name", "created_by__username", "created_by__email")
+    ordering = ("-created_at",)
+
+    actions = ["approve_selected_locations", "reject_selected_locations"]
+    list_select_related = ("created_by", "reviewed_by", "related_profile", "related_profile__user")
+
+    # Make raw inputs non-editable to prevent data corruption.
+    readonly_fields = (
+        "name",
+        "type",
+        "status",
+        "created_by",
+        "related_profile",
+        "created_at",
+        "reviewed_at",
+        "reviewed_by",
+        "normalized_name",
+    )
+
+    fieldsets = (
+        ("Submission", {
+            "fields": ("name", "type", "status", "normalized_name"),
+            "description": "Submitted value and deduplication key (read-only).",
+        }),
+        ("Audit / Review", {
+            "fields": ("created_by", "related_profile", "created_at", "reviewed_by", "reviewed_at"),
+        }),
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("created_by", "reviewed_by", "related_profile", "related_profile__user")
+
+    def profile_link(self, obj):
+        """Optional helper link to PanditProfile change page."""
+        try:
+            url = reverse("admin:profiles_panditprofile_change", args=[obj.related_profile.id])
+            return format_html('<a href="{}">View Profile</a>', url)
+        except Exception:
+            return "-"
+
+    profile_link.short_description = "Profile"
+
+    def status_badge(self, obj):
+        color_map = {
+            PendingLocation.STATUS_PENDING: ("#ffc107", "Pending"),
+            PendingLocation.STATUS_APPROVED: ("#28a745", "Approved"),
+            PendingLocation.STATUS_REJECTED: ("#dc3545", "Rejected"),
+        }
+        bg, label = color_map.get(obj.status, ("#6c757d", obj.status))
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">{}</span>',
+            bg,
+            label,
+        )
+
+    status_badge.short_description = "Status"
+
+    def approve_selected_locations(self, request, queryset):
+        if not request.user.is_superuser:
+            self.message_user(request, "Only Super Admin can approve locations.", level="error")
+            return
+
+        from django.db import transaction
+
+        from .services_pending_location import approve_pending_location
+
+        pending_items = queryset.filter(status=PendingLocation.STATUS_PENDING).select_related(
+            "created_by", "related_profile"
+        )
+        if not pending_items.exists():
+            self.message_user(request, "No pending items selected.", level="info")
+            return
+
+        approved_count = 0
+        rejected_count = 0
+
+        with transaction.atomic():
+            # Always keep Django Admin as the authoritative action trigger.
+            # Delegate all business rules to the shared service layer.
+            for item in pending_items:
+                result = approve_pending_location(item, request.user)
+                if result == PendingLocation.STATUS_APPROVED:
+                    approved_count += 1
+                else:
+                    rejected_count += 1
+
+        self.message_user(
+            request,
+            f"Approved {approved_count} location(s). Rejected {rejected_count} location(s).",
+            level="success" if rejected_count == 0 else "warning",
+        )
+
+    approve_selected_locations.short_description = "Approve selected pending locations"
+
+    def reject_selected_locations(self, request, queryset):
+        if not request.user.is_superuser:
+            self.message_user(request, "Only Super Admin can reject locations.", level="error")
+            return
+
+        from .services_pending_location import reject_pending_location
+
+        pending = queryset.filter(status=PendingLocation.STATUS_PENDING)
+        count = pending.count()
+        if count == 0:
+            self.message_user(request, "No pending items selected.", level="info")
+            return
+        with_pending = pending.select_related("related_profile", "created_by")
+        for item in with_pending:
+            reject_pending_location(item, request.user)
+
+        self.message_user(request, f"Rejected {count} location(s).", level="success")
+
+    reject_selected_locations.short_description = "Reject selected pending locations"

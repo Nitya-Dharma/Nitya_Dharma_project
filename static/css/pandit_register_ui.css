@@ -19,10 +19,10 @@
     overflow: hidden;
 }
 
-/* UNIT TASK 3: Header / Title Section */
+/* UNIT TASK 3: Header / Title Section - light text on dark for contrast/accessibility */
 .pandit-register-header {
     background: #0F172A; /* Secondary 30% */
-    color: #FFFFFF;
+    color: #ffffff;
     padding: 32px;
     border-radius: 16px 16px 0 0;
     text-align: center;
@@ -32,12 +32,12 @@
     font-size: 28px;
     font-weight: 700;
     margin: 0;
-    color: #FFFFFF;
+    color: #ffffff !important;
 }
 
 .pandit-register-header p {
     margin: 0.5rem 0 0 0;
-    color: #CBD5E1;
+    color: rgba(255, 255, 255, 0.9) !important;
     font-size: 14px;
 }
 

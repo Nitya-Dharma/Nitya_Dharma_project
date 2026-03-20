@@ -60,13 +60,14 @@ def generate_pandit_slug(pandit_profile):
     # If profile.pk is None, skip M2M access (will use only basic fields)
     
     # Build slug parts
+    # Fallback to safe "Others" custom fields when M2M selections are empty.
     parts = [
         pandit_profile.public_id or (str(pandit_profile.id) if pandit_profile.id else ""),
         clean_slug_part(user.first_name if user else ""),
         clean_slug_part(user.last_name if user else ""),
-        clean_slug_part(primary_area.name if primary_area else ""),
-        clean_slug_part(primary_city.name if primary_city else ""),
-        clean_slug_part(primary_city.state.name if primary_city and hasattr(primary_city, 'state') and primary_city.state else ""),
+        clean_slug_part((primary_area.name if primary_area else None) or (getattr(pandit_profile, 'custom_area_name', None) or None)),
+        clean_slug_part((primary_city.name if primary_city else None) or (getattr(pandit_profile, 'custom_city_name', None) or None)),
+        clean_slug_part((primary_city.state.name if primary_city and hasattr(primary_city, 'state') and primary_city.state else None) or (getattr(pandit_profile, 'custom_state_name', None) or None)),
     ]
     
     # Filter out empty parts and join

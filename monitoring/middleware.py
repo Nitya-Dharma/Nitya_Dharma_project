@@ -31,6 +31,11 @@ class RequestTimingMiddleware:
         path = getattr(request, "path", "?")
         status = getattr(response, "status_code", 0)
 
+        # Suppress slow-request warnings for high-frequency analytics writes.
+        # This prevents noisy logs without changing behavior for real endpoints.
+        if path in ("/behavior/track/", "/behavior/track-event/"):
+            return response
+
         if duration >= SLOW_ERROR_SECONDS:
             logger.error(
                 "[SLOW REQUEST] method=%s path=%s duration=%.2fs status=%s",

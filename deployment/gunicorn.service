@@ -1,0 +1,30 @@
+# systemd service for Gunicorn (Nitya Dharma) on Hostinger VPS
+# Install: sudo cp deployment/gunicorn.service /etc/systemd/system/
+#         sudo systemctl daemon-reload
+#         sudo systemctl enable gunicorn
+#         sudo systemctl start gunicorn
+# Status:  sudo systemctl status gunicorn
+# Logs:    journalctl -u gunicorn -f
+
+[Unit]
+Description=Gunicorn daemon for Nitya Dharma Django app
+After=network.target mysql.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/nityadharma
+Environment="PATH=/var/www/nityadharma/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=nityadharma.settings.prod"
+# Optional: load secrets from file (create /var/www/nityadharma/.env with your values)
+# EnvironmentFile=/var/www/nityadharma/.env
+ExecStart=/var/www/nityadharma/venv/bin/gunicorn nityadharma.wsgi:application --config gunicorn_config.py
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

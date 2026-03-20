@@ -85,11 +85,21 @@
     <!-- Custom CSS -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar_premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/footer_premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar_dark_mode_fix.css' %}">
+    <link rel="stylesheet" href="{% static 'css/checkbox_fix.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile_ux.css' %}">
+    <link rel="stylesheet" href="{% static 'css/micro-interactions.css' %}">
     {% block extra_css %}{% endblock %}
+
+    <!-- PWA: manifest, theme, app icon -->
+    <link rel="manifest" href="{% static 'pwa/manifest.json' %}">
+    <meta name="theme-color" content="#c62828">
+    <link rel="apple-touch-icon" href="{% static 'pwa/icons/icon-192.png' %}">
     
     <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
     {% if tracking and tracking.head %}
@@ -346,7 +356,7 @@
     <!-- Navbar -->
     {% include 'partials/navbar.html' %}
     {% if ads_top %}
-    {% include 'partials/ad_unit.html' with ad=ads_top %}
+    {% include 'partials/ad_unit.html' with ad=ads_top slot='top' %}
     {% endif %}
     
     <!-- Messages/Alerts -->
@@ -355,20 +365,30 @@
     <!-- Main Content -->
     <main>
         {% if ads_sidebar %}
-        {% include 'partials/ad_unit.html' with ad=ads_sidebar %}
+        {% include 'partials/ad_unit.html' with ad=ads_sidebar slot='sidebar' %}
         {% endif %}
         {% block content %}{% endblock %}
     </main>
     
     <!-- Footer -->
     {% include 'partials/footer.html' %}
-    
+
+    <!-- Mobile floating action button (visible only on small screens) -->
+    <div class="mobile-fab d-md-none" aria-hidden="true">
+        <a href="{% url 'search_ui:search_results' %}" class="fab-button" aria-label="Find Pandit - Search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+        </a>
+    </div>
+
     <!-- Bootstrap JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <!-- Auto-dismiss flash alerts (success/info 3s, warning 5s, danger 8s) -->
+    <script src="{% static 'js/alerts.js' %}"></script>
     
     <!-- Share modal (reusable on any public page) -->
     {% include 'partials/share_modal.html' %}
     <script src="{% static 'js/share.js' %}"></script>
+    <script src="{% static 'js/micro-interactions.js' %}"></script>
     
     <!-- Custom JavaScript -->
     {% block extra_js %}{% endblock %}
@@ -462,13 +482,18 @@
     
     <!-- Behavior Engine (first-party, non-blocking) -->
     <script src="{% static 'js/behavior_engine.js' %}"></script>
+
+    <!-- PWA: service worker, Add to Home Screen, push -->
+    <script src="{% static 'pwa/register-sw.js' %}"></script>
+    <script src="{% static 'pwa/a2hs.js' %}"></script>
+    <script src="{% static 'pwa/push.js' %}"></script>
     
     <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
     {% if tracking and tracking.footer %}
         {{ tracking.footer|safe }}
     {% endif %}
     {% if ads_footer %}
-    {% include 'partials/ad_unit.html' with ad=ads_footer %}
+    {% include 'partials/ad_unit.html' with ad=ads_footer slot='footer' %}
     {% endif %}
     
     {# Premium Multi-level Poojas Dropdown JavaScript #}

@@ -168,7 +168,7 @@ class LanguageAdminTest(TestCase):
         client.force_login(self.superuser)
         
         # Should be able to access admin
-        response = client.get('/admin/masterdata/language/')
+        response = client.get('/nd-control-panel/masterdata/language/')
         self.assertEqual(response.status_code, 200)
     
     def test_regular_user_cannot_manage_language(self):
@@ -178,7 +178,7 @@ class LanguageAdminTest(TestCase):
         client.force_login(self.regular_user)
         
         # Should be redirected or forbidden
-        response = client.get('/admin/masterdata/language/')
+        response = client.get('/nd-control-panel/masterdata/language/')
         self.assertIn(response.status_code, [302, 403])
 
 

@@ -202,10 +202,13 @@ class User(DeletionGuardMixin, AbstractUser):
     objects = UserManager()
     
     def save(self, *args, **kwargs):
-        """Auto-generate public_id if not set."""
+        """Auto-generate public_id if not set; optimize new profile picture uploads."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'profile_picture')
         if not self.public_id:
             self.public_id = generate_public_id()
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'profile_picture')
     
     def delete(self, using=None, keep_parents=False):
         """

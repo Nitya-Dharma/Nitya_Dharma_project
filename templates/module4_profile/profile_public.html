@@ -1,6 +1,7 @@
 
 {% extends "base.html" %}
 {% load static %}
+{% load image_responsive %}
 
 {% block title %}{% if pandit.seo_title %}{{ pandit.seo_title }}{% else %}{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }} - Pandit Profile{% endif %}{% endblock %}
 
@@ -418,30 +419,34 @@
             }
         }
         
-        /* WhatsApp Button Hover Styling */
-        .whatsapp-btn:hover,
-        .whatsapp-btn:focus,
-        .whatsapp-btn:active {
+        /* WhatsApp Button - solid style to match Call / Send Booking Intent */
+        .whatsapp-btn,
+        .whatsapp-btn-hero {
             background-color: #22C55E !important;
             border-color: #22C55E !important;
             color: white !important;
         }
-        
-        .whatsapp-btn:hover i,
-        .whatsapp-btn:focus i,
-        .whatsapp-btn:active i {
+        .whatsapp-btn i,
+        .whatsapp-btn-hero i {
             color: white !important;
         }
-        
-        /* WhatsApp Button Hero Section - Ensure white text on hover */
+        .whatsapp-btn:hover,
+        .whatsapp-btn:focus,
+        .whatsapp-btn:active {
+            background-color: #1a9e47 !important;
+            border-color: #1a9e47 !important;
+            color: white !important;
+        }
         .whatsapp-btn-hero:hover,
         .whatsapp-btn-hero:focus,
         .whatsapp-btn-hero:active {
-            background-color: #25D366 !important;
-            border-color: #25D366 !important;
+            background-color: #1a9e47 !important;
+            border-color: #1a9e47 !important;
             color: white !important;
         }
-        
+        .whatsapp-btn:hover i,
+        .whatsapp-btn:focus i,
+        .whatsapp-btn:active i,
         .whatsapp-btn-hero:hover i,
         .whatsapp-btn-hero:focus i,
         .whatsapp-btn-hero:active i {
@@ -475,12 +480,16 @@
         <div class="container-fluid px-0">
             <div class="profile-hero-content">
                 <div class="container-fluid px-3 px-md-4">
-                    <div class="profile-hero-info">
+                    <div class="profile-hero-info animate-fade-up">
                         <!-- Profile Icon/Image -->
                         <div class="profile-icon-large">
                             {% if pandit.has_profile_image %}
-                                <img src="{{ pandit.get_profile_image_url }}" 
-                                     alt="{{ pandit.display_name|default:pandit.user.get_full_name|default:'Pandit' }} Profile Image">
+                                <img src="{{ pandit.get_profile_image_url }}"
+                                     alt="{{ pandit.display_name|default:pandit.user.get_full_name|default:'Pandit' }} Profile Image"
+                                     class="img-fluid profile-hero-img"
+                                     loading="lazy"
+                                     decoding="async"
+                                     onerror="this.onerror=null; this.src='{% static 'images/default-avatar.svg' %}'; this.alt='';">
                             {% else %}
                                 <i class="bi bi-person-circle"></i>
                             {% endif %}
@@ -695,10 +704,10 @@
                                     {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
                                         {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
                                             {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                            <a href="https://wa.me/{{ whatsapp_num }}" 
+                                            <a href="https://wa.me/{{ whatsapp_num }}"
                                                target="_blank"
-                                               class="btn btn-outline-success w-100 mb-3 whatsapp-btn"
-                                               style="border-color: #22C55E; color: #22C55E;"
+                                               class="btn w-100 mb-3 whatsapp-btn"
+                                               style="background-color: #22C55E; border-color: #22C55E; color: white;"
                                                title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
                                                 <i class="bi bi-whatsapp me-1"></i>WhatsApp
                                             </a>

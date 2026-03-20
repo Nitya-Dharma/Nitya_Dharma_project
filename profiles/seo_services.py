@@ -25,9 +25,9 @@ def generate_pandit_seo_title(profile):
     poojas = list(profile.poojas_performed.all()[:1])
     primary_pooja = poojas[0].name if poojas else None
     
-    # Get city - only if exists
+    # Get city from master selections, otherwise fall back to "Others" custom inputs.
     cities = list(profile.cities_served.all()[:1])
-    city = cities[0].name if cities else None
+    city = cities[0].name if cities else (getattr(profile, 'custom_city_name', '') or '').strip() or None
     
     # Build title using only available data
     parts = [name]
@@ -64,9 +64,12 @@ def generate_pandit_seo_description(profile):
     """
     name = profile.get_display_name()
     
-    # Get city - only if exists
+    # Get city from master selections, otherwise fall back to "Others" custom inputs.
     cities = list(profile.cities_served.all()[:1])
-    city = cities[0].name if cities else None
+    city = cities[0].name if cities else (getattr(profile, 'custom_city_name', '') or '').strip() or None
+    state = (getattr(profile, 'custom_state_name', '') or '').strip() or None
+    if city and state:
+        city = f"{city}, {state}"
     
     # Get top 2-3 poojas - only if exists
     poojas = list(profile.poojas_performed.all()[:3])
@@ -134,10 +137,14 @@ def generate_pandit_seo_keywords(profile):
     if name:
         keywords.append(name)
     
-    # Get city - only if exists
+    # Get city from master selections, otherwise fall back to "Others" custom inputs.
     cities = list(profile.cities_served.all()[:1])
     if cities:
         keywords.append(f"Pandit in {cities[0].name}")
+    else:
+        custom_city = (getattr(profile, 'custom_city_name', '') or '').strip()
+        if custom_city:
+            keywords.append(f"Pandit in {custom_city}")
     
     # Get poojas - only real poojas
     poojas = list(profile.poojas_performed.all()[:5])

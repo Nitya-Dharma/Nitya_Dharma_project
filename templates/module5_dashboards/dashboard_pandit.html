@@ -42,8 +42,8 @@
     <li class="nav-item">
         <a class="nav-link" href="{% url 'booking_intent_ui:inbox' %}">
             <i class="bi bi-inbox me-2"></i>Booking Intents
-            {% if pending_booking_intents_count and pending_booking_intents_count > 0 %}
-                <span class="badge bg-danger rounded-pill ms-1" aria-label="{{ pending_booking_intents_count }} new or pending">{{ pending_booking_intents_count }}</span>
+            {% if unread_booking_intents_count and unread_booking_intents_count > 0 %}
+                <span id="booking-intent-badge" class="badge bg-danger rounded-pill ms-1" aria-label="{{ unread_booking_intents_count }} unread">{{ unread_booking_intents_count }}</span>
             {% endif %}
         </a>
     </li>

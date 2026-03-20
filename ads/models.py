@@ -2,7 +2,9 @@
 Super Admin–controlled Advertisement Banner System.
 
 Isolated from other apps; no foreign keys to user or other models.
-Supports responsive image validation (size, dimensions, format); no auto-resize.
+Supports responsive image validation (size, dimensions, format).
+When a main image is set and a slot has no per-slot image, the main image
+is automatically cropped and resized for that slot (see ads.image_processing).
 """
 
 from django.db import models
@@ -36,7 +38,11 @@ RECOMMENDED_MOBILE_SIZES = {
 }
 
 ALLOWED_IMAGE_FORMATS = ("JPEG", "JPG", "PNG", "WEBP", "JFIF")
-MAX_IMAGE_SIZE_BYTES = 1 * 1024 * 1024  # 1MB
+# Project-wide image limit (aligned with settings.FILE_UPLOAD_MAX_IMAGE_BYTES)
+def _get_max_image_bytes():
+    from django.conf import settings
+    return getattr(settings, 'FILE_UPLOAD_MAX_IMAGE_BYTES', 20 * 1024 * 1024)
+MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB default; overridden by settings
 
 
 class Advertisement(models.Model):
@@ -78,7 +84,7 @@ class Advertisement(models.Model):
         upload_to='ads/banners/',
         null=True,
         blank=True,
-        help_text="Desktop banner. Sizes: Top 970×90, Sidebar 300×250, Footer 728×90, In Content 336×280, Dashboard Top 728×90, Dashboard Sidebar 250×250. JPG/PNG/WEBP, max 1MB.",
+        help_text="Desktop banner. Sizes: Top 970×90, Sidebar 300×250, Footer 728×90, In Content 336×280, Dashboard Top 728×90, Dashboard Sidebar 250×250. JPG/PNG/WEBP, max 20MB.",
     )
     redirect_url = models.URLField(max_length=500, blank=True)
     # Optional fixed dimensions; used when is_responsive=False
@@ -89,8 +95,15 @@ class Advertisement(models.Model):
         upload_to='ads/mobile/',
         null=True,
         blank=True,
-        help_text="Optional. Shown on screens ≤768px for better mobile display. Recommended: 320×50 (leaderboard) or 320×100. JPG/PNG/WEBP, max 1MB.",
+        help_text="Optional. Shown on screens ≤768px for better mobile display. Recommended: 320×50 (leaderboard) or 320×100. JPG/PNG/WEBP, max 20MB.",
     )
+    # Per-slot images (optional). When set, used for that slot; else fallback to image (backward compat).
+    image_top = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
+    image_sidebar = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
+    image_footer = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
+    image_in_content = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
+    image_dashboard_top = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
+    image_dashboard_sidebar = models.ImageField(upload_to='ads/banners/', null=True, blank=True)
 
     exclude_urls = models.TextField(
         blank=True,
@@ -139,27 +152,76 @@ class Advertisement(models.Model):
         return False
 
     def save(self, *args, **kwargs):
+        import os
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        for field_name in ('image', 'mobile_image') + tuple(self.SLOT_IMAGE_FIELDS.values()):
+            optimize_image_if_new(self, field_name)
         # Backward compat: if slots empty but placement exists, copy to slots
         if not self.slots and self.placement:
             self.slots = [self.placement]
         # Keep placement in sync with first slot (required field)
         if self.slots:
             self.placement = self.slots[0]
+        # Auto-generate per-slot images from main image when slot has no image (crop + resize)
+        if self.ad_type == self.AD_TYPE_IMAGE and self.image and self.slots:
+            from .constants import AD_POSITION_IMAGE_SIZES
+            from .image_processing import process_ad_image
+            import logging
+            _ad_logger = logging.getLogger(__name__)
+            source = None
+            if hasattr(self.image, 'path') and getattr(self.image, 'path', None) and os.path.exists(self.image.path):
+                source = self.image.path
+            elif hasattr(self.image, 'read'):
+                source = self.image
+            if source:
+                for slot in self.slots:
+                    field_name = self.SLOT_IMAGE_FIELDS.get(slot)
+                    if not field_name:
+                        continue
+                    current = getattr(self, field_name, None)
+                    if current and getattr(current, 'name', None):
+                        continue
+                    sizes = AD_POSITION_IMAGE_SIZES.get(slot)
+                    if not sizes:
+                        continue
+                    try:
+                        if hasattr(source, 'seek'):
+                            source.seek(0)
+                        content = process_ad_image(
+                            source,
+                            sizes['width'],
+                            sizes['height'],
+                        )
+                        setattr(self, field_name, content)
+                    except Exception as e:
+                        _ad_logger.warning("Ad slot image generation failed for %s: %s", slot, e)
         super().save(*args, **kwargs)
+        for field_name in ('image', 'mobile_image') + tuple(self.SLOT_IMAGE_FIELDS.values()):
+            process_derived_images_after_save(self, field_name)
 
     def clean(self):
         super().clean()
         if self.ad_type != self.AD_TYPE_IMAGE or not self.image:
             return
 
-        # File size limit (max 1MB)
+        max_bytes = _get_max_image_bytes()
         try:
             size = getattr(self.image, "size", 0) or 0
-            if size > MAX_IMAGE_SIZE_BYTES:
+            if size > max_bytes:
                 raise ValidationError(
-                    {"image": "Ad image must be under 1MB."}
+                    {"image": f"Ad image must be under {max_bytes // (1024*1024)} MB."}
                 )
         except (TypeError, AttributeError):
+            pass
+        try:
+            # mobile_image is optional; accessing .size when no file raises ValueError
+            size_m = getattr(self.mobile_image, "size", 0) or 0
+            if size_m > max_bytes:
+                raise ValidationError(
+                    {"mobile_image": f"Mobile ad image must be under {max_bytes // (1024*1024)} MB."}
+                )
+        except (TypeError, AttributeError, ValueError):
+            # ValueError: "The 'mobile_image' attribute has no file associated with it"
             pass
 
         try:
@@ -204,6 +266,32 @@ class Advertisement(models.Model):
                     {"image": f"Image too small for this placement. Minimum recommended size is {rec_w}×{rec_h}px."}
                 )
         img.close()
+
+    SLOT_IMAGE_FIELDS = {
+        'top': 'image_top',
+        'sidebar': 'image_sidebar',
+        'footer': 'image_footer',
+        'in_content': 'image_in_content',
+        'dashboard_top': 'image_dashboard_top',
+        'dashboard_sidebar': 'image_dashboard_sidebar',
+    }
+
+    def get_image_for_slot(self, slot):
+        """Return the image to use for this slot: per-slot image if set, else legacy image."""
+        field_name = self.SLOT_IMAGE_FIELDS.get(slot)
+        if field_name:
+            try:
+                slot_image = getattr(self, field_name, None)
+                if slot_image and getattr(slot_image, 'name', None):
+                    return slot_image
+            except ValueError:
+                pass
+        try:
+            if self.image and getattr(self.image, 'name', None):
+                return self.image
+        except ValueError:
+            pass
+        return None
 
     def get_slots_display(self):
         """Return list of display labels for selected slots (for list/display)."""

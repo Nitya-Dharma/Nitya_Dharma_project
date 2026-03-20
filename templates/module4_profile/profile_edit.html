@@ -331,18 +331,56 @@
                             {% endif %}
                         </div>
                         
+                        {# State → City → Area hierarchy. State is required when adding a new city via "Others". #}
+                        <div class="mb-3">
+                            <label for="state" class="form-label" id="state-label">State</label>
+                            <select class="form-select" id="state" name="state" aria-labelledby="state-label">
+                                <option value="">Select State</option>
+                                {% for state_name in available_states %}
+                                    <option value="{{ state_name }}"
+                                            {% if preselected_state == state_name or current_profile.custom_state_name == state_name %}selected{% endif %}>
+                                        {{ state_name }}
+                                    </option>
+                                {% endfor %}
+                                <option value="others" {% if current_profile.custom_state_name and current_profile.custom_state_name not in available_states %}selected{% endif %}>Others</option>
+                            </select>
+                            <div id="custom-state-field" style="display:none; margin-top: 10px;">
+                                <label for="new_state_name" class="form-label">Enter your state</label>
+                                <input type="text"
+                                       name="new_state_name"
+                                       id="new_state_name"
+                                       value="{{ current_profile.custom_state_name|default:'' }}"
+                                       class="form-control"
+                                       placeholder="Enter your state name"
+                                       maxlength="100"
+                                       style="border-color: var(--border-color-theme, #E5E7EB); background-color: var(--bg-primary-theme, #FFFFFF); color: var(--text-primary-theme, #0F172A);">
+                            </div>
+                        </div>
                         
                         <div class="mb-3">
                             <label for="city" class="form-label" id="city-label">City</label>
                             <select class="form-select" id="city" name="city" aria-labelledby="city-label">
                                 <option value="">Select City</option>
                                 {% for city in available_cities %}
-                                    <option value="{{ city.id }}" 
+                                    <option value="{{ city.id }}" data-state="{{ city.state|default:'' }}"
                                             {% if current_profile.cities_served.all|length > 0 and city in current_profile.cities_served.all %}selected{% endif %}>
                                         {{ city.name }}
                                     </option>
                                 {% endfor %}
+                                <option value="others" {% if current_profile.custom_city_name %}selected{% endif %}>Others</option>
                             </select>
+                            <div id="custom-city-field" style="display:none; margin-top: 10px;">
+                                <label for="new_city_name" class="form-label">Enter your city</label>
+                                <input type="text"
+                                       name="new_city_name"
+                                       id="new_city_name"
+                                       value="{{ current_profile.custom_city_name|default:'' }}"
+                                       class="form-control"
+                                       placeholder="Enter your city name"
+                                       maxlength="100"
+                                       style="border-color: var(--border-color-theme, #E5E7EB); background-color: var(--bg-primary-theme, #FFFFFF); color: var(--text-primary-theme, #0F172A);">
+                                <small class="form-text text-muted">Select state above first. City will be linked to that state and available in search filters. Admin may review it later.</small>
+                            </div>
                         </div>
                         
                         
@@ -351,17 +389,18 @@
                             <select class="form-select" id="area" name="area" aria-labelledby="area-label">
                                 <option value="">Select Area</option>
                                 {% for area in available_areas %}
-                                    <option value="{{ area.id }}" 
+                                    <option value="{{ area.id }}" data-city-id="{{ area.city_id }}"
                                             {% if current_profile.areas_served.all|length > 0 and area in current_profile.areas_served.all %}selected{% endif %}>
                                         {{ area.name }}
                                     </option>
                                 {% endfor %}
-                                <option value="other">Others</option>
+                                <option value="other" {% if current_profile.custom_area_name %}selected{% endif %}>Others</option>
                             </select>
                             <div id="custom-area-field" style="display:none; margin-top: 10px;">
                                 <input type="text"
                                        name="custom_local_area"
                                        id="custom_local_area"
+                                       value="{{ current_profile.custom_area_name|default:'' }}"
                                        class="form-control"
                                        placeholder="Enter your local area name"
                                        style="border-color: var(--border-color-theme, #E5E7EB); background-color: var(--bg-primary-theme, #FFFFFF); color: var(--text-primary-theme, #0F172A);">
@@ -690,7 +729,7 @@
             }
         });
         
-        // Toggle WhatsApp number field based on checkbox
+        // Toggle WhatsApp number field based on checkbox; keep WhatsApp = Call when "same number" is checked
         document.addEventListener('DOMContentLoaded', function() {
             const useSameNumberCheckbox = document.getElementById('use_same_number_for_call_and_whatsapp');
             const whatsappNumberContainer = document.getElementById('whatsapp_number_container');
@@ -698,21 +737,30 @@
             const callNumberInput = document.getElementById('call_mobile_number');
             
             if (useSameNumberCheckbox && whatsappNumberContainer && whatsappNumberInput && callNumberInput) {
-                // Toggle WhatsApp field visibility based on checkbox
+                // Sync Call number into WhatsApp field when "use same number" is checked
+                function syncCallToWhatsApp() {
+                    if (useSameNumberCheckbox.checked) {
+                        whatsappNumberInput.value = callNumberInput.value.trim();
+                    }
+                }
+                
                 function toggleWhatsAppField() {
                     if (useSameNumberCheckbox.checked) {
-                        // Hide WhatsApp field when checkbox is checked
+                        // Fill WhatsApp with Call number and hide the field
+                        whatsappNumberInput.value = callNumberInput.value.trim();
                         whatsappNumberContainer.style.display = 'none';
-                        // Clear WhatsApp number value (will be synced from call number on save)
-                        whatsappNumberInput.value = '';
                     } else {
-                        // Show WhatsApp field when checkbox is unchecked
                         whatsappNumberContainer.style.display = 'block';
                     }
                 }
                 
-                // Initial state
                 toggleWhatsAppField();
+                
+                // When Call number changes and checkbox is checked, keep WhatsApp in sync
+                callNumberInput.addEventListener('input', syncCallToWhatsApp);
+                callNumberInput.addEventListener('change', syncCallToWhatsApp);
+                
+                useSameNumberCheckbox.addEventListener('change', toggleWhatsAppField);
                 
                 // Custom Local Area Field Toggle
                 const areaSelect = document.getElementById('area');
@@ -723,17 +771,92 @@
                     areaSelect.addEventListener('change', function() {
                         if (this.value === 'other') {
                             customAreaField.style.display = 'block';
-                            customAreaInput.required = true;
+                            if (customAreaInput) customAreaInput.required = true;
                         } else {
                             customAreaField.style.display = 'none';
-                            customAreaInput.required = false;
-                            customAreaInput.value = '';
+                            if (customAreaInput) customAreaInput.required = false;
                         }
                     });
+                    // Ensure correct initial visibility when loading an existing profile
+                    areaSelect.dispatchEvent(new Event('change'));
                 }
                 
-                // Listen for checkbox changes
-                useSameNumberCheckbox.addEventListener('change', toggleWhatsAppField);
+                // Custom City Field Toggle (Others -> Enter your city)
+                const citySelect = document.getElementById('city');
+                const customCityField = document.getElementById('custom-city-field');
+                const newCityInput = document.getElementById('new_city_name');
+                
+                function toggleCustomCityField() {
+                    if (!citySelect || !customCityField) return;
+                    if (citySelect.value === 'others') {
+                        customCityField.style.display = 'block';
+                        if (newCityInput) newCityInput.required = true;
+                    } else {
+                        customCityField.style.display = 'none';
+                        if (newCityInput) newCityInput.required = false;
+                    }
+                }
+                
+                if (citySelect && customCityField) {
+                    citySelect.addEventListener('change', toggleCustomCityField);
+                    toggleCustomCityField(); // Initial state
+                }
+                
+                // State "Others" -> show new_state_name
+                const stateSelect = document.getElementById('state');
+                const customStateField = document.getElementById('custom-state-field');
+                const newStateInput = document.getElementById('new_state_name');
+                if (stateSelect && customStateField) {
+                    function toggleCustomStateField() {
+                        if (stateSelect.value === 'others') {
+                            customStateField.style.display = 'block';
+                            if (newStateInput) newStateInput.required = true;
+                        } else {
+                            customStateField.style.display = 'none';
+                            if (newStateInput) newStateInput.required = false;
+                        }
+                    }
+                    stateSelect.addEventListener('change', toggleCustomStateField);
+                    toggleCustomStateField();
+                }
+                
+                // Cascading: State -> City -> Area
+                function filterCityByState() {
+                    if (!stateSelect || !citySelect) return;
+                    const stateVal = stateSelect.value;
+                    const options = citySelect.querySelectorAll('option');
+                    options.forEach(function(opt) {
+                        if (opt.value === '' || opt.value === 'others') {
+                            opt.style.display = stateVal ? 'block' : 'block';
+                            return;
+                        }
+                        const dataState = (opt.getAttribute('data-state') || '').trim();
+                        opt.style.display = (!stateVal || dataState === stateVal) ? 'block' : 'none';
+                        if (opt.style.display === 'none' && opt.selected) { citySelect.value = ''; }
+                    });
+                }
+                function filterAreaByCity() {
+                    if (!citySelect || !areaSelect) return;
+                    const cityVal = citySelect.value;
+                    if (cityVal === '' || cityVal === 'others') {
+                        areaSelect.querySelectorAll('option').forEach(function(o) { o.style.display = 'block'; });
+                        return;
+                    }
+                    const options = areaSelect.querySelectorAll('option');
+                    options.forEach(function(opt) {
+                        if (opt.value === '' || opt.value === 'other') {
+                            opt.style.display = 'block';
+                            return;
+                        }
+                        const dataCity = (opt.getAttribute('data-city-id') || '').trim();
+                        opt.style.display = (dataCity === cityVal) ? 'block' : 'none';
+                        if (opt.style.display === 'none' && opt.selected) { areaSelect.value = ''; }
+                    });
+                }
+                if (stateSelect) stateSelect.addEventListener('change', function() { filterCityByState(); filterAreaByCity(); });
+                if (citySelect) citySelect.addEventListener('change', filterAreaByCity);
+                filterCityByState();
+                filterAreaByCity();
             }
         });
     </script>

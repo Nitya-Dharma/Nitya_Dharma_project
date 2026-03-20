@@ -154,6 +154,10 @@ def dashboard_pandit(request):
     # Booking intents received by this pandit (for card and badge)
     pandit_booking_intents = BookingIntent.objects.filter(pandit=request.user)
     booking_intent_count = pandit_booking_intents.count()
+    # Unread = not yet viewed (SUBMITTED only) – badge decreases when Pandit marks as viewed
+    unread_booking_intents_count = pandit_booking_intents.filter(
+        status=BookingIntent.STATUS_SUBMITTED
+    ).count()
     pending_booking_intents_count = pandit_booking_intents.filter(
         status__in=[BookingIntent.STATUS_SUBMITTED, BookingIntent.STATUS_VIEWED]
     ).count()
@@ -169,6 +173,7 @@ def dashboard_pandit(request):
         'booking_intent_count': booking_intent_count,
         'booking_intent_summary': booking_intent_summary,
         'pending_booking_intents_count': pending_booking_intents_count,
+        'unread_booking_intents_count': unread_booking_intents_count,
     })
 
 
@@ -2527,6 +2532,7 @@ def master_data_edit(request, entity_type, entity_id):
         'entity': entity,
         'entity_name': str(entity),
         'form': form,
+        'dashboard_has_data': True,  # So dashboard_base shows the edit form, not "No data available"
     })
 
 
@@ -2681,7 +2687,11 @@ def export_data_super_admin(request):
     
     if export_type == 'pandits':
         from profiles.models import PanditProfile
-        queryset = PanditProfile.objects.select_related('user').all()
+        queryset = (
+            PanditProfile.objects.select_related("user")
+            .prefetch_related("cities_served")
+            .all()
+        )
         
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="pandits_export.csv"'
@@ -2690,7 +2700,8 @@ def export_data_super_admin(request):
         writer.writerow(['Name', 'Email', 'Status', 'City', 'Joined Date'])
         
         for profile in queryset:
-            city = profile.cities_served.first().name if profile.cities_served.exists() else 'N/A'
+            cities = list(profile.cities_served.all())
+            city = cities[0].name if cities else "N/A"
             writer.writerow([
                 profile.get_display_name() or profile.user.email,
                 profile.user.email,

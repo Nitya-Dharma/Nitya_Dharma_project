@@ -87,10 +87,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'\n=== Initialization Complete ==='))
         self.stdout.write(self.style.SUCCESS(f'Created {created_count} new pages'))
         self.stdout.write(self.style.WARNING('\n⚠ IMPORTANT: All pages are in DRAFT mode.'))
-        self.stdout.write(self.style.WARNING('  1. Go to /admin/pages/cmspage/'))
+        self.stdout.write(self.style.WARNING('  1. Go to /nd-control-panel/pages/cmspage/'))
         self.stdout.write(self.style.WARNING('  2. Edit each page and refine content'))
         self.stdout.write(self.style.WARNING('  3. Set is_published=True when ready to publish'))
-        self.stdout.write(self.style.WARNING('  4. Configure SiteSEOConfig at /admin/pages/siteseoconfig/'))
+        self.stdout.write(self.style.WARNING('  4. Configure SiteSEOConfig at /nd-control-panel/pages/siteseoconfig/'))
 
 
 

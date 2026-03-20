@@ -13,6 +13,7 @@ from django.core.paginator import Paginator
 
 from .models import Advertisement
 from .forms import AdvertisementForm
+from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS, get_recommended_size_text
 
 
 def _super_admin_required(view_func):
@@ -49,10 +50,20 @@ def advertisement_create(request):
             return redirect('ads:advertisement_list')
     else:
         form = AdvertisementForm()
+    placement_upload_choices = [
+        (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
+        for slot, label in Advertisement.PLACEMENT_CHOICES
+    ]
     return render(request, 'ads/advertisement_form.html', {
         'form': form,
         'title': 'Create Advertisement',
         'dashboard_has_data': True,
+        'position_sizes': AD_POSITION_IMAGE_SIZES,
+        'position_labels': AD_POSITION_LABELS,
+        'placement_choices': Advertisement.PLACEMENT_CHOICES,
+        'placement_upload_choices': placement_upload_choices,
+        'get_recommended_size_text': get_recommended_size_text,
+        'slot_image_field_names': list(Advertisement.SLOT_IMAGE_FIELDS.values()),
     })
 
 
@@ -69,11 +80,21 @@ def advertisement_edit(request, pk):
             return redirect('ads:advertisement_list')
     else:
         form = AdvertisementForm(instance=ad)
+    placement_upload_choices = [
+        (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
+        for slot, label in Advertisement.PLACEMENT_CHOICES
+    ]
     return render(request, 'ads/advertisement_form.html', {
         'form': form,
         'ad': ad,
         'title': 'Edit Advertisement',
         'dashboard_has_data': True,
+        'position_sizes': AD_POSITION_IMAGE_SIZES,
+        'position_labels': AD_POSITION_LABELS,
+        'placement_choices': Advertisement.PLACEMENT_CHOICES,
+        'placement_upload_choices': placement_upload_choices,
+        'get_recommended_size_text': get_recommended_size_text,
+        'slot_image_field_names': list(Advertisement.SLOT_IMAGE_FIELDS.values()),
     })
 
 

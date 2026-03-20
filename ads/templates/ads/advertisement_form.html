@@ -24,41 +24,126 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-body">
-            <form method="post" action="" enctype="multipart/form-data">
+            <form method="post" action="" enctype="multipart/form-data" id="adForm">
                 {% csrf_token %}
                 {{ form.non_field_errors }}
+
                 {% for field in form %}
-                <div class="mb-3">
                     {% if field.name == 'slots' %}
-                    <label class="form-label d-block">{{ field.label }}</label>
-                    {% if field.help_text %}<div class="form-text mb-2">{{ field.help_text }}</div>{% endif %}
-                    <div class="slots-checkboxes">
-                        {% for value, label in field.field.choices %}
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="{{ field.name }}" value="{{ value }}" id="id_{{ field.name }}_{{ forloop.counter0 }}" {% if value in field.value %}checked{% endif %}>
-                            <label class="form-check-label" for="id_{{ field.name }}_{{ forloop.counter0 }}">{{ label }}</label>
+                        <div class="mb-3">
+                            <label class="form-label d-block">{{ field.label }}</label>
+                            {% if field.help_text %}<div class="form-text mb-2">{{ field.help_text }}</div>{% endif %}
+                            <div class="slots-checkboxes">
+                                {% for value, label in field.field.choices %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input slot-checkbox" type="checkbox" name="{{ field.name }}" value="{{ value }}" id="id_slots_{{ forloop.counter0 }}" data-slot="{{ value }}" {% if value in field.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_slots_{{ forloop.counter0 }}">{{ label }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+                        </div>
+                    {% elif field.name not in slot_image_field_names %}
+                        <div class="mb-3 ad-form-field" data-field="{{ field.name }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="mb-4" id="uploadPerSlotSection">
+                    <h5 class="mb-3">Upload image per position</h5>
+                    <p class="text-muted small">For each selected position above, upload an image with the recommended size. Or use the single "Image" field to use one image for all positions.</p>
+                    <div class="row g-3">
+                        {% for slot_value, slot_label, slot_field, recommended_size in placement_upload_choices %}
+                        <div class="col-12 col-md-6 col-lg-4 ad-slot-upload-block" id="block-{{ slot_value }}" data-slot="{{ slot_value }}" style="display: none;">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ slot_label }}</h6>
+                                    <p class="small text-muted mb-2">Recommended: {{ recommended_size }} px</p>
+                                    <div class="mb-2">{{ slot_field }}</div>
+                                    <div class="slot-preview slot-preview-{{ slot_value }} border rounded p-2 bg-light text-center small" style="min-height: 60px;">Preview</div>
+                                    <div class="slot-dimension-warning mt-1 small text-warning" id="dim-warn-{{ slot_value }}" style="display: none;"></div>
+                                </div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
-                    {% if field.errors %}
-                    <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
-                    {% endif %}
-                    {% else %}
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
-                    {% endif %}
-                    {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% endif %}
                 </div>
-                {% endfor %}
+
+                <div class="mb-4">
+                    <h6 class="mb-2">Live placement preview</h6>
+                    <div class="row g-2 small">
+                        <div class="col-12"><div class="border rounded p-2 bg-light text-center live-preview live-preview-top" data-slot="top" style="min-height: 50px;">Top Banner</div></div>
+                        <div class="col-md-4"><div class="border rounded p-2 bg-light text-center live-preview live-preview-sidebar" data-slot="sidebar" style="min-height: 80px;">Sidebar</div></div>
+                        <div class="col-12"><div class="border rounded p-2 bg-light text-center live-preview live-preview-footer" data-slot="footer" style="min-height: 40px;">Footer</div></div>
+                        <div class="col-12"><div class="border rounded p-2 bg-light text-center live-preview live-preview-in_content" data-slot="in_content" style="min-height: 60px;">In Content</div></div>
+                        <div class="col-12"><div class="border rounded p-2 bg-light text-center live-preview live-preview-dashboard_top" data-slot="dashboard_top" style="min-height: 40px;">Dashboard Top</div></div>
+                        <div class="col-md-4"><div class="border rounded p-2 bg-light text-center live-preview live-preview-dashboard_sidebar" data-slot="dashboard_sidebar" style="min-height: 80px;">Dashboard Sidebar</div></div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Save</button>
                 <a href="{% url 'ads:advertisement_list' %}" class="btn btn-outline-secondary">Cancel</a>
             </form>
         </div>
     </div>
 </div>
+
+{{ position_sizes|json_script:"positionSizes" }}
+<script>
+(function() {
+    var positionSizesEl = document.getElementById('positionSizes');
+    var positionSizes = positionSizesEl ? JSON.parse(positionSizesEl.textContent) : {};
+
+    var checkboxes = document.querySelectorAll('.slot-checkbox');
+    function toggleBlocks() {
+        checkboxes.forEach(function(cb) {
+            var slot = cb.getAttribute('data-slot');
+            var block = document.getElementById('block-' + slot);
+            if (block) block.style.display = cb.checked ? 'block' : 'none';
+        });
+    }
+    checkboxes.forEach(function(cb) { cb.addEventListener('change', toggleBlocks); });
+    toggleBlocks();
+
+    document.querySelectorAll('.ad-slot-upload').forEach(function(input) {
+        input.addEventListener('change', function() {
+            var slot = this.getAttribute('data-slot');
+            var file = this.files && this.files[0];
+            var preview = document.querySelector('.slot-preview-' + slot);
+            var livePreview = document.querySelector('.live-preview-' + slot);
+            var dimWarn = document.getElementById('dim-warn-' + slot);
+            if (!file || !file.type.match('image.*')) {
+                if (preview) { preview.innerHTML = 'Preview'; preview.style.backgroundImage = ''; }
+                if (livePreview) { livePreview.innerHTML = livePreview.getAttribute('data-slot').replace('_', ' '); livePreview.style.backgroundImage = ''; }
+                if (dimWarn) { dimWarn.style.display = 'none'; dimWarn.innerHTML = ''; }
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var dataUrl = e.target.result;
+                if (preview) { preview.innerHTML = ''; preview.style.backgroundImage = 'url(' + dataUrl + ')'; preview.style.backgroundSize = 'contain'; preview.style.backgroundRepeat = 'no-repeat'; preview.style.minHeight = '80px'; }
+                if (livePreview) { livePreview.innerHTML = ''; livePreview.style.backgroundImage = 'url(' + dataUrl + ')'; livePreview.style.backgroundSize = 'contain'; livePreview.style.backgroundRepeat = 'no-repeat'; }
+                var img = new Image();
+                img.onload = function() {
+                    var rec = positionSizes[slot];
+                    if (rec && (img.width < rec.width || img.height < rec.height)) {
+                        if (dimWarn) {
+                            dimWarn.textContent = 'Recommended: ' + rec.width + ' × ' + rec.height + ' px. Uploaded: ' + img.width + ' × ' + img.height + ' px.';
+                            dimWarn.style.display = 'block';
+                        }
+                    } else {
+                        if (dimWarn) { dimWarn.style.display = 'none'; dimWarn.innerHTML = ''; }
+                    }
+                };
+                img.src = dataUrl;
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+})();
+</script>
 {% endblock %}

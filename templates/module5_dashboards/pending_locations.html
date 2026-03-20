@@ -1,0 +1,177 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Pending Locations{% endblock %}
+{% block dashboard_page_class %}admin-page{% endblock %}
+
+{% block dashboard_heading %}Pending Locations{% endblock %}
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">User-submitted States/Cities/Areas awaiting admin review</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    {% if request.user.is_superuser %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+                <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
+            </a>
+        </li>
+    {% else %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'module5_dashboards:dashboard_admin_pandit' %}">
+                <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
+            </a>
+        </li>
+    {% endif %}
+
+    <li class="nav-item mt-2">
+        <a class="nav-link active" href="{% url 'profiles:pending_locations_dashboard' %}">
+            <i class="bi bi-geo-alt me-2"></i>Pending Locations
+        </a>
+    </li>
+
+    <li class="nav-item mt-3">
+        <a class="nav-link" href="{% url 'core:home' %}">
+            <i class="bi bi-house me-2"></i>Home
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+    <div class="admin-card p-4 mb-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h5 mb-0 fw-semibold">Pending Location Approvals</h3>
+                <p class="text-muted mb-0 small">Approve to create master data. Reject keeps it out of public search.</p>
+            </div>
+        </div>
+
+        <form method="post" id="bulkActionForm" onsubmit="syncBulkSelectedIds();">
+            {% csrf_token %}
+            <div class="d-flex gap-2 flex-wrap mb-3">
+                <button type="submit" name="action" value="bulk_approve" class="btn btn-sm btn-success">
+                    <i class="bi bi-check-circle me-1"></i>Approve Selected
+                </button>
+                <button type="submit" name="action" value="bulk_reject" class="btn btn-sm btn-danger">
+                    <i class="bi bi-x-circle me-1"></i>Reject Selected
+                </button>
+            </div>
+            <div id="bulk-selected-ids"></div>
+        </form>
+
+        {% if pending_locations %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">
+                                <input type="checkbox" id="select_all" aria-label="Select all">
+                            </th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Submitted By</th>
+                            <th>Profile</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in pending_locations %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           class="bulk-checkbox"
+                                           name="selected_ids"
+                                           value="{{ item.id }}"
+                                           aria-label="Select pending location {{ item.id }}">
+                                </td>
+                                <td>{{ item.name }}</td>
+                                <td>
+                                    {% if item.type == 'state' %}
+                                        <span class="badge" style="background-color:#ffc107;color:white;">State</span>
+                                    {% elif item.type == 'city' %}
+                                        <span class="badge" style="background-color:#0d6efd;color:white;">City</span>
+                                    {% else %}
+                                        <span class="badge" style="background-color:#6f42c1;color:white;">Area</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.created_by %}
+                                        {{ item.created_by.email }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if request.user.is_superuser %}
+                                        <a href="{% url 'admin:profiles_panditprofile_change' item.related_profile.id %}" class="text-decoration-none">
+                                            View
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="pending_id" value="{{ item.id }}">
+                                        <button type="submit" name="action" value="approve" class="btn btn-sm btn-success me-2">
+                                            <i class="bi bi-check-circle me-1"></i>Approve
+                                        </button>
+                                        <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Reject
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-muted">No pending locations right now.</div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function syncBulkSelectedIds() {
+            const container = document.getElementById('bulk-selected-ids');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const checked = document.querySelectorAll('input.bulk-checkbox[name="selected_ids"]:checked');
+            checked.forEach(function (cb) {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'selected_ids';
+                hidden.value = cb.value;
+                container.appendChild(hidden);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('select_all');
+            if (!selectAll) return;
+
+            const toggle = function () {
+                const boxes = document.querySelectorAll('input.bulk-checkbox[name="selected_ids"]');
+                boxes.forEach(function (b) {
+                    b.checked = selectAll.checked;
+                });
+            };
+
+            selectAll.addEventListener('change', toggle);
+        });
+    </script>
+{% endblock %}
+

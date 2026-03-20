@@ -62,6 +62,11 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link" href="{% url 'profiles:pending_locations_dashboard' %}">
+            <i class="bi bi-geo-alt me-2"></i>Pending Locations
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link" href="{% url 'module5_dashboards:super_admin_notifications' %}">
             <i class="bi bi-bell me-2"></i>Notifications
             {% if unread_notification_count and unread_notification_count > 0 %}
@@ -142,7 +147,7 @@
     <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
         <!--
         Django Admin is intentionally hidden from the frontend UI.
-        Internal operators should access it via /admin/ directly.
+        Internal operators should access it via /nd-control-panel/ directly.
         This prevents exposure of internal system tools.
         -->
         <!-- Quick Actions -->

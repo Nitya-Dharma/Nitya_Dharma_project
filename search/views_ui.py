@@ -2,8 +2,10 @@
 Search UI views (template-based).
 These views render HTML templates for search functionality.
 """
+from django.conf import settings
 from django.shortcuts import render
-from masterdata.models import City, LocalArea, Pooja
+from masterdata.models import City, LocalArea, Pooja, PoojaCategory
+from services.location_utils import validate_coordinates
 from .services import SearchService, PageSearchService
 
 
@@ -42,10 +44,13 @@ def search_results(request):
     except (ValueError, TypeError):
         pooja_id = None
     
-    # Master data for filters
+    # Master data for filters (hierarchy: Pooja Category → Pooja)
     cities = City.objects.filter(is_active=True).order_by('name')
     areas = LocalArea.objects.filter(is_active=True).select_related('city').order_by('city__name', 'name')
-    poojas = Pooja.objects.filter(is_active=True).order_by('category', 'name')
+    pooja_categories = PoojaCategory.objects.filter(is_active=True).order_by('display_order', 'name')
+    poojas = Pooja.objects.filter(is_active=True).select_related('pooja_category').order_by(
+        'pooja_category__display_order', 'pooja_category__name', 'name'
+    )
     
     # Perform search (backend logic) - BRANCH ON result_type
     search_results_list = []
@@ -163,15 +168,40 @@ def search_results(request):
         area_obj = areas.filter(id=area_id).first()
         if area_obj:
             selected_filters['area'] = f"{area_obj.name}, {area_obj.city.name}"
+    selected_pooja = None
     if pooja_id:
         pooja_obj = poojas.filter(id=pooja_id).first()
         if pooja_obj:
             selected_filters['pooja'] = pooja_obj.name
+            selected_pooja = pooja_obj
     if keyword:
         selected_filters['keyword'] = keyword
     if available_date:
         selected_filters['available_date'] = available_date
     
+    # Effective location for "Pandits near you": lat/lon from GET or debug_lat/debug_lon when DEBUG
+    location_lat = request.GET.get("lat")
+    location_lon = request.GET.get("lon")
+    debug_lat_raw = request.GET.get("debug_lat")
+    debug_lon_raw = request.GET.get("debug_lon")
+    debug_location = False
+    client_ip = request.META.get("REMOTE_ADDR") or ""
+    if (
+        settings.DEBUG
+        and client_ip in ("127.0.0.1", "::1")
+        and debug_lat_raw is not None
+        and debug_lon_raw is not None
+    ):
+        try:
+            lat_val, lon_val = validate_coordinates(debug_lat_raw, debug_lon_raw)
+            location_lat = lat_val
+            location_lon = lon_val
+            debug_location = True
+        except ValueError:
+            debug_lat_raw = None
+            debug_lon_raw = None
+            # Leave location_lat/location_lon as from request (lat/lon); invalid debug coords ignored
+
     # Prepare context for template
     context = {
         'search_results': search_results_list,
@@ -179,7 +209,9 @@ def search_results(request):
         'pagination': pagination,
         'cities': cities,
         'areas': areas,
+        'pooja_categories': pooja_categories,
         'poojas': poojas,
+        'selected_pooja': selected_pooja,
         'selected_filters': selected_filters,
         'current_filters': {
             'city_id': city_id,
@@ -194,7 +226,12 @@ def search_results(request):
         'current_sort': None,  # Backend can provide current sort
         'result_type': result_type,  # Pass to template for conditional rendering
         'page_type': page_type,  # Pass page_type to template
+        'location_lat': location_lat,
+        'location_lon': location_lon,
+        'debug_location': debug_location,
+        'debug_lat': debug_lat_raw,
+        'debug_lon': debug_lon_raw,
     }
-    
+
     return render(request, 'module7_search/search_results.html', context)
 

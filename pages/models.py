@@ -319,6 +319,9 @@ class Page(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-generate public_id and slug if not set. Enforce slug immutability."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'cover_image')
+        optimize_image_if_new(self, 'profile_image')
         if not self.public_id:
             self.public_id = generate_public_id()
         
@@ -368,6 +371,8 @@ class Page(models.Model):
         auto_generate_page_seo(self, force=False)
         
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'cover_image')
+        process_derived_images_after_save(self, 'profile_image')
         
         # Handle legacy 'name' column if it exists (for backward compatibility)
         if hasattr(self, 'name'):
@@ -639,11 +644,14 @@ class PageGalleryImage(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-generate public_id if not set and enforce is_deleted=False."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'image')
         if not self.public_id:
             self.public_id = generate_public_id()
         # Enforce: is_deleted is ALWAYS False (hard delete forbidden)
         self.is_deleted = False
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'image')
     
     def __str__(self):
         return f"Gallery image for {self.page.title}"

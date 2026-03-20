@@ -18,7 +18,7 @@ class PageViewTrackingMiddleware:
             path = (request.path or "").strip()
             if not path:
                 return response
-            if path.startswith("/admin/"):
+            if path.startswith("/nd-control-panel/"):
                 return response
             if path.startswith("/monitoring/"):
                 return response

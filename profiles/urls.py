@@ -8,6 +8,7 @@ Security:
 """
 from django.urls import path
 from . import views
+from . import views_admin
 
 app_name = 'profiles'
 
@@ -19,6 +20,9 @@ urlpatterns = [
     # Security: Only profile owner can edit
     path('edit/', views.profile_edit, name='profile_edit'),
     path('edit/<str:public_id>/', views.profile_edit, name='profile_edit_with_id'),
+
+    # Admin dashboard: Pending locations approval (additive, does not affect profile routes)
+    path('admin/pending-locations/', views_admin.pending_locations_dashboard, name='pending_locations_dashboard'),
     
     # Private profile view - uses public_id
     # Security: Only profile owner can view

@@ -1,26 +1,72 @@
 {% comment %}
 Responsive ad unit: supports script (AdSense/HTML) and image banners.
-Expects variable: ad (Advertisement instance).
+Expects: ad, and optional slot (top/sidebar/footer/in_content/dashboard_top/dashboard_sidebar).
+Analytics (all devices & pages): impression when ad enters viewport (track_impression, device from User-Agent);
+clicks via track_click redirect. Works on desktop, mobile, tablet; same script and endpoints everywhere.
 {% endcomment %}
-{% if ad.ad_type == "image" and ad.image %}
-<div class="ad-container text-center my-3">
-    <a href="{{ ad.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
-        {% if ad.mobile_image %}
-            <picture>
-                <source media="(max-width: 768px)" srcset="{{ ad.mobile_image.url }}">
-                <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy">
-            </picture>
-        {% else %}
-            <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy">
-        {% endif %}
+{% load ads_filters %}
+{% with slot_image=ad|ad_image_for_slot:slot %}
+{% if ad.ad_type == "image" and slot_image %}
+<div class="ad-unit-track" data-ad-id="{{ ad.pk }}" data-placement="{{ slot|default:'' }}" data-impression-url="{% url 'ads_analytics:track_impression' ad.pk %}?placement={{ slot|default:''|urlencode }}">
+<div class="ad-container text-center my-3 {% if slot == 'sidebar' %}sidebar-ad{% endif %}">
+    <a href="{% url 'ads_analytics:track_click' ad.pk %}?redirect={{ ad.redirect_url|default:'#'|urlencode }}&placement={{ slot }}" target="_blank" rel="noopener noreferrer">
+        <img src="{{ slot_image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
     </a>
 </div>
+</div>
+{% elif ad.ad_type == "image" and ad.image %}
+<div class="ad-unit-track" data-ad-id="{{ ad.pk }}" data-placement="{{ slot|default:'' }}" data-impression-url="{% url 'ads_analytics:track_impression' ad.pk %}?placement={{ slot|default:''|urlencode }}">
+<div class="ad-container text-center my-3 {% if slot == 'sidebar' %}sidebar-ad{% endif %}">
+    <a href="{% url 'ads_analytics:track_click' ad.pk %}?redirect={{ ad.redirect_url|default:'#'|urlencode }}&placement={{ slot }}" target="_blank" rel="noopener noreferrer">
+        <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
+    </a>
+</div>
+</div>
 {% elif ad.script_code %}
-<div class="ad-container text-center my-3">
+<div class="ad-unit-track" data-ad-id="{{ ad.pk }}" data-placement="{{ slot|default:'' }}" data-impression-url="{% url 'ads_analytics:track_impression' ad.pk %}?placement={{ slot|default:''|urlencode }}">
+<div class="ad-container text-center my-3 {% if slot == 'sidebar' %}sidebar-ad{% endif %}">
     {% if ad.is_responsive %}
         <div class="ad-script-responsive" style="width:100%;max-width:100%;">{{ ad.script_code|safe }}</div>
     {% else %}
         <div class="ad-script-fixed" style="width:{{ ad.banner_width|default:728 }}px;height:{{ ad.banner_height|default:90 }}px;margin:0 auto;">{{ ad.script_code|safe }}</div>
     {% endif %}
 </div>
+</div>
 {% endif %}
+{% endwith %}
+<script>
+(function(){
+  /* Impression tracking: same logic on desktop, mobile, tablet. Sends one GET per ad when in viewport.
+     Server records device from User-Agent so dashboard can report by device. */
+  var containers = document.querySelectorAll('.ad-unit-track');
+  containers.forEach(function(el){
+    var url = el.getAttribute('data-impression-url');
+    if (!url) return;
+    if (el._impressionSent) return;
+    var sent = false;
+    function send(){
+      if (sent) return;
+      sent = true;
+      el._impressionSent = true;
+      if (typeof fetch === 'function') {
+        fetch(url, { method: 'GET', keepalive: true, credentials: 'same-origin' });
+      } else {
+        var x = new XMLHttpRequest();
+        x.open('GET', url, true);
+        x.withCredentials = true;
+        x.send();
+      }
+    }
+    if (typeof IntersectionObserver !== 'undefined') {
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if (entry.isIntersecting) { send(); io.disconnect(); }
+        });
+      }, { rootMargin: '0px', threshold: 0.1 });
+      io.observe(el);
+    } else {
+      send();
+    }
+  });
+})();
+</script>

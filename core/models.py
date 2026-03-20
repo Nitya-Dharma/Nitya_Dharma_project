@@ -71,6 +71,25 @@ class TimestampBase(models.Model):
         abstract = True
 
 
+class FeatureToggle(models.Model):
+    """
+    Admin-controlled feature toggle. Enable/disable features (e.g. news feed) from Django Admin.
+    """
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    enabled = models.BooleanField(default=False)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'core_featuretoggle'
+        ordering = ['name']
+        verbose_name = 'Feature Toggle'
+        verbose_name_plural = 'Feature Toggles'
+
+    def __str__(self):
+        return f"{self.name} ({'enabled' if self.enabled else 'disabled'})"
+
+
 class FeatureFlag(AuditBase):
     """
     Feature Flag model for platform kill switches (UNIT 18).

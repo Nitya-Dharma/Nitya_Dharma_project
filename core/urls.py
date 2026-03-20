@@ -10,6 +10,7 @@ app_name = 'core'
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('offline/', views.offline, name='offline'),
     path('health/', health_checks.health_check, name='health_check'),
     
     # Follow system

@@ -1,0 +1,24 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Pandit Ad Analytics{% endblock %}
+{% block dashboard_heading %}Profile ad analytics — Pandit #{{ pandit_id }}{% endblock %}
+
+{% block dashboard_nav_links %}
+<li class="nav-item"><a class="nav-link" href="{% url 'ads:advertisement_list' %}"><i class="bi bi-megaphone me-2"></i>Advertisements</a></li>
+<li class="nav-item"><a class="nav-link active" href="#">Pandit ad analytics</a></li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <p class="text-muted small">Last {{ analytics.days }} days. Ads displayed on this pandit's profile page.</p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-4"><div class="card"><div class="card-body"><h6 class="text-muted">Impressions on profile</h6><h4>{{ analytics.total_impressions }}</h4></div></div></div>
+        <div class="col-4"><div class="card"><div class="card-body"><h6 class="text-muted">Clicks from profile</h6><h4>{{ analytics.total_clicks }}</h4></div></div></div>
+        <div class="col-4"><div class="card"><div class="card-body"><h6 class="text-muted">CTR</h6><h4>{{ analytics.ctr }}%</h4></div></div></div>
+    </div>
+
+    <div class="card"><div class="card-header">Top ads on this profile</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Ad ID</th><th>Impressions</th><th>Clicks</th><th>CTR %</th></tr></thead><tbody>{% for a in analytics.top_ads_on_profile %}<tr><td>{{ a.ad_id }}</td><td>{{ a.impressions }}</td><td>{{ a.clicks }}</td><td>{{ a.ctr }}</td></tr>{% empty %}<tr><td colspan="4">No data</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+{% endblock %}

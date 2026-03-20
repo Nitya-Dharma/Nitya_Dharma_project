@@ -27,8 +27,14 @@ def inspect_slow_queries() -> None:
             continue
         if t >= SLOW_QUERY_THRESHOLD_SECONDS:
             sql = q.get("sql", "")[:500]
+            # The behavior tracking endpoints can write frequently in normal UX
+            # (scroll_depth/page_view). Suppress slow-query warnings for those
+            # writes to reduce log noise while keeping detection for everything else.
+            sql_compact = sql.replace("\n", " ").strip()
+            if sql_compact.startswith("INSERT INTO `behavior_event_log`"):
+                continue
             logger.warning(
                 "[SLOW QUERY] time=%.2fs sql=%s",
                 t,
-                sql.replace("\n", " ").strip(),
+                sql_compact,
             )

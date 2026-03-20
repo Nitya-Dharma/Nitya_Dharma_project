@@ -1,0 +1,121 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Ad Campaign Analytics{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* GA4-style empty state: overlay inside chart container, does not replace it */
+.ads-analytics-dashboard .chart-empty-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #64748B;
+    font-size: 14px;
+    margin: 0;
+    pointer-events: none;
+}
+.ads-analytics-dashboard .card-body.position-relative .chart-wrapper {
+    position: relative;
+}
+</style>
+{% endblock %}
+{% block dashboard_heading %}Ad: {{ ad.name }}{% endblock %}
+
+{% block dashboard_nav_links %}
+<li class="nav-item"><a class="nav-link" href="{% url 'ads:advertisement_list' %}"><i class="bi bi-megaphone me-2"></i>Advertisements</a></li>
+<li class="nav-item"><a class="nav-link active" href="#">Campaign Analytics</a></li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid ads-analytics-dashboard">
+    {# STEP 6 — Filters always visible #}
+    <div class="card mb-4">
+        <div class="card-body py-3">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="text-muted small me-2">Date range:</span>
+                <a href="{% url 'ads_analytics:advertiser_dashboard' ad.pk %}?days=7" class="btn btn-sm {% if metrics.days == 7 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 7 days</a>
+                <a href="{% url 'ads_analytics:advertiser_dashboard' ad.pk %}?days=30" class="btn btn-sm {% if metrics.days == 30 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 30 days</a>
+                <a href="{% url 'ads_analytics:advertiser_dashboard' ad.pk %}?days=90" class="btn btn-sm {% if metrics.days == 90 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 90 days</a>
+                <span class="text-muted small ms-2">({{ metrics.start|default:"—" }} – {{ metrics.end|default:"—" }}). Aggregated metrics only; no PII.</span>
+            </div>
+        </div>
+    </div>
+
+    {# STEP 3 — Metric cards: always render with 0 when empty #}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Impressions</h6><h4>{{ metrics.total_impressions|default:0 }}</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Clicks</h6><h4>{{ metrics.total_clicks|default:0 }}</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">CTR</h6><h4>{{ metrics.ctr|default:0 }}%</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Revenue (period)</h6><h4>{{ revenue_summary.total_revenue|default:0 }}</h4></div></div></div>
+    </div>
+
+    {# STEP 4 & 5 — Chart sections: always render; overlay when no data #}
+    <div class="row mb-4">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">Daily performance (impressions)</div>
+                <div class="card-body position-relative" style="min-height: 200px;">
+                    <div class="chart-wrapper" style="height: 200px;">
+                        <canvas id="chart-daily"></canvas>
+                    </div>
+                    <div class="chart-empty-overlay" id="overlay-daily" aria-live="polite">No data available yet.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">Funnel (impressions → clicks → profile views → booking intents)</div>
+                <div class="card-body position-relative" style="min-height: 200px;">
+                    <div class="chart-wrapper" style="height: 200px;">
+                        <canvas id="chart-funnel"></canvas>
+                    </div>
+                    <div class="chart-empty-overlay" id="overlay-funnel" aria-live="polite">No data available yet.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">Device distribution</div>
+                <div class="card-body position-relative" style="min-height: 200px;">
+                    <div class="chart-wrapper" style="height: 200px;">
+                        <canvas id="chart-device"></canvas>
+                    </div>
+                    <div class="chart-empty-overlay" id="overlay-device" aria-live="polite">No data available yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# STEP 7 — Tables: always render; empty row when no data #}
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card"><div class="card-header">Placement performance</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Placement</th><th>Impressions</th><th>Clicks</th><th>CTR %</th></tr></thead><tbody>{% for p in metrics.top_placements %}<tr><td>{{ p.placement_label|default:p.placement_position }}</td><td>{{ p.impressions }}</td><td>{{ p.clicks }}</td><td>{{ p.ctr }}</td></tr>{% empty %}<tr><td colspan="4" class="text-muted">No data</td></tr>{% endfor %}</tbody></table></div></div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card"><div class="card-header">City performance (top)</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>City</th><th>Impressions</th><th>Clicks</th><th>CTR %</th></tr></thead><tbody>{% for c in city_performance|slice:":10" %}<tr><td>{{ c.city }}</td><td>{{ c.impressions }}</td><td>{{ c.clicks }}</td><td>{{ c.ctr }}</td></tr>{% empty %}<tr><td colspan="4" class="text-muted">No data</td></tr>{% endfor %}</tbody></table></div></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card"><div class="card-header">Conversion funnel</div><div class="card-body"><p class="mb-1">Impressions: <strong>{{ funnel.impressions|default:0 }}</strong></p><p class="mb-1">Clicks: <strong>{{ funnel.clicks|default:0 }}</strong> ({{ funnel.click_rate|default:0 }}%)</p><p class="mb-1">Profile views: <strong>{{ funnel.profile_views|default:0 }}</strong> ({{ funnel.profile_view_rate|default:0 }}%)</p><p class="mb-0">Booking intents: <strong>{{ funnel.booking_intents|default:0 }}</strong> ({{ funnel.booking_intent_rate|default:0 }}%)</p></div></div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card"><div class="card-header">Device & user type</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Segment</th><th>Impressions</th><th>Clicks</th></tr></thead><tbody>{% for d in device_distribution %}<tr><td>{{ d.device_type|default:"unknown" }}</td><td>{{ d.impressions }}</td><td>{{ d.clicks }}</td></tr>{% endfor %}{% for u in user_type_distribution %}<tr><td>{{ u.user_type }}</td><td>{{ u.impressions }}</td><td>{{ u.clicks }}</td></tr>{% endfor %}{% if not device_distribution and not user_type_distribution %}<tr><td colspan="3" class="text-muted">No data</td></tr>{% endif %}</tbody></table></div></div>
+        </div>
+    </div>
+</div>
+
+{# Chart data from backend (empty or real) — used by ads_analytics.js #}
+{{ chart_data|json_script:"ads-analytics-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-SlGY881JL+OxA4XGkFZknKLcoZ6SIL4az8c5R5g4c8wceUARZfvVJaAXGqJd9AQaoE" crossorigin="anonymous"></script>
+<script src="{% static 'js/ads_analytics.js' %}"></script>
+{% endblock %}

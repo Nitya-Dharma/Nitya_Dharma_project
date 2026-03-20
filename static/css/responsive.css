@@ -1,0 +1,200 @@
+/*
+ * responsive.css — Production-grade mobile responsiveness
+ * Load after theme.css and mobile-responsive.css.
+ * Only additive rules; does not remove or break existing layout.
+ * Targets: 320px–480px (mobile), 768px–1024px (tablet), 1024px–1366px (laptop), 1366px+ (desktop).
+ */
+
+/* ==========================================================================
+   STEP 3 — GLOBAL MOBILE ADJUSTMENTS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
+
+    .btn {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    h1 { font-size: 22px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+}
+
+/* ==========================================================================
+   STEP 4 — NAVBAR RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .navbar-logo,
+    .navbar-brand .navbar-logo,
+    .navbar-brand .brand-logo.navbar-logo {
+        height: 40px;
+        width: auto;
+        max-width: 140px;
+    }
+}
+
+@media (max-width: 992px) {
+    .navbar-collapse .navbar-nav .nav-link {
+        padding: 0.5rem 0.75rem;
+    }
+    .navbar .dropdown-menu.dropdown-menu-end {
+        right: 0;
+        left: auto;
+    }
+}
+
+/* ==========================================================================
+   STEP 5 & 6 — GRID & CARD COMPONENT RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 15px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .card img:not([width]) {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* ==========================================================================
+   STEP 7 — IMAGE RESPONSIVENESS (reinforce)
+   ========================================================================== */
+img:not(.navbar-logo):not(.brand-logo) {
+    max-width: 100%;
+    height: auto;
+}
+img.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ==========================================================================
+   STEP 8 — TABLE RESPONSIVENESS (reinforce)
+   ========================================================================== */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 768px) {
+    .table-responsive {
+        margin-left: -15px;
+        margin-right: -15px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+/* ==========================================================================
+   STEP 9 — DASHBOARD STAT CARDS (stack on mobile)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .dashboard-main .row .col-12.col-md-6.col-lg-3,
+    .dashboard-main .row .col-12.col-sm-6.col-md-4.col-lg-3 {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* ==========================================================================
+   STEP 10 — FORM RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .form-control,
+    .form-select {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    label,
+    .form-label {
+        font-size: 14px;
+    }
+
+    .btn-submit,
+    button[type="submit"].btn,
+    input[type="submit"].btn,
+    .form-actions .btn-primary {
+        width: 100%;
+    }
+}
+
+/* ==========================================================================
+   STEP 11 — ADVERTISEMENT RESPONSIVENESS
+   ========================================================================== */
+.ad-container {
+    max-width: 100%;
+}
+.ad-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .sidebar-ad,
+    .dashboard-ad-sidebar,
+    main .ad-container:first-of-type {
+        margin-top: 20px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .ad-script-fixed {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* ==========================================================================
+   STEP 12 — MODAL AND POPUP RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+    }
+}
+
+/* ==========================================================================
+   STEP 13 — SPACING AND MARGINS
+   ========================================================================== */
+@media (max-width: 768px) {
+    .section {
+        padding: 20px 10px;
+    }
+
+    section.container,
+    section .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+/* ==========================================================================
+   EXTRA — LISTING/CARD ROWS (ListingHub-style)
+   ========================================================================== */
+@media (max-width: 576px) {
+    .row .col-12.col-sm-6.col-lg-4,
+    .row .col-12.col-md-6.col-lg-4 {
+        margin-bottom: 1rem;
+    }
+}

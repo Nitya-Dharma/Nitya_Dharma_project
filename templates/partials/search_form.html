@@ -1,0 +1,13 @@
+{% comment %}
+STEP-4: Use My Location button for GPS-based search.
+Include in search forms. Requires static/js/location_search.js and data-search-results-url.
+{% endcomment %}
+{% load static %}
+<button type="button"
+        class="btn btn-outline-primary"
+        id="use-location-btn"
+        data-search-results-url="{% url 'search_ui:search_results' %}"
+        data-debug-allowed="{% if debug_mode %}true{% else %}false{% endif %}"
+        aria-label="Use my location to find nearby Pandits">
+    <span aria-hidden="true">📍</span> Use My Location
+</button>

@@ -57,7 +57,29 @@ def search_pandits(request):
     # Task 7.15: Input sanitization and validation
     # Parse query parameters
     query_params = request.GET.dict()
-    
+
+    # STEP-3: Location-based search when lat/lon provided (extends search, does not replace)
+    lat = request.GET.get("lat")
+    lon = request.GET.get("lon")
+    if lat is not None and lon is not None and str(lat).strip() != "" and str(lon).strip() != "":
+        try:
+            from search.location_search_service import find_nearby_pandits
+            radius_km = 20
+            if request.GET.get("radius_km"):
+                try:
+                    r = float(request.GET.get("radius_km"))
+                    if 0 < r <= 500:
+                        radius_km = r
+                except (ValueError, TypeError):
+                    pass
+            results = find_nearby_pandits(lat, lon, radius_km=radius_km)
+            return JsonResponse({"status": "success", "results": results})
+        except ValueError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid location coordinates"},
+                status=400,
+            )
+
     # Convert string values to appropriate types
     validated_data = {}
     if 'city_id' in query_params and query_params['city_id']:

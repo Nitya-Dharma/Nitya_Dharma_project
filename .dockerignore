@@ -1,0 +1,63 @@
+# Nitya Dharma — keep sensitive and build-noisy files out of the image
+
+# Secrets and env (never copy into image)
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual env
+venv/
+env/
+ENV/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Django (generated at runtime or via volume)
+*.log
+logs/
+db.sqlite3
+*.sqlite3
+/staticfiles
+/static_collected
+
+# Media can be volume-mounted; exclude from image to keep it small
+/media
+
+# Node (if any frontend tooling)
+node_modules/
+
+# Docs and backups (not needed in image)
+*.md
+!README.md
+*.sql
+*.sql.gz
+full_backup*.json
+data_export*.json
+
+# Local binaries
+railway
+railway.exe
+
+# Tests and coverage (optional; remove if you want tests in image)
+htmlcov/
+.coverage
+.tox/

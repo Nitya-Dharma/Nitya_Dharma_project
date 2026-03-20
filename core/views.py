@@ -7,6 +7,12 @@ from masterdata.services import (
     get_active_pooja_categories,
 )
 
+
+def offline(request):
+    """PWA offline fallback page. No business logic."""
+    return render(request, "offline.html")
+
+
 def home(request):
     """
     Home page view with hero section and search.
@@ -42,7 +48,8 @@ def home(request):
     context['cities'] = get_active_cities()
     context['areas'] = get_active_local_areas()
     context['poojas'] = get_active_poojas()
-    context['pooja_categories'] = get_active_pooja_categories()
+    # Do NOT override global navbar pooja_categories; keep this only for home sections if needed.
+    context['active_pooja_categories'] = get_active_pooja_categories()
     
     # Organize poojas by categories for navbar dropdown
     # Categories from PDF: Daily & Common Household, House/Property & Vehicle, Life Samskaras, Festival & Temple, Homams, Yagnas
@@ -192,8 +199,10 @@ def home(request):
             p.name.lower()
         ))
     
-    # Remove empty categories
-    context['pooja_categories'] = {k: v for k, v in pooja_categories.items() if v}
+    # Remove empty categories for homepage-only sections.
+    # IMPORTANT: Do NOT override global navbar pooja_categories from context processor.
+    # Use a separate key so the navbar always reflects master-data hierarchy.
+    context['home_pooja_categories'] = {k: v for k, v in pooja_categories.items() if v}
     
     # Homepage Explore Pandits: exactly 2 rows of cards (no pagination, no redirect)
     # Grid is col-lg-4 = 3 cards per row on desktop → 2 rows = 6 cards

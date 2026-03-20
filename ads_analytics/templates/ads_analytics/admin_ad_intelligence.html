@@ -1,0 +1,108 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Platform Ad Intelligence{% endblock %}
+{% block dashboard_heading %}Platform ad intelligence{% endblock %}
+
+{% block dashboard_nav_links %}
+<li class="nav-item"><a class="nav-link" href="{% url 'ads:advertisement_list' %}"><i class="bi bi-megaphone me-2"></i>Advertisements</a></li>
+<li class="nav-item"><a class="nav-link active" href="#">Ad intelligence</a></li>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.platform-ad-intelligence .chart-empty-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #64748B;
+    font-size: 14px;
+    margin: 0;
+    pointer-events: none;
+}
+.platform-ad-intelligence .card-body.position-relative .chart-wrapper { position: relative; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid platform-ad-intelligence">
+    {# Filters always visible #}
+    <div class="card mb-4">
+        <div class="card-body py-3">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="text-muted small me-2">Date range:</span>
+                <a href="{% url 'ads_analytics:admin_ad_intelligence' %}?days=7" class="btn btn-sm {% if platform.days == 7 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 7 days</a>
+                <a href="{% url 'ads_analytics:admin_ad_intelligence' %}?days=30" class="btn btn-sm {% if platform.days == 30 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 30 days</a>
+                <a href="{% url 'ads_analytics:admin_ad_intelligence' %}?days=90" class="btn btn-sm {% if platform.days == 90 %}btn-primary{% else %}btn-outline-secondary{% endif %}">Last 90 days</a>
+                <span class="text-muted small ms-2">({{ platform.start|default:"—" }} – {{ platform.end|default:"—" }}). Platform-wide metrics; aggregated only.</span>
+            </div>
+        </div>
+    </div>
+
+    {# KPI cards: always render with 0 when empty #}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Total impressions</h6><h4>{{ platform.total_impressions|default:0 }}</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Total clicks</h6><h4>{{ platform.total_clicks|default:0 }}</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Platform CTR</h6><h4>{{ platform.platform_ctr|default:0 }}%</h4></div></div></div>
+        <div class="col-6 col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Active campaigns</h6><h4>{{ platform.top_campaigns|length|default:0 }}</h4></div></div></div>
+    </div>
+
+    {# Placement performance chart: always render #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">Placement performance</div>
+                <div class="card-body position-relative" style="min-height: 220px;">
+                    <div class="chart-wrapper" style="height: 220px;">
+                        <canvas id="chart-platform-placement"></canvas>
+                    </div>
+                    <div class="chart-empty-overlay" id="overlay-platform-placement" aria-live="polite">No analytics data yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Placement table #}
+    <div class="card mb-4"><div class="card-header">Placement breakdown</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Placement</th><th>Impressions</th><th>Clicks</th><th>CTR %</th></tr></thead><tbody>{% for p in platform.placement_performance %}<tr><td>{{ p.placement_label|default:p.placement_position }}</td><td>{{ p.impressions }}</td><td>{{ p.clicks }}</td><td>{{ p.ctr }}</td></tr>{% empty %}<tr><td colspan="4" class="text-muted">No data</td></tr>{% endfor %}</tbody></table></div></div>
+
+    {# Top cities + Top campaigns #}
+    <div class="row">
+        <div class="col-lg-6 mb-4"><div class="card"><div class="card-header">Top cities</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>City</th><th>Impressions</th></tr></thead><tbody>{% for c in platform.top_cities|slice:":10" %}<tr><td>{{ c.viewer_city }}</td><td>{{ c.impressions }}</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No data</td></tr>{% endfor %}</tbody></table></div></div></div>
+        <div class="col-lg-6 mb-4"><div class="card"><div class="card-header">Top campaigns (by ad)</div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>Ad ID</th><th>Impressions</th><th>Clicks</th><th>CTR %</th></tr></thead><tbody>{% for c in platform.top_campaigns|slice:":10" %}<tr><td>{{ c.ad_id }}</td><td>{{ c.impressions }}</td><td>{{ c.clicks }}</td><td>{{ c.ctr }}</td></tr>{% empty %}<tr><td colspan="4" class="text-muted">No data</td></tr>{% endfor %}</tbody></table></div></div></div>
+    </div>
+</div>
+
+{{ placement_chart|json_script:"platform-placement-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-SlGY881JL+OxA4XGkFZknKLcoZ6SIL4az8c5R5g4c8wceUARZfvVJaAXGqJd9AQaoE" crossorigin="anonymous"></script>
+<script>
+(function(){
+  var el = document.getElementById('platform-placement-chart-data');
+  var overlay = document.getElementById('overlay-platform-placement');
+  var canvas = document.getElementById('chart-platform-placement');
+  if (!canvas) return;
+  var payload = { placements: [], impressions: [], clicks: [], ctr_values: [] };
+  if (el && el.textContent) { try { payload = JSON.parse(el.textContent); } catch(e) {} }
+  var hasData = (payload.impressions && payload.impressions.length && payload.impressions.some(function(v){ return Number(v) > 0; }));
+  if (overlay) overlay.style.display = hasData ? 'none' : 'block';
+  var labels = payload.placements && payload.placements.length ? payload.placements : ['Top', 'Sidebar', 'Footer'];
+  var data = payload.impressions && payload.impressions.length ? payload.impressions : [0, 0, 0];
+  if (typeof Chart !== 'undefined') {
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'Impressions', data: data, backgroundColor: 'rgba(225, 29, 72, 0.6)', borderColor: '#E11D48', borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+})();
+</script>
+{% endblock %}

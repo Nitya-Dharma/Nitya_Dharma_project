@@ -40,9 +40,27 @@
                 <option value="">All Areas</option>
                 {% if areas %}
                     {% for area in areas %}
-                        <option value="{{ area.id }}" 
+                        <option value="{{ area.id }}" data-city="{{ area.city_id }}"
                                 {% if request.GET.area == area.id|stringformat:"s" %}selected{% endif %}>
                             {{ area.name }}
+                        </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label for="pooja_category" class="form-label">Pooja Category</label>
+            <select class="form-select" 
+                    id="pooja_category" 
+                    name="pooja_category" 
+                    aria-label="Select pooja category">
+                <option value="">All Categories</option>
+                {% if pooja_categories %}
+                    {% for cat in pooja_categories %}
+                        <option value="{{ cat.id }}"
+                                {% if request.GET.pooja_category == cat.id|stringformat:"s" or selected_pooja and selected_pooja.pooja_category_id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
                         </option>
                     {% endfor %}
                 {% endif %}
@@ -58,7 +76,7 @@
                 <option value="">All Poojas</option>
                 {% if poojas %}
                     {% for pooja in poojas %}
-                        <option value="{{ pooja.id }}" 
+                        <option value="{{ pooja.id }}" data-category-id="{{ pooja.pooja_category_id|default:'' }}"
                                 {% if request.GET.pooja == pooja.id|stringformat:"s" %}selected{% endif %}>
                             {{ pooja.name }}
                         </option>
@@ -204,6 +222,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('search_last_area');
             }
         });
+    }
+    
+    // Pooja Category → Pooja cascade: filter pooja options by selected category
+    const poojaCategorySelect = document.getElementById('pooja_category');
+    const poojaSelect = document.getElementById('pooja');
+    if (poojaCategorySelect && poojaSelect) {
+        function filterPoojaByCategory() {
+            const categoryId = (poojaCategorySelect.value || '').toString();
+            const options = poojaSelect.querySelectorAll('option');
+            options.forEach(function(opt) {
+                if (opt.value === '') {
+                    opt.style.display = 'block';
+                    return;
+                }
+                const optCategoryId = (opt.getAttribute('data-category-id') || '').toString();
+                const show = !categoryId || optCategoryId === categoryId;
+                opt.style.display = show ? 'block' : 'none';
+                if (!show && opt.selected) {
+                    poojaSelect.value = '';
+                }
+            });
+        }
+        poojaCategorySelect.addEventListener('change', filterPoojaByCategory);
+        filterPoojaByCategory();
     }
 });
 </script>

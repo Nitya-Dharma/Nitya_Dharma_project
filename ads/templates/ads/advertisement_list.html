@@ -5,6 +5,13 @@
 {% block dashboard_heading %}Advertisements{% endblock %}
 {% block dashboard_subtitle %}
     <p class="text-muted mb-0">Manage banner ads (e.g. Google AdSense). Super Admin only.</p>
+    <div class="alert alert-info mt-2 mb-0 py-2 px-3 small" role="status">
+        <strong>Where ads appear:</strong>
+        <strong>Top Banner, Sidebar, Footer, In Content</strong> → public site (home, search, profiles, etc.).
+        <strong>Dashboard Top, Dashboard Sidebar</strong> → only inside this dashboard when <strong>Show on dashboard</strong> is enabled on the ad.
+        <br><strong>Image sizes:</strong> One image is used for all selected positions. For best appearance use: Top 970×90, Sidebar 300×250, Footer 728×90, In Content 336×280. Using 336×280 for Top/Footer will still display but may look stretched or small.
+        <br><strong>Broken image?</strong> Ensure the file exists in <code>media/ads/banners/</code> and that you run with <code>DEBUG=True</code> (or serve <code>/media/</code>) so the image URL loads.
+    </div>
 {% endblock %}
 
 {% block dashboard_nav_links %}
@@ -24,9 +31,12 @@
 <div class="container-fluid">
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mb-4">
         <h2 class="h4 mb-0">Advertisements</h2>
-        <a href="{% url 'ads:advertisement_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>Create Advertisement
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'ads_analytics:admin_ad_intelligence' %}" class="btn btn-outline-secondary">Platform ad intelligence</a>
+            <a href="{% url 'ads:advertisement_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Create Advertisement
+            </a>
+        </div>
     </div>
 
     {% if advertisements %}
@@ -36,6 +46,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Positions</th>
+                    <th>Show on dashboard</th>
                     <th>Status</th>
                     <th>Schedule</th>
                     <th>Created</th>
@@ -47,6 +58,13 @@
                 <tr>
                     <td>{{ ad.name }}</td>
                     <td>{% for label in ad.get_slots_display %}{{ label }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                    <td>
+                        {% if ad.show_on_dashboard %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span> <span class="text-muted small">(ads won’t show here)</span>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if ad.is_active %}
                             <span class="badge bg-success">Active</span>
@@ -64,6 +82,7 @@
                     </td>
                     <td>{{ ad.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
+                        <a href="{% url 'ads_analytics:advertiser_dashboard' ad.pk %}" class="btn btn-sm btn-outline-info me-1" title="Campaign analytics">Analytics</a>
                         <a href="{% url 'ads:advertisement_edit' ad.pk %}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
                         <form method="post" action="{% url 'ads:advertisement_toggle' ad.pk %}" class="d-inline me-1">
                             {% csrf_token %}

@@ -74,6 +74,12 @@
     --theme-text-dark: #212529;
     --theme-text-light: #f8f9fa;
     --theme-accent: #E11D48;
+
+    /* Global Design Tokens — Cinematic Theme (Nitya Dharma palette only; does not override existing vars) */
+    --accent-fallback: #c62828;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #DC2626;
 }
 
 /* DARK THEME */
@@ -135,6 +141,54 @@ p, span, label, small, td, th, a:not(.btn) {
 }
 h1, h2, h3, h4, h5, h6 {
     color: var(--theme-text-dark) !important;
+}
+
+/* Prevent large images from breaking layout (overridden by .pandit-avatar img and .cover-image img below) */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Navbar logo size constraint (prevents logo from dominating navbar) */
+.navbar-logo,
+.brand-logo {
+    height: 48px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+}
+
+/* Pandit listing card avatar – circular container */
+.pandit-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.pandit-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: none;
+}
+
+/* Cover image container (e.g. page detail) */
+.cover-image {
+    width: 100%;
+    min-height: 280px;
+    overflow: hidden;
+}
+
+.cover-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: none;
 }
 
 /* ===========================
@@ -1289,5 +1343,137 @@ select:focus {
 [data-theme="dark"] select option {
     background: var(--theme-bg-card) !important;
     color: var(--theme-text-dark) !important;
+}
+
+/* ===========================
+   RESPONSIVE & MOBILE-FIRST
+   Browser image optimization, layout overflow, touch targets
+=========================== */
+
+/* Prevent horizontal scroll on mobile */
+body {
+    overflow-x: hidden;
+}
+
+/* Responsive images: prevent overflow, scale correctly */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Card images: cover area without distortion */
+.card img {
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Touch-friendly buttons (44px min recommended) */
+button,
+.btn {
+    min-height: 44px;
+    padding: 10px 16px;
+}
+
+/* Responsive typography */
+h1 { font-size: clamp(1.8rem, 2.5vw, 2.5rem); }
+h2 { font-size: clamp(1.5rem, 2vw, 2rem); }
+p  { font-size: clamp(0.95rem, 1.2vw, 1rem); }
+
+/* ==========================================================================
+   CINEMATIC THEME SYSTEM — Global design foundation (Task 1)
+   Reusable surfaces, glow, typography, spacing. Nitya Dharma palette only.
+   ========================================================================== */
+
+/* STEP 2 — Global surface components (use theme vars for light/dark) */
+.surface-card {
+    background: var(--bg-primary-theme);
+    border: 1px solid var(--border-color-theme);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.surface-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.surface-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color-theme);
+    border-radius: 16px;
+}
+[data-theme="dark"] .surface-glass {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: var(--border-color-theme);
+}
+
+/* STEP 3 — Accent glow utilities */
+.glow-accent {
+    box-shadow: 0 0 24px rgba(225, 29, 72, 0.22);
+}
+.glow-accent:hover {
+    box-shadow: 0 0 32px rgba(225, 29, 72, 0.28);
+}
+
+/* STEP 4 — Global button base (cinematic) — enhances .btn-primary; use .btn-outline-accent for secondary */
+.btn-primary {
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.3);
+}
+
+.btn-outline-accent {
+    background: transparent;
+    border: 2px solid var(--accent-theme);
+    color: var(--accent-theme);
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.btn-outline-accent:hover {
+    background: rgba(225, 29, 72, 0.08);
+    color: var(--accent-theme);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.2);
+}
+
+/* STEP 5 — Typography system */
+.hero-heading {
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 700;
+    color: var(--text-primary-theme);
+    line-height: 1.15;
+}
+
+.section-heading {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary-theme);
+}
+
+.body-text {
+    color: var(--text-secondary-theme);
+}
+
+/* STEP 6 — Global layout spacing */
+.section {
+    padding-top: 100px;
+    padding-bottom: 100px;
+}
+
+.container-wide {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 

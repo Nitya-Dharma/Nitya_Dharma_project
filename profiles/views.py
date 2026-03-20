@@ -337,20 +337,87 @@ def profile_edit(request, public_id=None):
                 profile.poojas_performed.set(poojas)
             
             if 'city' in request.POST:
-                city_id = request.POST.get('city')
-                if city_id:
-                    from masterdata.models import City
+                import re
+                from masterdata.models import City
+                city_id = request.POST.get('city', '').strip()
+                if city_id == 'others':
+                    MAX_CUSTOM_LEN = 100
+
+                    # Require state when adding a new city (State → City → Area hierarchy)
+                    raw_state_choice = request.POST.get('state', '').strip()
+                    if raw_state_choice == 'others':
+                        raw_custom_state = request.POST.get('new_state_name', '').strip()
+                        if not raw_custom_state:
+                            messages.error(request, 'Please enter your state name when selecting "Others".')
+                            return redirect('profiles:profile_edit')
+                        raw_state_value = raw_custom_state
+                    else:
+                        raw_state_value = raw_state_choice
+
+                    state_value = re.sub(r'\s+', ' ', raw_state_value).strip().title() if raw_state_value else ''
+                    if not state_value:
+                        messages.error(request, 'Please select or enter a state when adding a new city (State → City → Area).')
+                        return redirect('profiles:profile_edit')
+
+                    if len(state_value) > MAX_CUSTOM_LEN:
+                        messages.error(request, f'State name must be at most {MAX_CUSTOM_LEN} characters.')
+                        return redirect('profiles:profile_edit')
+
+                    new_city_name = request.POST.get('new_city_name', '').strip()
+                    new_city_name = re.sub(r'\s+', ' ', new_city_name).strip()
+                    if not new_city_name:
+                        messages.error(request, 'Please enter your city name when selecting "Others".')
+                        return redirect('profiles:profile_edit')
+                    if len(new_city_name) < 2:
+                        messages.error(request, 'City name must be at least 2 characters long.')
+                        return redirect('profiles:profile_edit')
+
+                    if len(new_city_name) > MAX_CUSTOM_LEN:
+                        messages.error(request, f'City name must be at most {MAX_CUSTOM_LEN} characters.')
+                        return redirect('profiles:profile_edit')
+
+                    if not re.match(r'^[a-zA-Z\s\-\.\']+$', new_city_name):
+                        messages.error(request, 'City name can only contain letters, spaces, hyphens, and periods.')
+                        return redirect('profiles:profile_edit')
+                    new_city_name = new_city_name.title()
+
+                    if len(new_city_name) > MAX_CUSTOM_LEN:
+                        messages.error(request, f'City name must be at most {MAX_CUSTOM_LEN} characters.')
+                        return redirect('profiles:profile_edit')
+
+                    # SAFE: store "Others" selections on the profile only.
+                    # No masterdata writes (no City/LocalArea creation) to preserve master data integrity.
+                    profile.custom_state_name = state_value
+                    profile.custom_city_name = new_city_name
+                    profile.custom_area_name = None
+                    profile.cities_served.clear()
+                    profile.areas_served.clear()
+                    messages.success(
+                        request,
+                        f'City "{new_city_name}" saved safely. It will not appear in search filters until admin approval.'
+                    )
+                elif city_id and city_id.isdigit():
                     try:
                         city = City.objects.get(id=city_id, is_active=True)
+                        # Clear custom location inputs when master city is selected.
+                        profile.custom_state_name = None
+                        profile.custom_city_name = None
+                        profile.custom_area_name = None
                         profile.cities_served.set([city])
                     except City.DoesNotExist:
                         pass
                 else:
+                    # Clear master and custom location inputs.
                     profile.cities_served.clear()
+                    profile.custom_state_name = None
+                    profile.custom_city_name = None
+                    profile.custom_area_name = None
             
             if 'area' in request.POST:
                 area_id = request.POST.get('area')
                 if area_id == 'other':
+                    MAX_CUSTOM_LEN = 100
+
                     # Handle custom area creation
                     custom_area_name = request.POST.get('custom_local_area', '').strip()
                     if custom_area_name:
@@ -364,6 +431,11 @@ def profile_edit(request, public_id=None):
                         custom_area_name = re.sub(r'\s+', ' ', custom_area_name)  # Remove extra spaces
                         custom_area_name = custom_area_name.strip()
                         custom_area_name = custom_area_name.title()  # Capitalize properly
+
+                        # Length safety
+                        if len(custom_area_name) > MAX_CUSTOM_LEN:
+                            messages.error(request, f'Local area name must be at most {MAX_CUSTOM_LEN} characters.')
+                            return redirect('profiles:profile_edit')
                         
                         # Validate
                         if len(custom_area_name) < 3:
@@ -375,57 +447,48 @@ def profile_edit(request, public_id=None):
                             messages.error(request, 'Local area name can only contain letters, spaces, and hyphens.')
                             return redirect('profiles:profile_edit')
                         
-                        # Get the selected city (required for area creation)
+                        # Get the selected city (required for area creation). When city was "others", we already set cities_served above.
                         selected_city = None
-                        if 'city' in request.POST:
-                            city_id = request.POST.get('city')
-                            if city_id:
-                                try:
-                                    selected_city = City.objects.get(id=city_id, is_active=True)
-                                except City.DoesNotExist:
-                                    pass
+                        city_id = request.POST.get('city', '')
+                        if city_id and city_id != 'others' and city_id.isdigit():
+                            try:
+                                # Allow linking to the selected city even if it's pending/inactive.
+                                # Prefer the city already selected in this profile (safe).
+                                selected_city = profile.cities_served.filter(id=city_id).first()
+                            except City.DoesNotExist:
+                                pass
+                        if not selected_city:
+                            selected_city = profile.cities_served.first()
                         
                         if not selected_city:
-                            messages.error(request, 'Please select a city first before adding a custom area.')
-                            return redirect('profiles:profile_edit')
-                        
-                        # Check if area already exists (case-insensitive)
-                        existing_area = LocalArea.objects.filter(
-                            name__iexact=custom_area_name,
-                            city=selected_city
-                        ).first()
-                        
-                        if existing_area:
-                            # Use existing area
-                            profile.areas_served.set([existing_area])
-                            messages.info(request, f'Area "{custom_area_name}" already exists. Using existing area.')
-                        else:
-                            # Create new custom area
-                            try:
-                                new_area = LocalArea.objects.create(
-                                    name=custom_area_name,
-                                    city=selected_city,
-                                    is_custom=True,
-                                    created_by=request.user,
-                                    is_active=True,
-                                    status=LocalArea.STATUS_ACTIVE
-                                )
-                                profile.areas_served.set([new_area])
-                                messages.success(request, f'Custom area "{custom_area_name}" has been added successfully!')
-                            except Exception as e:
-                                messages.error(request, f'Error creating custom area: {str(e)}')
+                            # If city came from "Others", we store it safely on profile (no master writes).
+                            if not (profile.custom_city_name or '').strip():
+                                messages.error(request, 'Please select a city first before adding a custom area.')
                                 return redirect('profiles:profile_edit')
+                            # Continue: custom_city_name exists on profile.
+                        
+                        # SAFE: store "Others" area on profile only (no LocalArea creation).
+                        profile.custom_area_name = custom_area_name
+                        profile.areas_served.clear()
+                        messages.success(
+                            request,
+                            f'Area "{custom_area_name}" saved safely. It will not appear in search filters until admin approval.'
+                        )
                     else:
                         messages.error(request, 'Please enter a local area name.')
                         return redirect('profiles:profile_edit')
                 elif area_id:
                     from masterdata.models import LocalArea
                     try:
-                        area = LocalArea.objects.get(id=area_id, is_active=True)
+                        # Allow linking even if the area is pending/inactive (since it may be user-submitted).
+                        area = LocalArea.objects.get(id=area_id)
+                        # Clear custom area when master area is selected.
+                        profile.custom_area_name = None
                         profile.areas_served.set([area])
                     except LocalArea.DoesNotExist:
                         pass
                 else:
+                    profile.custom_area_name = None
                     profile.areas_served.clear()
             
             # Handle cover image upload (if field exists)
@@ -494,6 +557,63 @@ def profile_edit(request, public_id=None):
             
             # Save the profile
             profile.save()
+
+            # Enqueue admin-review entries for user-submitted "Others" locations.
+            # Additive governance feature: does not modify master tables directly.
+            try:
+                from .models import PendingLocation
+                import re
+
+                def _norm(val: str | None) -> str:
+                    v = (val or "").strip()
+                    v = re.sub(r"\s+", " ", v)
+                    return v.lower()
+
+                custom_state = (profile.custom_state_name or "").strip()
+                custom_city = (profile.custom_city_name or "").strip()
+                custom_area = (profile.custom_area_name or "").strip()
+
+                # State pending
+                if custom_state:
+                    state_norm = _norm(custom_state)
+                    if not PendingLocation.objects.filter(type=PendingLocation.TYPE_STATE, normalized_name=state_norm).exists():
+                        PendingLocation.objects.create(
+                            name=custom_state,
+                            normalized_name=state_norm,
+                            type=PendingLocation.TYPE_STATE,
+                            created_by=request.user,
+                            related_profile=profile,
+                            status=PendingLocation.STATUS_PENDING,
+                        )
+
+                # City pending (normalized with state context to prevent collisions)
+                if custom_city and custom_state:
+                    city_norm = f"{_norm(custom_state)}|{_norm(custom_city)}"
+                    if not PendingLocation.objects.filter(type=PendingLocation.TYPE_CITY, normalized_name=city_norm).exists():
+                        PendingLocation.objects.create(
+                            name=custom_city,
+                            normalized_name=city_norm,
+                            type=PendingLocation.TYPE_CITY,
+                            created_by=request.user,
+                            related_profile=profile,
+                            status=PendingLocation.STATUS_PENDING,
+                        )
+
+                # Area pending (normalized with state + city context)
+                if custom_area and custom_city and custom_state:
+                    area_norm = f"{_norm(custom_state)}|{_norm(custom_city)}|{_norm(custom_area)}"
+                    if not PendingLocation.objects.filter(type=PendingLocation.TYPE_AREA, normalized_name=area_norm).exists():
+                        PendingLocation.objects.create(
+                            name=custom_area,
+                            normalized_name=area_norm,
+                            type=PendingLocation.TYPE_AREA,
+                            created_by=request.user,
+                            related_profile=profile,
+                            status=PendingLocation.STATUS_PENDING,
+                        )
+            except Exception:
+                # Never break profile editing on admin-queue failures.
+                pass
             
             messages.success(request, 'Profile updated successfully!')
             # Redirect back to edit page to allow continued editing
@@ -504,7 +624,6 @@ def profile_edit(request, public_id=None):
             # Continue to render form with errors
     
     # Prepare context for template
-    from collections import OrderedDict
     
     # Get all active poojas for selection (Railway, GoDaddy, VPS: include status active or null/empty)
     from django.db.models import Q
@@ -515,25 +634,8 @@ def profile_edit(request, public_id=None):
     ).select_related('pooja_category').order_by('pooja_category__display_order', 'pooja_category__name', 'name')
     
     # Group poojas by PoojaCategory (master data) for better UX
-    pooja_categories = OrderedDict()
-    for pooja in all_poojas:
-        if pooja.pooja_category and pooja.pooja_category.is_active:
-            category_name = pooja.pooja_category.name
-            if category_name not in pooja_categories:
-                pooja_categories[category_name] = []
-            pooja_categories[category_name].append(pooja)
-        elif pooja.category:
-            # Fallback: Use deprecated category enum if pooja_category FK is not set
-            category_display = pooja.get_category_display()
-            if category_display not in pooja_categories:
-                pooja_categories[category_display] = []
-            pooja_categories[category_display].append(pooja)
-        else:
-            # Fallback for poojas without any category
-            fallback_category = 'Uncategorized'
-            if fallback_category not in pooja_categories:
-                pooja_categories[fallback_category] = []
-            pooja_categories[fallback_category].append(pooja)
+    from .services import group_poojas_by_category_for_profile
+    pooja_categories = group_poojas_by_category_for_profile(all_poojas)
     
     # Ensure profile is saved before accessing M2M fields
     if profile.pk is None:
@@ -563,12 +665,27 @@ def profile_edit(request, public_id=None):
     missing_sections = profile.get_missing_required_fields()
     is_profile_approved = profile.is_profile_approved
     
+    # State → City → Area: distinct states from cities (non-null). Fallback to common list if none in DB.
+    from .services import get_available_states_and_preselected_state
+    available_states, preselected_state = get_available_states_and_preselected_state(profile)
+
+    # Include selected cities/areas even if they are pending/inactive so "Others" selections stay visible.
+    from django.db.models import Q
+    selected_city_ids = list(profile.cities_served.values_list('id', flat=True)) if profile.pk else []
+    selected_area_ids = list(profile.areas_served.values_list('id', flat=True)) if profile.pk else []
+    available_cities_qs = City.objects.filter(Q(is_active=True) | Q(id__in=selected_city_ids)).order_by('name')
+    available_areas_qs = LocalArea.objects.filter(
+        Q(is_active=True) | Q(id__in=selected_area_ids)
+    ).select_related('city').order_by('city__name', 'name')
+
     context = {
         'current_profile': profile,
         'profile_public_id': profile.public_id,  # Use public_id in templates
         'is_profile_owner': True,
-        'available_cities': City.objects.filter(is_active=True).order_by('name'),
-        'available_areas': LocalArea.objects.filter(is_active=True).select_related('city').order_by('city__name', 'name'),
+        'available_states': available_states,
+        'preselected_state': preselected_state,
+        'available_cities': available_cities_qs,
+        'available_areas': available_areas_qs,
         'available_poojas': all_poojas,  # Keep for backward compatibility
         'pooja_categories': pooja_categories,  # Categorized poojas for better UX
         'selected_pooja_ids': selected_pooja_ids,  # Set of selected pooja IDs for quick lookup
@@ -576,8 +693,8 @@ def profile_edit(request, public_id=None):
         'available_languages': Language.objects.filter(is_active=True, status=Language.STATUS_ACTIVE).order_by('name'),
         'selected_language_ids': selected_language_ids,
         # For template compatibility
-        'cities': City.objects.filter(is_active=True).order_by('name'),
-        'areas': LocalArea.objects.filter(is_active=True).select_related('city').order_by('city__name', 'name'),
+        'cities': available_cities_qs,
+        'areas': available_areas_qs,
         'poojas': all_poojas,
         # Profile completion data for "Complete Your Profile" message
         'profile_completion_percentage': completion_percentage,

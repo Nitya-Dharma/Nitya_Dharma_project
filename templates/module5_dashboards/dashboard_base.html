@@ -40,20 +40,20 @@
                         <div class="p-3">
                             {% if ads.dashboard_sidebar %}
                             <div class="dashboard-ad-sidebar mb-3">
-                                {% if ads.dashboard_sidebar.ad_type == 'image' and ads.dashboard_sidebar.image %}
+                                {% load ads_filters %}
+                                {% with slot_img=ads.dashboard_sidebar|ad_image_for_slot:'dashboard_sidebar' %}
+                                {% if ads.dashboard_sidebar.ad_type == 'image' and slot_img %}
                                 <a href="{{ ads.dashboard_sidebar.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
-                                    {% if ads.dashboard_sidebar.mobile_image %}
-                                    <picture>
-                                        <source media="(max-width: 768px)" srcset="{{ ads.dashboard_sidebar.mobile_image.url }}">
-                                        <img src="{{ ads.dashboard_sidebar.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
-                                    </picture>
-                                    {% else %}
+                                    <img src="{{ slot_img.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                                </a>
+                                {% elif ads.dashboard_sidebar.ad_type == 'image' and ads.dashboard_sidebar.image %}
+                                <a href="{{ ads.dashboard_sidebar.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
                                     <img src="{{ ads.dashboard_sidebar.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
-                                    {% endif %}
                                 </a>
                                 {% else %}
                                 {{ ads.dashboard_sidebar.script_code|safe }}
                                 {% endif %}
+                                {% endwith %}
                             </div>
                             {% endif %}
                             <nav class="dashboard-nav" aria-label="Dashboard navigation">
@@ -70,20 +70,19 @@
                 <div class="col-12 col-lg-10 dashboard-main" role="main" aria-label="Dashboard main content">
                     {% if ads.dashboard_top %}
                     <div class="dashboard-ad-top text-center my-3">
-                        {% if ads.dashboard_top.ad_type == 'image' and ads.dashboard_top.image %}
+                        {% with slot_img=ads.dashboard_top|ad_image_for_slot:'dashboard_top' %}
+                        {% if ads.dashboard_top.ad_type == 'image' and slot_img %}
                         <a href="{{ ads.dashboard_top.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
-                            {% if ads.dashboard_top.mobile_image %}
-                            <picture>
-                                <source media="(max-width: 768px)" srcset="{{ ads.dashboard_top.mobile_image.url }}">
-                                <img src="{{ ads.dashboard_top.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
-                            </picture>
-                            {% else %}
+                            <img src="{{ slot_img.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
+                        </a>
+                        {% elif ads.dashboard_top.ad_type == 'image' and ads.dashboard_top.image %}
+                        <a href="{{ ads.dashboard_top.redirect_url|default:'#' }}" target="_blank" rel="noopener noreferrer">
                             <img src="{{ ads.dashboard_top.image.url }}" class="img-fluid w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" alt="Advertisement">
-                            {% endif %}
                         </a>
                         {% else %}
                         {{ ads.dashboard_top.script_code|safe }}
                         {% endif %}
+                        {% endwith %}
                     </div>
                     {% endif %}
                     {% if dashboard_error %}

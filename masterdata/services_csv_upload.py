@@ -567,16 +567,10 @@ def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
                     'reason': 'Missing name field'
                 })
                 continue
-            
-            # Check for duplicates
-            if Pooja.objects.filter(name__iexact=name).exists():
-                result.skipped += 1
-                result.failure_reasons.append({
-                    'row': row_num,
-                    'reason': f'Pooja "{name}" already exists'
-                })
-                continue
-            
+
+            # Try to find existing pooja (case-insensitive) so we can safely attach a category
+            existing_pooja = Pooja.objects.filter(name__iexact=name).first()
+
             # Find category if provided (column can be 'pooja_category' or 'category')
             pooja_category = None
             category_code = None
@@ -612,8 +606,38 @@ def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
                                 if pooja_category:
                                     category_code = code
                                     break
-            
-            # Create pooja
+
+            # If pooja already exists, update its category when missing; otherwise skip
+            if existing_pooja:
+                updated = False
+
+                # Only update category fields if we resolved a category from CSV
+                if pooja_category:
+                    # If existing pooja has no FK category, attach it
+                    if existing_pooja.pooja_category is None:
+                        existing_pooja.pooja_category = pooja_category
+                        updated = True
+                    # Also update deprecated category code if empty and we have one
+                    if category_code and not existing_pooja.category:
+                        existing_pooja.category = category_code
+                        updated = True
+
+                if updated:
+                    status_val = (row.get('status') or '').strip().lower()
+                    if status_val in (Pooja.STATUS_ACTIVE, Pooja.STATUS_INACTIVE):
+                        existing_pooja.status = status_val
+                        existing_pooja.is_active = status_val == Pooja.STATUS_ACTIVE
+                    existing_pooja.save()
+                    result.updated += 1
+                else:
+                    result.skipped += 1
+                    result.failure_reasons.append({
+                        'row': row_num,
+                        'reason': f'Pooja "{name}" already exists with category; no changes applied'
+                    })
+                continue
+
+            # Create new pooja when it does not exist
             pooja = Pooja(
                 name=name,
                 pooja_category=pooja_category,
@@ -621,10 +645,10 @@ def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
                 status=row.get('status', 'active').strip().lower() or 'active',
                 is_active=row.get('status', 'active').strip().lower() != 'inactive'
             )
-            
+
             if pooja.status not in [Pooja.STATUS_ACTIVE, Pooja.STATUS_INACTIVE]:
                 pooja.status = Pooja.STATUS_ACTIVE
-            
+
             pooja.save()
             result.inserted += 1
             

@@ -1,0 +1,25 @@
+/*
+ * Global checkbox fix: ensure the checkmark (tick) is always visible when checked.
+ * Fixes white tick on white background on Create Advertisement and all form-check inputs.
+ */
+
+/* Checked state: visible background + white checkmark SVG */
+.form-check-input:checked {
+    background-color: var(--accent-theme, #E11D48) !important;
+    border-color: var(--accent-theme, #E11D48) !important;
+    /* Explicit white checkmark so it's visible on any theme */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e") !important;
+    background-size: contain !important;
+}
+
+/* Focus ring for accessibility */
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(225, 29, 72, 0.25);
+}
+
+/* Super Admin / dashboard pages (light background) - same fix applies via above */
+.super-admin-page .form-check-input:checked {
+    background-color: var(--accent-theme, #E11D48) !important;
+    border-color: var(--accent-theme, #E11D48) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e") !important;
+}

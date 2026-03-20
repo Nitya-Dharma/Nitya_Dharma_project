@@ -1075,3 +1075,178 @@ textarea:focus {
     }
 }
 
+/* ==========================================================================
+   CINEMATIC NAVBAR — Glass style + smooth hover (Nitya Dharma palette only)
+   ========================================================================== */
+
+.navbar-cinematic {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid #E5E7EB;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .navbar-cinematic {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border-bottom-color: var(--border-color-theme);
+}
+
+.navbar-cinematic .nav-link {
+    color: #1E293B;
+    font-weight: 500;
+    padding: 8px 14px;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+[data-theme="dark"] .navbar-cinematic .nav-link {
+    color: var(--text-secondary-theme);
+}
+
+.navbar-cinematic .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0%;
+    height: 2px;
+    background: #E11D48;
+    transition: width 0.25s ease;
+}
+
+.navbar-cinematic .nav-link:hover::after {
+    width: 100%;
+}
+
+.navbar-cinematic .nav-link:hover {
+    color: #E11D48;
+}
+
+[data-theme="dark"] .navbar-cinematic .nav-link:hover {
+    color: var(--accent-theme);
+}
+
+.navbar-cinematic .nav-link.active {
+    color: #E11D48;
+    font-weight: 600;
+}
+
+.navbar-cinematic .nav-link.active::after {
+    width: 100%;
+}
+
+[data-theme="dark"] .navbar-cinematic .nav-link.active {
+    color: var(--accent-theme);
+}
+
+.navbar-cinematic .nav-icon {
+    color: #64748B;
+    transition: color 0.2s ease;
+}
+
+.navbar-cinematic .nav-icon:hover {
+    color: #E11D48;
+}
+
+[data-theme="dark"] .navbar-cinematic .nav-icon {
+    color: var(--text-muted-theme);
+}
+
+[data-theme="dark"] .navbar-cinematic .nav-icon:hover {
+    color: var(--accent-theme);
+}
+
+@media (max-width: 768px) {
+    .navbar-cinematic {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .navbar-cinematic .nav-link {
+        padding: 10px 0;
+    }
+}
+
+/* ==========================================================================
+   LISTING CARDS — Cinematic pandit cards (Nitya Dharma palette only)
+   ========================================================================== */
+
+.listing-card-cinematic {
+    background: #FFFFFF !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--border-color-theme, #E5E7EB) !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.listing-card-cinematic:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(225, 29, 72, 0.15);
+    border-color: rgba(225, 29, 72, 0.3) !important;
+}
+
+[data-theme="dark"] .listing-card-cinematic {
+    background: var(--card-bg-theme) !important;
+    border-color: var(--border-color-theme) !important;
+}
+
+[data-theme="dark"] .listing-card-cinematic:hover {
+    border-color: rgba(225, 29, 72, 0.4) !important;
+}
+
+/* Trust badges — accent outline */
+.listing-card-cinematic .trust-badge,
+.listing-card-cinematic .trust-badges-container .badge,
+.listing-card-cinematic .badge.bg-success,
+.listing-card-cinematic .badge.bg-info {
+    background: transparent !important;
+    border: 1px solid #E11D48;
+    color: #E11D48;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .listing-card-cinematic .trust-badge,
+[data-theme="dark"] .listing-card-cinematic .trust-badges-container .badge {
+    border-color: var(--accent-theme);
+    color: var(--accent-theme);
+}
+
+.listing-card-cinematic .badge.bg-warning {
+    background: transparent !important;
+    border: 1px solid #F59E0B;
+    color: #B45309;
+}
+
+.listing-card-cinematic .badge.bg-secondary {
+    background: transparent !important;
+    border: 1px solid var(--border-color-theme, #E5E7EB);
+    color: var(--text-muted-theme, #64748B);
+}
+
+/* View Profile CTA — accent */
+.listing-card-cinematic .btn-view-profile {
+    background: #E11D48 !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    border-radius: 12px;
+    min-height: 44px;
+    transition: all 0.2s ease;
+}
+
+.listing-card-cinematic .btn-view-profile:hover {
+    background: #BE123C !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+[data-theme="dark"] .listing-card-cinematic .btn-view-profile {
+    background: var(--accent-theme) !important;
+    color: #FFFFFF !important;
+}
+
+

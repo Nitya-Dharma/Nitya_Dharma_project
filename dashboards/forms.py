@@ -105,7 +105,8 @@ class PoojaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['pooja_category'].queryset = PoojaCategory.objects.filter(is_active=True).order_by('display_order', 'name')
-        self.fields['pooja_category'].empty_label = 'Select Category'
+        self.fields['pooja_category'].empty_label = 'Select Category (required)'
+        self.fields['pooja_category'].required = True  # Enforce Category → Pooja hierarchy
         self.fields['category'].required = False  # Deprecated field
 
 

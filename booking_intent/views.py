@@ -526,8 +526,15 @@ def mark_as_viewed(request, public_id):
     
     try:
         updated_intent = BookingIntentService.mark_as_viewed(intent.id, request.user)
-        return JsonResponse(BookingIntentSerializer.serialize(updated_intent))
-    
+        unread_count = BookingIntent.objects.filter(
+            pandit=request.user,
+            status=BookingIntent.STATUS_SUBMITTED
+        ).count()
+        data = BookingIntentSerializer.serialize(updated_intent)
+        data["success"] = True
+        data["unread_count"] = unread_count
+        return JsonResponse(data)
+
     except ValueError as e:
         return JsonResponse(
             {'error': str(e)},

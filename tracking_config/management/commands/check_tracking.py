@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 self.style.WARNING('\nTo fix this:')
             )
             self.stdout.write('1. Log in as Super Admin')
-            self.stdout.write('2. Go to /admin/tracking_config/trackingconfiguration/')
+            self.stdout.write('2. Go to /nd-control-panel/tracking_config/trackingconfiguration/')
             self.stdout.write('3. Create a new TrackingConfiguration')
             self.stdout.write('4. Set "Is Active" to True')
             self.stdout.write('5. Add your GTM snippets in Head, Body, and Footer fields')

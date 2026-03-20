@@ -30,13 +30,25 @@ def moderation_dashboard(request):
     filter_type = request.GET.get('filter', 'reported')  # reported, hidden, all
     search_query = request.GET.get('search', '').strip()
     
-    # Base queryset
+    # Base queryset (select_related to avoid N+1 when template accesses review.user / review.pandit)
     if filter_type == 'reported':
-        reviews = Review.objects.filter(reported_count__gt=0).order_by('-reported_count', '-created_at')
+        reviews = (
+            Review.objects.filter(reported_count__gt=0)
+            .select_related("user", "pandit")
+            .order_by("-reported_count", "-created_at")
+        )
     elif filter_type == 'hidden':
-        reviews = Review.objects.filter(is_hidden=True).order_by('-created_at')
+        reviews = (
+            Review.objects.filter(is_hidden=True)
+            .select_related("user", "pandit")
+            .order_by("-created_at")
+        )
     else:
-        reviews = Review.objects.all().order_by('-created_at')
+        reviews = (
+            Review.objects.all()
+            .select_related("user", "pandit")
+            .order_by("-created_at")
+        )
     
     # Search filter
     if search_query:

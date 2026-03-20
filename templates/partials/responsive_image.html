@@ -1,0 +1,16 @@
+{% load image_responsive %}
+{# Safe WebP + fallback: modern browsers get WebP, older browsers get original. #}
+{# Use: {% include "partials/responsive_image.html" with url=image.url alt="..." only %} #}
+{# Optional: img_class, loading="lazy", decoding="async" #}
+<picture>
+  <source srcset="{{ url|webp_url }}" type="image/webp">
+  <img
+    src="{{ url }}"
+    alt="{{ alt|default:'' }}"
+    loading="{{ loading|default:'lazy' }}"
+    decoding="async"
+    class="{{ img_class|default:'img-fluid' }}"
+    {% if width %}width="{{ width }}"{% endif %}
+    {% if height %}height="{{ height }}"{% endif %}
+  >
+</picture>

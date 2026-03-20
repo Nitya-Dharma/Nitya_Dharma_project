@@ -64,7 +64,7 @@ class TestRoleBasedAccess(TestCase):
         self.client.login(email="user@example.com", password="testpass123")
         
         # Try to access admin dashboard
-        response = self.client.get('/admin/dashboard/', follow=True)
+        response = self.client.get('/nd-control-panel/dashboard/', follow=True)
         
         # Should be redirected or denied
         self.assertNotEqual(response.status_code, 200, "End user should not access admin dashboard")
@@ -74,7 +74,7 @@ class TestRoleBasedAccess(TestCase):
         self.client.login(email="pandit@example.com", password="testpass123")
         
         # Try to access admin dashboard
-        response = self.client.get('/admin/dashboard/', follow=True)
+        response = self.client.get('/nd-control-panel/dashboard/', follow=True)
         
         # Should be redirected or denied
         self.assertNotEqual(response.status_code, 200, "Pandit should not access admin dashboard")
@@ -84,7 +84,7 @@ class TestRoleBasedAccess(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         
         # Try to access admin dashboard
-        response = self.client.get('/admin/dashboard/', follow=True)
+        response = self.client.get('/nd-control-panel/dashboard/', follow=True)
         
         # Should succeed (or redirect to login if not implemented)
         # For now, we verify the concept

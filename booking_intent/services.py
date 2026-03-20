@@ -227,18 +227,27 @@ class BookingIntentService:
         return intent
     
     @staticmethod
-    def get_all_intents_for_governance() -> List[BookingIntent]:
+    def get_all_intents_for_governance(status=None, is_flagged=None):
         """
-        Get all booking intents for governance/admin review.
+        Get booking intents for governance/admin review.
+        
+        Args:
+            status: Optional status filter (e.g. from STATUS_CHOICES).
+            is_flagged: Optional bool to filter by is_flagged.
         
         Returns:
-            List of all BookingIntent instances
+            QuerySet of BookingIntent (allows DB-level pagination in the view).
         """
-        return list(
+        qs = (
             BookingIntent.objects.all()
-            .select_related('requester', 'pandit')
-            .order_by('-created_at')
+            .select_related("requester", "pandit")
+            .order_by("-created_at")
         )
+        if status is not None:
+            qs = qs.filter(status=status)
+        if is_flagged is not None:
+            qs = qs.filter(is_flagged=is_flagged)
+        return qs
     
     @staticmethod
     @transaction.atomic

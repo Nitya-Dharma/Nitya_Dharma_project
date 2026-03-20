@@ -1,14 +1,19 @@
 {% load static %}
+{% load image_responsive %}
 
 <div class="temple-card">
     <!-- Temple Image - wrapper ensures area stays visible when image is missing or fails to load -->
     <div class="temple-card-image-wrap">
     {% if page.cover_image %}
-        <img src="{{ page.cover_image.url }}" 
-             alt="{{ page.title }} cover image"
-             class="temple-card-image"
-             loading="lazy"
-             onerror="this.style.display='none'; this.nextElementSibling && this.nextElementSibling.classList.remove('d-none');">
+        <picture>
+            <source srcset="{{ page.cover_image.url|webp_url }}" type="image/webp">
+            <img src="{{ page.cover_image.url }}"
+                 alt="{{ page.title }} cover image"
+                 class="temple-card-image img-fluid"
+                 loading="lazy"
+                 decoding="async"
+                 onerror="this.style.display='none'; this.nextElementSibling && this.nextElementSibling.classList.remove('d-none');">
+        </picture>
         <div class="temple-card-image-placeholder d-none" aria-hidden="true">
             <i class="bi bi-building"></i>
         </div>

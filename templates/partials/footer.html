@@ -92,12 +92,31 @@
             </div>
         </div>
         
+        <!-- PWA: Install App + Enable notifications (shown when supported) -->
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <button id="installAppButton" class="btn btn-light btn-sm me-2" style="display:none;" aria-hidden="true" type="button">
+                    <i class="bi bi-download me-1"></i> Install App
+                </button>
+                <button id="enableNotificationsButton" class="btn btn-outline-light btn-sm" style="display:none;" aria-hidden="true" type="button">
+                    <i class="bi bi-bell me-1"></i> Enable notifications
+                </button>
+            </div>
+        </div>
         <!-- Copyright -->
         <div class="row mt-4">
             <div class="col-12 text-center">
-                <p class="text-light small mb-0">&copy; 2025 Nitya Dharma. All rights reserved.</p>
+                <p class="text-light small mb-0">&copy; <span id="copyright-year"></span> Nitya Dharma. All rights reserved.</p>
             </div>
         </div>
     </div>
 </footer>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var yearElement = document.getElementById("copyright-year");
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
+});
+</script>
 

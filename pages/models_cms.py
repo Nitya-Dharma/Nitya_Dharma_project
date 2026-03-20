@@ -188,6 +188,8 @@ class CMSPage(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-set slug and published_at, create revision."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'og_image')
         # Auto-generate slug from page_type if not set
         if not self.slug:
             slug_map = {
@@ -220,6 +222,7 @@ class CMSPage(models.Model):
         
         self.full_clean()  # Run validation
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'og_image')
 
 
 class CMSRevision(models.Model):
@@ -298,8 +301,13 @@ class SiteSEOConfig(models.Model):
     
     def save(self, *args, **kwargs):
         """Ensure only one instance exists."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'organization_logo')
+        optimize_image_if_new(self, 'default_og_image')
         self.pk = 1
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'organization_logo')
+        process_derived_images_after_save(self, 'default_og_image')
     
     def delete(self, *args, **kwargs):
         """Prevent deletion."""
@@ -440,8 +448,15 @@ class SiteBranding(models.Model):
     
     def save(self, *args, **kwargs):
         """Ensure only one instance exists (singleton pattern)."""
+        from core.image_pipeline import optimize_image_if_new, process_derived_images_after_save
+        optimize_image_if_new(self, 'primary_logo')
+        optimize_image_if_new(self, 'secondary_logo')
+        optimize_image_if_new(self, 'favicon')
         self.pk = 1
         super().save(*args, **kwargs)
+        process_derived_images_after_save(self, 'primary_logo')
+        process_derived_images_after_save(self, 'secondary_logo')
+        process_derived_images_after_save(self, 'favicon')
     
     def delete(self, *args, **kwargs):
         """Prevent deletion."""

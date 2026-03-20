@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load image_responsive %}
 
 {% block title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }} - Nitya Dharma{% endif %}{% endblock %}
 
@@ -204,9 +205,12 @@
 
     <div class="container py-5">
         <!-- Cover Image Banner -->
-        <div class="temple-cover-banner">
+        <div class="temple-cover-banner cover-image">
             {% if page.cover_image %}
-                <img src="{{ page.cover_image.url }}" alt="{{ page.title }} Cover">
+                <picture>
+                    <source srcset="{{ page.cover_image.url|webp_url }}" type="image/webp">
+                    <img src="{{ page.cover_image.url }}" alt="{{ page.title }} Cover" class="img-fluid" loading="lazy" decoding="async">
+                </picture>
             {% else %}
                 <div class="temple-cover-placeholder">
                     <i class="bi bi-building"></i>
@@ -219,7 +223,10 @@
             <div class="d-flex align-items-start gap-3 mb-3">
                 <!-- Profile Avatar -->
                 {% if page.profile_image %}
-                    <img src="{{ page.profile_image.url }}" alt="{{ page.title }} Profile" class="temple-profile-avatar">
+                    <picture>
+                        <source srcset="{{ page.profile_image.url|webp_url }}" type="image/webp">
+                        <img src="{{ page.profile_image.url }}" alt="{{ page.title }} Profile" class="temple-profile-avatar img-fluid" loading="lazy" decoding="async">
+                    </picture>
                 {% else %}
                     <div class="temple-profile-avatar-placeholder">
                         <i class="bi bi-building"></i>
@@ -483,12 +490,18 @@
                     <div class="temple-gallery-grid" id="gallery-images">
                         {% if page.cover_image %}
                         <div class="temple-gallery-item">
-                            <img src="{{ page.cover_image.url }}" alt="Cover Image">
+                            <picture>
+                                <source srcset="{{ page.cover_image.url|webp_url }}" type="image/webp">
+                                <img src="{{ page.cover_image.url }}" srcset="{{ page.cover_image.url|responsive_srcset }}" sizes="(max-width: 768px) 100vw, 400px" alt="Cover Image" class="img-fluid" loading="lazy" decoding="async">
+                            </picture>
                         </div>
                         {% endif %}
                         {% if page.profile_image %}
                         <div class="temple-gallery-item">
-                            <img src="{{ page.profile_image.url }}" alt="Profile Image">
+                            <picture>
+                                <source srcset="{{ page.profile_image.url|webp_url }}" type="image/webp">
+                                <img src="{{ page.profile_image.url }}" alt="Profile Image" class="img-fluid" loading="lazy" decoding="async">
+                            </picture>
                         </div>
                         {% endif %}
                         {% for gallery_image in page.gallery_images.all %}
@@ -499,7 +512,10 @@
                                     <span class="temple-status-badge temple-status-deactivated">Hidden</span>
                                 </div>
                                 {% endif %}
-                                <img src="{{ gallery_image.image.url }}" alt="{{ gallery_image.caption|default:'Gallery Image' }}">
+                                <picture>
+                                    <source srcset="{{ gallery_image.image.url|webp_url }}" type="image/webp">
+                                    <img src="{{ gallery_image.image.url }}" alt="{{ gallery_image.caption|default:'Gallery Image' }}" class="img-fluid" loading="lazy" decoding="async">
+                                </picture>
                                 {% if can_edit %}
                                 <div class="position-absolute top-0 end-0 m-2 d-flex gap-1">
                                     {% if is_super_admin %}

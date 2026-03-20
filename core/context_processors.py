@@ -1,21 +1,10 @@
 """
 Context processors for global template context.
 Makes pooja categories available on all pages for navbar.
-
-ACCESSIBLE TO ALL ROLES:
-- Users (role='user')
-- Pandits (role='pandit')
-- Admin Pandits (role='admin')
-- Super Admins (is_superuser=True)
-- Anonymous users
-
-Poojas are master data and visible to everyone for:
-- Navigation (navbar dropdown)
-- Search filters
-- Profile selection (Pandits)
-- Booking selection (Users)
 """
-from masterdata.models import Pooja
+from django.conf import settings
+from core.feature_toggle import is_feature_enabled
+from masterdata.models import Pooja, PoojaCategory
 from notifications.models import Notification
 from pages.models_cms import SiteBranding
 from branding.models import BrandingLogo
@@ -40,34 +29,32 @@ def navbar_context(request):
     ordered_categories = {}
     
     try:
-        # Get all active poojas ordered by pooja_category (FK) then name
-        # TASK 2.1: Use PoojaCategory FK instead of hardcoded enum
-        # NO ROLE RESTRICTIONS - poojas are public master data
-        all_poojas = list(Pooja.objects.filter(
-            is_active=True,
-            status=Pooja.STATUS_ACTIVE
-        ).select_related('pooja_category').order_by('pooja_category__display_order', 'pooja_category__name', 'name'))
+        # Get all active poojas ordered by PoojaCategory (FK) then name.
+        # IMPORTANT: Only use the authoritative FK field (pooja_category).
+        # Legacy enum field `category` is intentionally ignored here so the
+        # navbar hierarchy always reflects master data tables.
+        all_poojas = list(
+            Pooja.objects.filter(
+                is_active=True,
+                status=Pooja.STATUS_ACTIVE,
+                pooja_category__isnull=False,
+                pooja_category__status=PoojaCategory.STATUS_ACTIVE,
+                pooja_category__is_active=True,
+            )
+            .select_related('pooja_category')
+            .order_by('pooja_category__display_order', 'pooja_category__name', 'name')
+        )
         
-        # Group poojas by PoojaCategory (master data) for navigation
+        # Group poojas strictly by PoojaCategory (master data) for navigation
         pooja_categories = {}
         for pooja in all_poojas:
-            if pooja.pooja_category and pooja.pooja_category.is_active:
-                category_name = pooja.pooja_category.name
-                if category_name not in pooja_categories:
-                    pooja_categories[category_name] = []
-                pooja_categories[category_name].append(pooja)
-            elif pooja.category:
-                # Fallback: Use deprecated category enum if pooja_category FK is not set
-                category_display = pooja.get_category_display()
-                if category_display not in pooja_categories:
-                    pooja_categories[category_display] = []
-                pooja_categories[category_display].append(pooja)
-            else:
-                # Fallback for poojas without any category
-                fallback_category = 'Uncategorized'
-                if fallback_category not in pooja_categories:
-                    pooja_categories[fallback_category] = []
-                pooja_categories[fallback_category].append(pooja)
+            category = pooja.pooja_category
+            if not category or not category.is_active or category.status != PoojaCategory.STATUS_ACTIVE:
+                continue
+            category_name = category.name
+            if category_name not in pooja_categories:
+                pooja_categories[category_name] = []
+            pooja_categories[category_name].append(pooja)
         
         # Sort categories by display_order (from PoojaCategory master data)
         # Categories with display_order come first, then by name
@@ -156,9 +143,13 @@ def navbar_context(request):
         active_navbar_logo = None
         active_favicon = None
     
+    # Feature toggles (admin-controlled; e.g. news feed)
+    news_feed_enabled = is_feature_enabled("news_feed")
+
     # Return context - poojas available to ALL roles (no restrictions)
     # Remove empty categories
     return {
+        'news_feed_enabled': news_feed_enabled,
         'pooja_categories': {k: v for k, v in ordered_categories.items() if v},
         'poojas': all_poojas,  # All poojas (flat list) for other uses - accessible to ALL roles
         'unread_notification_count': unread_notification_count,
@@ -168,4 +159,5 @@ def navbar_context(request):
         'site_branding': site_branding,  # Site branding (legacy - logos, favicon, site name)
         'active_navbar_logo': active_navbar_logo,  # Active navbar logo (new system)
         'active_favicon': active_favicon,  # Active favicon (new system)
+        'debug_mode': settings.DEBUG,  # GPS debug: only when DEBUG so production never sees debug redirect
     }
