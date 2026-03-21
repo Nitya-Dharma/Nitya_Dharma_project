@@ -46,6 +46,7 @@ db.sqlite3
 node_modules/
 
 # Docs and backups (not needed in image)
+_md_archive/
 *.md
 !README.md
 *.sql

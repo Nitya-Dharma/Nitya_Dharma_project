@@ -126,3 +126,11 @@ if DEBUG:
         'propagate': False,
     }
 
+# Docker / Gunicorn (local dev): base.py uses CompressedManifestStaticFilesStorage, which
+# expects collectstatic + manifest entries for every file. Without them, WhiteNoise can
+# 404 assets (e.g. fallback navbar logo at static/images/logo.png). Match prod-style
+# non-manifest compressed storage — still run collectstatic for best caching.
+STORAGES['staticfiles'] = {
+    'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+}
+

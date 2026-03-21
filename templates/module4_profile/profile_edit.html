@@ -821,18 +821,38 @@
                 }
                 
                 // Cascading: State -> City -> Area
+                // Normalize so "Telangana" matches "telangana" / extra spaces; cities with no
+                // data-state still show when a state is chosen (legacy master data) so they stay selectable.
+                function normLoc(s) {
+                    return (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                }
                 function filterCityByState() {
                     if (!stateSelect || !citySelect) return;
                     const stateVal = stateSelect.value;
+                    // No state chosen, or "Others" (custom state): do not hide cities by data-state
+                    if (!stateVal || stateVal === 'others') {
+                        citySelect.querySelectorAll('option').forEach(function(opt) {
+                            opt.style.display = 'block';
+                            opt.hidden = false;
+                        });
+                        return;
+                    }
+                    const stateNorm = normLoc(stateVal);
                     const options = citySelect.querySelectorAll('option');
                     options.forEach(function(opt) {
                         if (opt.value === '' || opt.value === 'others') {
-                            opt.style.display = stateVal ? 'block' : 'block';
+                            opt.style.display = 'block';
+                            opt.hidden = false;
                             return;
                         }
                         const dataState = (opt.getAttribute('data-state') || '').trim();
-                        opt.style.display = (!stateVal || dataState === stateVal) ? 'block' : 'none';
-                        if (opt.style.display === 'none' && opt.selected) { citySelect.value = ''; }
+                        const dataNorm = normLoc(dataState);
+                        const stateMatches = stateNorm && dataNorm && dataNorm === stateNorm;
+                        const noStateOnCity = !dataNorm;
+                        const show = !stateNorm || stateMatches || noStateOnCity;
+                        opt.style.display = show ? 'block' : 'none';
+                        opt.hidden = !show;
+                        if (!show && opt.selected) { citySelect.value = ''; }
                     });
                 }
                 function filterAreaByCity() {

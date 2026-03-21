@@ -14,9 +14,14 @@ All uploads are Super Admin only and atomic per file.
 import csv
 import io
 import logging
+from pathlib import Path
 from typing import Dict, List, Tuple, Optional
-from django.db import transaction
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files import File
+from django.db import transaction
+
 from .models import City, Mandal, LocalArea, PoojaCategory, Pooja
 
 logger = logging.getLogger(__name__)
@@ -28,6 +33,7 @@ class CSVUploadResult:
     def __init__(self):
         self.total_rows = 0
         self.inserted = 0
+        self.updated = 0
         self.skipped = 0
         self.failed = 0
         self.failure_reasons: List[Dict[str, str]] = []
@@ -37,6 +43,7 @@ class CSVUploadResult:
         return {
             'total_rows': self.total_rows,
             'inserted': self.inserted,
+            'updated': self.updated,
             'skipped': self.skipped,
             'failed': self.failed,
             'failure_reasons': self.failure_reasons,
@@ -662,4 +669,61 @@ def upload_poojas_csv(file, actor=None) -> CSVUploadResult:
     
     logger.info(f"Pooja CSV upload completed: {result.to_dict()}")
     return result
+
+
+# ---------------------------------------------------------------------------
+# Docker / empty-DB helpers (repo-root CSVs; non-destructive by default)
+# ---------------------------------------------------------------------------
+
+def _repo_csv_path(filename: str) -> Path:
+    return Path(settings.BASE_DIR) / filename
+
+
+def load_telangana_cities(actor=None) -> Optional[CSVUploadResult]:
+    """
+    Load ``telangana_cities.csv`` from the project root into City.
+
+    **Skips** if any City row already exists (no mass overwrite).
+    """
+    if City.objects.exists():
+        logger.info("load_telangana_cities: skipped — City table is not empty")
+        return None
+    path = _repo_csv_path("telangana_cities.csv")
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing {path} (expected at project root)")
+    with path.open("rb") as f:
+        return upload_cities_csv(File(f), actor=actor)
+
+
+def load_pooja_categories(actor=None) -> Optional[CSVUploadResult]:
+    """
+    Load ``pooja_categories.csv`` from the project root into PoojaCategory.
+
+    **Skips** if any PoojaCategory row already exists.
+    """
+    if PoojaCategory.objects.exists():
+        logger.info("load_pooja_categories: skipped — PoojaCategory table is not empty")
+        return None
+    path = _repo_csv_path("pooja_categories.csv")
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing {path} (expected at project root)")
+    with path.open("rb") as f:
+        return upload_pooja_categories_csv(File(f), actor=actor)
+
+
+def load_poojas(actor=None) -> Optional[CSVUploadResult]:
+    """
+    Load ``poojas.csv`` from the project root into Pooja.
+
+    **Skips** if any Pooja row already exists (use dashboard CSV upload or
+    ``upload_poojas_csv`` to attach categories to existing rows).
+    """
+    if Pooja.objects.exists():
+        logger.info("load_poojas: skipped — Pooja table is not empty")
+        return None
+    path = _repo_csv_path("poojas.csv")
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing {path} (expected at project root)")
+    with path.open("rb") as f:
+        return upload_poojas_csv(File(f), actor=actor)
 

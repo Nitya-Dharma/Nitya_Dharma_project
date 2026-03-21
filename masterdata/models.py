@@ -93,6 +93,9 @@ class City(models.Model):
     
     def save(self, *args, **kwargs):
         """TASK 24: Auto-generate canonical_code if not set. Also generate public_id."""
+        if self.state is not None:
+            stripped = (self.state or '').strip()
+            self.state = stripped or None
         if not self.public_id:
             self.public_id = generate_public_id()
         if not self.canonical_code and self.name:

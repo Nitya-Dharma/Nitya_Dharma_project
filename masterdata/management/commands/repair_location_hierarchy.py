@@ -4,6 +4,7 @@ Management command to repair location hierarchy: cities without state, areas wit
 Use after fixing the profile edit flow so new cities always get a state.
 - Lists cities with state NULL or blank.
 - Optionally fix by setting state on a city (by id or name).
+- Or apply states from repo-root ``telangana_cities.csv`` (name + state columns).
 
 Usage:
   python manage.py repair_location_hierarchy
@@ -12,7 +13,13 @@ Usage:
       -> set state for city id=123
   python manage.py repair_location_hierarchy --fix-name "Pune" --state "Maharashtra"
       -> set state for city named Pune (case-insensitive)
+  python manage.py repair_location_hierarchy --apply-telangana-csv
+      -> set state from CSV where city name matches and state is currently blank
 """
+import csv
+from pathlib import Path
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction, models
 from masterdata.models import City, LocalArea
@@ -46,12 +53,22 @@ class Command(BaseCommand):
             action='store_true',
             help='Only show what would be changed',
         )
+        parser.add_argument(
+            '--apply-telangana-csv',
+            action='store_true',
+            help='Set state from telangana_cities.csv for cities whose state is blank (by city name)',
+        )
 
     def handle(self, *args, **options):
         fix_id = options.get('fix_id')
         fix_name = options.get('fix_name')
         state_value = (options.get('state') or '').strip()
         dry_run = options.get('dry_run', False)
+        apply_csv = options.get('apply_telangana_csv', False)
+
+        if apply_csv:
+            self._apply_telangana_csv(dry_run=dry_run)
+            return
 
         if fix_id or fix_name:
             if not state_value:
@@ -102,3 +119,48 @@ class Command(BaseCommand):
             for a in areas_without_city:
                 self.stdout.write(f'  id={a.id}  name="{a.name}"')
             self.stdout.write(f'Total: {len(areas_without_city)}. Fix manually in DB or add a repair step.')
+
+    def _apply_telangana_csv(self, dry_run=False):
+        path = Path(settings.BASE_DIR) / 'telangana_cities.csv'
+        if not path.is_file():
+            self.stderr.write(self.style.ERROR(f'Missing {path}'))
+            return
+        rows = []
+        with path.open(encoding='utf-8', newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                name = (row.get('name') or '').strip()
+                state = (row.get('state') or '').strip()
+                if name and state:
+                    rows.append((name, state))
+        if not rows:
+            self.stderr.write(self.style.ERROR('No rows with name+state in telangana_cities.csv'))
+            return
+        updated = 0
+        skipped_has_state = 0
+        missing_city = 0
+        with transaction.atomic():
+            for name, state in rows:
+                city = City.objects.filter(name__iexact=name).first()
+                if not city:
+                    missing_city += 1
+                    continue
+                if (city.state or '').strip():
+                    skipped_has_state += 1
+                    continue
+                if dry_run:
+                    self.stdout.write(f'[DRY-RUN] Would set "{city.name}" state -> "{state}"')
+                    updated += 1
+                    continue
+                city.state = state
+                city.save(update_fields=['state'])
+                updated += 1
+                self.stdout.write(self.style.SUCCESS(f'Set state="{state}" for city "{city.name}" (id={city.id})'))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Done. Updated={updated}, skipped (already had state)={skipped_has_state}, '
+                f'no matching city row={missing_city}.'
+            )
+        )
+        if dry_run:
+            self.stdout.write(self.style.WARNING('Dry-run only; run without --dry-run to apply.'))

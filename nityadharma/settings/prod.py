@@ -120,20 +120,25 @@ else:
 # Phase 2 Module 0 Task 0.1 / Phase 9: Security-first defaults for production
 # Trust X-Forwarded-Proto from Railway/Render/etc. so SSL redirect doesn't loop (proxy terminates SSL)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# Production hardening: always redirect to HTTPS.
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Default True on VPS. Set SECURE_SSL_REDIRECT=False in .env for local HTTP smoke tests (e.g. Docker on 127.0.0.1).
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 DEBUG_PROPAGATE_EXCEPTIONS = False
 # Mask sensitive POST parameters in error reports and logs (no form/request logic change)
 SENSITIVE_POST_PARAMETERS = ["password"]
-# HSTS: only enable when the whole site is served over HTTPS (e.g. VPS behind SSL).
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# HSTS: only when the site is fully HTTPS (omit on local HTTP prod smoke tests).
+if SECURE_SSL_REDIRECT:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 # Cookie HttpOnly and SameSite are set in base.py; Secure is True for HTTPS-only
 
 # Production logging: rotating files sized for 8GB RAM (Hostinger KVM2); errors and warnings

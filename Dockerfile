@@ -30,6 +30,4 @@ COPY . .
 # Expose Gunicorn port
 EXPOSE 8000
 
-# Run with Gunicorn; bind 0.0.0.0 so host can reach the container.
-# Set DJANGO_SETTINGS_MODULE in .env (e.g. nityadharma.settings.prod) for production.
-CMD ["gunicorn", "nityadharma.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+# Gunicorn is intentionally started from docker-compose via `command: ...`.
