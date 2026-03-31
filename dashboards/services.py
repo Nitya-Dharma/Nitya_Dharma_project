@@ -357,9 +357,9 @@ class DashboardMetricsService:
             
             # Build public URL
             try:
-                public_url = f"{base_url}{reverse('pages:page_detail', args=[page.public_id])}"
+                public_url = f"{base_url}{reverse('pages:page_detail', args=[page.slug])}"
             except:
-                public_url = f"{base_url}/pages/{page.public_id}/"
+                public_url = f"{base_url}/pages/{page.slug}/"
             
             # Check meta tags
             has_meta_title = bool(page.seo_title)

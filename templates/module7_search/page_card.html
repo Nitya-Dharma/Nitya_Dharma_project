@@ -1,3 +1,4 @@
+
 {% load static %}
 {% load image_responsive %}
 
@@ -27,7 +28,7 @@
     <div class="temple-card-body">
         <!-- Temple Name -->
         <h5 class="temple-card-title">
-            <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}">
+            <a href="{% url 'pages:page_detail' page_public_id=page.slug %}">
                 {{ page.title }}
             </a>
         </h5>
@@ -73,7 +74,7 @@
         
         <!-- Primary CTA -->
         <div class="temple-card-footer">
-            <a href="{% url 'pages:page_detail' page_public_id=page.public_id %}" 
+            <a href="{% url 'pages:page_detail' page_public_id=page.slug %}"  
                class="temple-btn-primary w-100 text-center text-decoration-none">
                 <i class="bi bi-eye"></i>View Page
             </a>

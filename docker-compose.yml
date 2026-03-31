@@ -48,10 +48,10 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_DATABASE: ${DATABASE_NAME:-${DB_NAME}}
-      MYSQL_USER: ${DATABASE_USER:-${DB_USER}}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-${DB_PASSWORD}}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-${DATABASE_PASSWORD:-${DB_PASSWORD}}}
+      MYSQL_DATABASE: nityadharma_db
+      MYSQL_USER: nitya_user
+      MYSQL_PASSWORD: StrongPassword123!
+      MYSQL_ROOT_PASSWORD: Kshruthi13
     volumes:
       - mysql_data:/var/lib/mysql
     # Internal only; do not expose 3306 to host in production

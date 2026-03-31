@@ -448,11 +448,13 @@
                         <h3 class="temple-section-title">
                             <i class="bi bi-info-circle"></i>About Temple
                         </h3>
-                        {% if page.description %}
-                            <div class="temple-section-content">
-                                {{ page.description|linebreaks }}
-                            </div>
-                        {% else %}
+                        {% if page.content %}
+    <div class="temple-section-content">
+        {{ page.content|safe }}
+    </div>
+{% else %}
+    <p class="temple-section-content">No content available.</p>
+{% endif %}
                             <p class="temple-section-content">No description available for this page.</p>
                         {% endif %}
                     </div>

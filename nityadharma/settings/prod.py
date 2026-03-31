@@ -21,7 +21,7 @@ _log_dir = os.environ.get("LOG_DIR", "").strip() or "/logs"
 os.makedirs(_log_dir, exist_ok=True)
 
 # Avoid ManifestStaticFilesStorage so missing static files (e.g. images/logo.png) don't cause 500
-STORAGES['staticfiles'] = {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'}
+
 
 # Serve uploaded media (e.g. branding logo) from the app. OK for testing; use S3/Volume for persistence.
 # On Railway, uploads are lost on redeploy unless you add a Volume or use external storage.
@@ -51,21 +51,18 @@ DEBUG = False
 # Render: RENDER_EXTERNAL_HOSTNAME is auto-added when set
 # Railway: .railway.app, Fly.io, etc. Add hosts via ALLOWED_HOSTS or platform env.
 # Production: set ALLOWED_HOSTS in env (e.g. yourdomain.com,www.yourdomain.com,server-ip). No default "*".
-_render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-_vercel = os.environ.get('VERCEL')
-_railway = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
-_fly = os.environ.get('FLY_APP_NAME')
-_allowed = [h.strip() for h in config('ALLOWED_HOSTS', default='', cast=Csv()) if h and h.strip()]
-if _render_host and _render_host not in _allowed:
-    _allowed.append(_render_host)
-if _vercel and '.vercel.app' not in _allowed:
-    _allowed.append('.vercel.app')
-if _railway and '.railway.app' not in _allowed:
-    _allowed.append('.railway.app')
-if _fly and 'fly.dev' not in str(_allowed):
-    _allowed.append('.fly.dev')
-ALLOWED_HOSTS = _allowed if _allowed else ([_render_host] if _render_host else [])
+ALLOWED_HOSTS = [
+    "nityadharma.com",
+    "www.nityadharma.com",
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://nityadharma.com",
+    "https://www.nityadharma.com",
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 # Database Configuration
 # Phase 2 Module 0 Task 0.1: Environment-based database config - REQUIRED in production
 # Priority: DATABASE_URL (PostgreSQL) -> MYSQL_URL (Railway MySQL) -> DATABASE_* / DB_* (MySQL for VPS)

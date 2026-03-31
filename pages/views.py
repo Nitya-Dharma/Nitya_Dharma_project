@@ -179,7 +179,7 @@ def page_create(request):
     return render(request, 'pages/page_create.html', context)
 
 
-def page_detail(request, page_public_id):
+
     """
     Display page detail view.
     
@@ -191,22 +191,19 @@ def page_detail(request, page_public_id):
     - DEACTIVATED pages show banner
     - HIDDEN pages visible to admins only
     """
-    page = None
     
-    # Try to find by slug first (SEO-optimized URLs)
-    try:
-        page = Page.objects.get(slug=page_public_id)
-    except Page.DoesNotExist:
-        pass
-    
-    # If not found by slug, try public_id (backward compatibility)
+
+def page_detail(request, page_public_id):
+
+    page = Page.objects.filter(slug=page_public_id).first()
+
     if not page:
-        if reject_bigint_id(page_public_id):
-            raise Http404("Invalid page ID format")
-        
-        page = resolve_public_id(Page, page_public_id)
-        if not page:
-            raise Http404("Page not found")
+        page = Page.objects.filter(public_id=page_public_id).first()
+
+    if not page:
+        raise Http404("Page not found")
+
+    
     
     # Check visibility rules
     show_banner = False
