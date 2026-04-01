@@ -84,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.navbar_context',  # Global navbar context
+                'nityadharma.context_processors.pooja_data',  # Global navbar pooja aliases
                 'tracking_config.context_processors.tracking_context',  # Super-Admin-only tracking injection
                 'pages.context_processors.social_links',  # Global social media links
                 'ads.context_processors.active_ads',  # Super Admin–controlled ad placements

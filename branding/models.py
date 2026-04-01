@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 import os
+from core.validators import validate_image_file, validate_image_extension
 
 # Try to import PIL for image validation
 try:
@@ -45,6 +46,7 @@ class BrandingLogo(models.Model):
     
     logo_image = models.ImageField(
         upload_to='branding/logos/',
+        validators=[validate_image_file, validate_image_extension],
         help_text='Logo image file (PNG, SVG, or WEBP, max 20MB, 100-800px width recommended)'
     )
     
@@ -52,6 +54,7 @@ class BrandingLogo(models.Model):
         upload_to='branding/favicons/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Favicon image (optional, 16x16 or 32x32 recommended, max 20MB)'
     )
     

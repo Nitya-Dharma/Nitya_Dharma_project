@@ -224,6 +224,7 @@ def page_detail(request, page_public_id):
     # Check permissions using permission service
     can_edit = False
     can_edit_media = False
+    can_upload_gallery_permission = False
     can_manage_moderators = False
     can_create_post_permission = False
     user_page_role = None
@@ -286,6 +287,7 @@ def page_detail(request, page_public_id):
     
     # Get visible gallery images (not hidden)
     gallery_images = page.gallery_images.filter(is_hidden=False).order_by('-created_at')
+    current_image_count = gallery_images.count()
     
     # Follow state for temple: follower_count visible to all; is_following only when authenticated
     is_following = False
@@ -322,6 +324,7 @@ def page_detail(request, page_public_id):
         'pinned_posts': pinned_posts,
         'regular_posts': regular_posts,
         'gallery_images': gallery_images,
+        'current_image_count': current_image_count,
         'reviews': reviews,
         'star_breakdown': star_breakdown,
         'user_helpful_votes': user_helpful_votes,
@@ -333,18 +336,18 @@ def page_detail(request, page_public_id):
 
 
 @login_required
-def page_edit(request, page_public_id):
+def page_edit(request, slug):
     """
     Edit an existing page.
     
     Rules:
     - Only page owner (Admin Pandit) or Super Admin can edit
     """
-    if reject_bigint_id(page_public_id):
-        raise Http404("Invalid page ID format")
-    
-    page = resolve_public_id(Page, page_public_id)
-    if not page:
+    page = Page.objects.filter(slug=slug).first()
+    if page is None:
+        legacy_page = Page.objects.filter(public_id=slug).first()
+        if legacy_page is not None:
+            return redirect('pages:page_edit', slug=legacy_page.slug)
         raise Http404("Page not found")
     
     # Check permissions using permission service
@@ -354,7 +357,7 @@ def page_edit(request, page_public_id):
     
     if not can_edit:
         messages.error(request, "You do not have permission to edit this page.")
-        return redirect('pages:page_detail', page_public_id=page_public_id)
+        return redirect('pages:page_detail', page_public_id=page.slug)
     
     from .forms import PageCreateForm
     from masterdata.models import City
@@ -699,7 +702,23 @@ def upload_gallery_image(request, page_public_id):
         return JsonResponse({'success': False, 'error': 'Permission denied. Only moderators, admin pandits, and super admins can upload gallery images.'}, status=403)
     
     if request.method == 'POST':
-        images = request.FILES.getlist('images')
+        existing_count = PageGalleryImage.objects.filter(page=page, is_hidden=False).count()
+        if existing_count >= 5:
+            return JsonResponse({
+                'success': False,
+                'error': 'Maximum 5 images allowed'
+            }, status=400)
+
+        images = request.FILES.getlist('images') or request.FILES.getlist('images[]')
+        remaining_slots = 5 - existing_count
+        images = images[:remaining_slots]
+        logger.info(
+            "Gallery upload FILES received: keys=%s, total=%s, page=%s, user=%s",
+            list(request.FILES.keys()),
+            len(images),
+            page.public_id,
+            request.user.id
+        )
         caption = request.POST.get('caption', '').strip()
         
         if not images:
@@ -715,6 +734,11 @@ def upload_gallery_image(request, page_public_id):
         
         validated_images = []
         for image in images:
+            if image.size > 5 * 1024 * 1024:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Each image must be less than 5MB'
+                }, status=400)
             try:
                 sanitized_filename, validated_file = validate_image_upload(image)
                 validated_images.append(validated_file)
@@ -750,13 +774,16 @@ def upload_gallery_image(request, page_public_id):
 
 
 @login_required
+@require_POST
+@csrf_protect
 def delete_gallery_image(request, page_public_id, image_public_id):
     """
     Delete a gallery image (soft delete - set is_hidden=True).
     
     Rules:
-    - Admin Pandit can delete only their own images
-    - Super Admin cannot delete (can only hide/unhide)
+    - Super Admin: may soft-delete any image on the page (same storage rules as hide)
+    - Page owner / media editors: may soft-delete per can_edit_page_media
+    - Moderators: may delete only images they uploaded
     """
     if reject_bigint_id(page_public_id) or reject_bigint_id(image_public_id):
         return JsonResponse({'success': False, 'error': 'Invalid ID format'}, status=400)
@@ -770,17 +797,17 @@ def delete_gallery_image(request, page_public_id, image_public_id):
         return JsonResponse({'success': False, 'error': 'Image not found'}, status=404)
     
     # TASK 6: Check permissions - moderators can delete only their own images
-    # Super Admin cannot delete (only hide/unhide)
-    if _is_super_admin(request.user):
-        return JsonResponse({'success': False, 'error': 'Super Admin cannot delete images. Use hide/unhide instead.'}, status=403)
-    
     # Check if user can edit page media (owner or moderator)
     if not can_edit_page_media(request.user, page):
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
-    # Moderators can only delete their own images
+    # Moderators can only delete their own images (Super Admin exempt)
     from .page_permissions import is_page_moderator
-    if is_page_moderator(request.user, page) and gallery_image.uploaded_by != request.user:
+    if (
+        not _is_super_admin(request.user)
+        and is_page_moderator(request.user, page)
+        and gallery_image.uploaded_by != request.user
+    ):
         return JsonResponse({'success': False, 'error': 'You can only delete images you uploaded'}, status=403)
     
     # Soft delete: set is_hidden=True (no hard deletes)
@@ -793,6 +820,8 @@ def delete_gallery_image(request, page_public_id, image_public_id):
 
 
 @login_required
+@require_POST
+@csrf_protect
 def toggle_gallery_image_visibility(request, page_public_id, image_public_id):
     """
     Hide/unhide a gallery image (Super Admin only).
@@ -817,16 +846,13 @@ def toggle_gallery_image_visibility(request, page_public_id, image_public_id):
     if not gallery_image or gallery_image.page != page:
         return JsonResponse({'success': False, 'error': 'Image not found'}, status=404)
     
-    if request.method == 'POST':
-        gallery_image.is_hidden = not gallery_image.is_hidden
-        gallery_image.save(update_fields=['is_hidden'])
-        return JsonResponse({
-            'success': True,
-            'is_hidden': gallery_image.is_hidden,
-            'message': 'Image hidden' if gallery_image.is_hidden else 'Image visible'
-        })
-    
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+    gallery_image.is_hidden = not gallery_image.is_hidden
+    gallery_image.save(update_fields=['is_hidden'])
+    return JsonResponse({
+        'success': True,
+        'is_hidden': gallery_image.is_hidden,
+        'message': 'Image hidden' if gallery_image.is_hidden else 'Image visible'
+    })
 
 
 @login_required

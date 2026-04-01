@@ -1477,3 +1477,15 @@ p  { font-size: clamp(0.95rem, 1.2vw, 1rem); }
     padding-right: 20px;
 }
 
+/* Auth Pages Text Color Fix */
+.auth-card h2,
+.auth-card h3,
+.auth-card p,
+.auth-header h2,
+.auth-header p,
+.admin-auth-header h2,
+.admin-auth-header h4,
+.admin-auth-header p {
+    color: #ffffff !important;
+}
+

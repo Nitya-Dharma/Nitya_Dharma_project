@@ -83,7 +83,7 @@
                             </div>
                         {% endif %}
                         
-                        <form method="post" action="{% url 'pages:page_edit' page_public_id=page.public_id %}" enctype="multipart/form-data">
+                        <form method="post" action="{% url 'pages:page_edit' slug=page.slug %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             
                             <div class="mb-4">

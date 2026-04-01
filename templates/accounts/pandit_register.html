@@ -202,13 +202,16 @@
 <script src="{% static 'js/password_toggle.js' %}" defer></script>
 <script>
 // Form submission handler
-document.getElementById('panditRegisterForm')?.addEventListener('submit', function(e) {
-    const btn = document.getElementById('registerBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
-    }
-});
+var panditRegisterForm = document.getElementById('panditRegisterForm');
+if (panditRegisterForm) {
+    panditRegisterForm.addEventListener('submit', function(e) {
+        const btn = document.getElementById('registerBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+        }
+    });
+}
 </script>
 {% endblock %}
 

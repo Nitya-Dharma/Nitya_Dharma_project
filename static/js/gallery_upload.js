@@ -1,12 +1,12 @@
 /**
  * Gallery Multi-Upload JavaScript
- * Supports drag & drop, 20 images max, client-side validation
+ * Supports drag & drop with max 5 gallery images/page.
  */
 
 (function() {
     'use strict';
     
-    const MAX_IMAGES = 20;
+    const MAX_IMAGES = 5;
     
     // Get CSRF token
     function getCookie(name) {
@@ -41,12 +41,14 @@
         const submitBtn = uploadForm?.querySelector('button[type="submit"]');
         
         let selectedFiles = [];
+        const currentCount = parseInt(uploadForm?.dataset.currentCount || '0', 10) || 0;
+        const remainingSlots = Math.max(0, MAX_IMAGES - currentCount);
         
         // Update counter
         function updateCounter() {
             if (fileCounter) {
-                fileCounter.textContent = `${selectedFiles.length} / ${MAX_IMAGES} selected`;
-                fileCounter.style.color = selectedFiles.length > MAX_IMAGES ? '#DC2626' : '#64748B';
+                fileCounter.textContent = `${selectedFiles.length} / ${remainingSlots} selected`;
+                fileCounter.style.color = selectedFiles.length > remainingSlots ? '#DC2626' : '#64748B';
             }
         }
         
@@ -98,6 +100,46 @@
             fileInput.files = dataTransfer.files;
         }
         
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                };
+
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const maxWidth = 1280;
+                    const scale = Math.min(1, maxWidth / img.width);
+
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            resolve(file);
+                            return;
+                        }
+                        resolve(new File([blob], file.name, {
+                            type: file.type,
+                            lastModified: Date.now()
+                        }));
+                    }, file.type, 0.7);
+                };
+
+                img.onerror = function () {
+                    resolve(file);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
         // Validate files
         function validateFiles(files) {
             const errors = [];
@@ -110,19 +152,12 @@
                     return;
                 }
                 
-                // Check file size (max 25MB per file; must match FILE_UPLOAD_MAX_IMAGE_BYTES)
-                const maxBytes = 25 * 1024 * 1024;
-                if (file.size > maxBytes) {
-                    errors.push(`${file.name}: File too large (max 25MB)`);
-                    return;
-                }
-                
                 validFiles.push(file);
             });
             
             // Check total count
-            if (selectedFiles.length + validFiles.length > MAX_IMAGES) {
-                errors.push(`Maximum ${MAX_IMAGES} images allowed. You selected ${selectedFiles.length + validFiles.length}`);
+            if (selectedFiles.length + validFiles.length > remainingSlots) {
+                errors.push(`Maximum ${remainingSlots} images allowed for this page. You selected ${selectedFiles.length + validFiles.length}`);
             }
             
             return { validFiles, errors };
@@ -137,7 +172,7 @@
             }
             
             // Add valid files (up to max)
-            const remaining = MAX_IMAGES - selectedFiles.length;
+            const remaining = remainingSlots - selectedFiles.length;
             selectedFiles.push(...validFiles.slice(0, remaining));
             
             updateFileInput();
@@ -183,7 +218,7 @@
         
         // Form submission
         if (uploadForm) {
-            uploadForm.addEventListener('submit', function(e) {
+            uploadForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 if (selectedFiles.length === 0) {
@@ -191,8 +226,8 @@
                     return;
                 }
                 
-                if (selectedFiles.length > MAX_IMAGES) {
-                    alert(`Maximum ${MAX_IMAGES} images allowed`);
+                if (selectedFiles.length > remainingSlots) {
+                    alert(`Maximum ${remainingSlots} images allowed for this page`);
                     return;
                 }
                 
@@ -202,9 +237,29 @@
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
                 }
                 
+                let files = selectedFiles.slice();
+                const compressedFiles = [];
+                for (let file of files) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        file = await compressImage(file);
+                    }
+                    compressedFiles.push(file);
+                }
+                files = compressedFiles;
+
+                const tooLargeFile = files.find(file => file.size > 5 * 1024 * 1024);
+                if (tooLargeFile) {
+                    alert(`Each image must be less than 5MB after compression: ${tooLargeFile.name}`);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Upload Images';
+                    }
+                    return;
+                }
+
                 // Create FormData
                 const formData = new FormData();
-                selectedFiles.forEach(file => {
+                files.forEach(file => {
                     formData.append('images', file);
                 });
                 formData.append('caption', document.getElementById('gallery_caption')?.value || '');
@@ -221,6 +276,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        document.dispatchEvent(new CustomEvent('gallery:upload-success', {
+                            detail: {
+                                uploadedCount: Array.isArray(data.images) ? data.images.length : 0
+                            }
+                        }));
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(uploadModal);
                         if (modal) modal.hide();

@@ -34,24 +34,25 @@
                 </li>
                 
                 {# Premium Multi-level Poojas Dropdown - Hover-based navigation #}
-                <li class="nav-item poojas-multilevel-dropdown">
-                    <a class="nav-link poojas-trigger" href="#" id="poojasDropdown" role="button" aria-expanded="false">
+                <li class="nav-item dropdown poojas-multilevel-dropdown">
+                    <a class="nav-link poojas-trigger" href="#" id="poojasDropdown" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                         Poojas
                         <i class="bi bi-chevron-down ms-1" style="font-size: 0.7rem;"></i>
                     </a>
                     <ul class="dropdown-menu poojas-dropdown-menu" aria-labelledby="poojasDropdown">
-                        {% if pooja_categories %}
-                            {% for category, poojas in pooja_categories.items %}
+                        {% with pooja_categories_data=navbar_pooja_categories|default:pooja_categories pooja_list_data=navbar_poojas|default:poojas %}
+                        {% if pooja_categories_data %}
+                            {% for category, poojas in pooja_categories_data.items %}
                                 <li class="dropdown-submenu">
                                     {# Category is hover-only (not clickable) #}
-                                    <span class="dropdown-item pooja-category-header" role="button" tabindex="0" style="color: var(--text-primary-theme) !important;">
-                                        <i class="bi bi-chevron-right me-2" style="color: var(--text-primary-theme) !important;"></i>{{ category }}
+                                    <span class="dropdown-item pooja-category-header" role="button" tabindex="0" style="color: var(--text-primary-theme, #1E293B) !important;">
+                                        <i class="bi bi-chevron-right me-2" style="color: var(--text-primary-theme, #1E293B) !important;"></i>{{ category }}
                                     </span>
                                     <ul class="dropdown-menu pooja-submenu">
                                         {% for pooja in poojas %}
                                             <li>
                                                 {# Pooja items are clickable - redirect to search #}
-                                                <a class="dropdown-item pooja-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme) !important;">
+                                                <a class="dropdown-item pooja-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme, #1E293B) !important;">
                                                     <i class="bi bi-circle-fill me-2" style="font-size: 0.4rem; color: var(--accent-theme) !important;"></i>{{ pooja.name }}
                                                 </a>
                                             </li>
@@ -61,10 +62,10 @@
                                 {% if not forloop.last %}<li><hr class="dropdown-divider"></li>{% endif %}
                             {% endfor %}
                         {% else %}
-                            {% if poojas %}
-                                {% for pooja in poojas %}
+                            {% if pooja_list_data %}
+                                {% for pooja in pooja_list_data %}
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme) !important;">
+                                        <a class="dropdown-item" href="{% url 'search_ui:search_results' %}?pooja={{ pooja.id }}" style="color: var(--text-primary-theme, #1E293B) !important;">
                                             {{ pooja.name }}
                                         </a>
                                     </li>
@@ -73,6 +74,7 @@
                                 <li><span class="dropdown-item-text text-muted">No poojas available</span></li>
                             {% endif %}
                         {% endif %}
+                        {% endwith %}
                     </ul>
                 </li>
                 

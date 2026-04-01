@@ -24,6 +24,7 @@ from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
 from core.public_id import generate_public_id
 from core.audit import log_blocked_deletion
+from core.validators import validate_image_file, validate_image_extension
 from .constants import (
     PAGE_TYPE_CHOICES,
     PAGE_TYPES,
@@ -120,6 +121,7 @@ class Page(models.Model):
         upload_to='pages/covers/',
         null=True,
         blank=True,
+        validators=[validate_image_file, validate_image_extension],
         verbose_name='Cover Image',
         help_text='Cover image for the page'
     )
@@ -128,6 +130,7 @@ class Page(models.Model):
         upload_to='pages/profiles/',
         null=True,
         blank=True,
+        validators=[validate_image_file, validate_image_extension],
         verbose_name='Profile Image',
         help_text='Profile image for the page'
     )
@@ -593,6 +596,7 @@ class PageGalleryImage(models.Model):
     
     image = models.ImageField(
         upload_to='pages/gallery/',
+        validators=[validate_image_file, validate_image_extension],
         verbose_name='Image',
         help_text='Gallery image for the page'
     )

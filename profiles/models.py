@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from core.public_id import generate_public_id
 from core.deletion_guard import DeletionGuardMixin
+from core.validators import validate_image_file, validate_image_extension
 
 
 class PanditProfile(DeletionGuardMixin, models.Model):
@@ -180,6 +181,7 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         upload_to='profiles/pandit_images/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         verbose_name='Profile Image',
         help_text='Profile picture for the Pandit (recommended: square image, max 5MB)'
     )
@@ -189,6 +191,7 @@ class PanditProfile(DeletionGuardMixin, models.Model):
         upload_to='profiles/cover_images/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         verbose_name='Cover Image',
         help_text='Cover photo for profile hero section (recommended: 1920x600px, max 5MB)'
     )

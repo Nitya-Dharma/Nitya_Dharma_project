@@ -1,13 +1,11 @@
 
 {% load static %}
-{% load image_responsive %}
 
 <div class="temple-card">
     <!-- Temple Image - wrapper ensures area stays visible when image is missing or fails to load -->
     <div class="temple-card-image-wrap">
     {% if page.cover_image %}
         <picture>
-            <source srcset="{{ page.cover_image.url|webp_url }}" type="image/webp">
             <img src="{{ page.cover_image.url }}"
                  alt="{{ page.title }} cover image"
                  class="temple-card-image img-fluid"

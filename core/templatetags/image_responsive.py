@@ -13,19 +13,6 @@ RESPONSIVE_WIDTHS = (300, 600, 1200, 2000)
 
 
 @register.filter
-def webp_url(url):
-    """
-    Return the WebP version of an image URL for <source type="image/webp">.
-    Example: /media/profiles/xyz.jpg -> /media/profiles/xyz.webp
-    If url is empty or not a supported extension, returns original.
-    """
-    if not url or not isinstance(url, str):
-        return url or ""
-    # Replace last extension with .webp (handles .jpg, .jpeg, .png)
-    return re.sub(r"\.(jpe?g|png)(\?.*)?$", r".webp\2", url, flags=re.IGNORECASE)
-
-
-@register.filter
 def responsive_srcset(url):
     """
     Return srcset value for responsive image (pipeline generates _300, _600, _1200, _2000).

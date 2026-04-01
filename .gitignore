@@ -124,6 +124,11 @@ _md_archive/
 # Cursor IDE (local)
 .cursor/
 
+# Explicit safety ignores
+media/
+staticfiles/
+node_modules/
+
 
 
 

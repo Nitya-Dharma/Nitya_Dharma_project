@@ -6,6 +6,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from core.validators import validate_image_file, validate_image_extension
 
 
 class SocialMediaSettings(models.Model):
@@ -133,6 +134,7 @@ class CMSPage(models.Model):
         upload_to='cms/og/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Open Graph image (1200x630 recommended)'
     )
     
@@ -274,6 +276,7 @@ class SiteSEOConfig(models.Model):
         upload_to='cms/logos/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Organization logo for schema markup'
     )
     
@@ -281,6 +284,7 @@ class SiteSEOConfig(models.Model):
         upload_to='cms/og_images/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Default Open Graph image (1200x630 recommended)'
     )
     
@@ -405,6 +409,7 @@ class SiteBranding(models.Model):
         upload_to='branding/logos/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Primary logo (main site logo, recommended: 200x200px or larger)'
     )
     
@@ -412,6 +417,7 @@ class SiteBranding(models.Model):
         upload_to='branding/logos/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Secondary logo (alternative/light version, optional)'
     )
     
@@ -419,6 +425,7 @@ class SiteBranding(models.Model):
         upload_to='branding/favicon/',
         blank=True,
         null=True,
+        validators=[validate_image_file, validate_image_extension],
         help_text='Favicon (16x16 or 32x32 recommended)'
     )
     

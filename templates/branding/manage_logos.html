@@ -28,6 +28,18 @@
 
 {% block dashboard_content %}
 <div class="branding-container">
+    <div class="branding-card mb-4" id="app-icon">
+        <div class="card-header-premium">
+            <h5 class="mb-0">
+                <i class="bi bi-phone me-2"></i>App Icon (PWA Install Icon)
+            </h5>
+        </div>
+        <div class="card-body-premium">
+            <p class="mb-1">To set the app install icon, upload a logo with <strong>Logo Type = Favicon</strong>.</p>
+            <p class="text-muted mb-0">The active favicon is used for the PWA install icon in `manifest.json`.</p>
+        </div>
+    </div>
+
     <!-- Upload New Logo Form -->
     <div class="branding-card mb-4">
         <div class="card-header-premium">
@@ -77,7 +89,7 @@
                     
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.favicon_image.id_for_label }}" class="form-label">
-                            Favicon (Optional)
+                            App Icon / Favicon (Optional)
                         </label>
                         {{ form.favicon_image }}
                         {% if form.favicon_image.errors %}

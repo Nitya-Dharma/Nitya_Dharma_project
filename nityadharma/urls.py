@@ -23,6 +23,7 @@ from django.views.defaults import page_not_found, server_error
 from django.views.generic import TemplateView
 from core import views as core_views
 from pages import views_static
+from branding import views as branding_views
 
 
 def custom_404(request, exception):
@@ -47,6 +48,7 @@ urlpatterns = [
         ),
         name='service-worker',
     ),
+    path('manifest.json', branding_views.manifest_json, name='manifest_json'),
     path('', include('core.urls')),
     path('offline/', core_views.offline, name='offline'),
     path('accounts/', include('accounts.urls')),

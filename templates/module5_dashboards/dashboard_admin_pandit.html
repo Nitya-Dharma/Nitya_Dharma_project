@@ -574,7 +574,7 @@
                                     <td>
                                         <div class="btn-group btn-group-sm">
                                             <a href="{% url 'pages:page_detail' page_public_id=item.page.public_id %}" class="btn btn-outline-primary">View</a>
-                                            <a href="{% url 'pages:page_edit' page_public_id=item.page.public_id %}" class="btn btn-outline-secondary">Edit</a>
+                                            <a href="{% url 'pages:page_edit' slug=item.page.slug %}" class="btn btn-outline-secondary">Edit</a>
                                         </div>
                                     </td>
                                 </tr>

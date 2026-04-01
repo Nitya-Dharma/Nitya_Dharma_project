@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="index,follow">
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="static-page-container">
+        <div class="static-page-content">
+            <div class="static-hero-section">
+                <h1>Terms and Conditions</h1>
+                <p class="hero-subtitle">Please read these terms carefully before using Nitya Dharma</p>
+                <p class="last-updated">Last Updated: {% now "F d, Y" %}</p>
+            </div>
+
+            <div class="static-content-section">
+                <section class="content-block">
+                    <p>Welcome to Nitya Dharma. By accessing and using our platform, you agree to comply with and be bound by the following terms and conditions. Please review these terms carefully. If you do not agree with these terms, you should not use our services.</p>
+                </section>
+
+                <section class="content-block">
+                    <h2>User Responsibilities</h2>
+                    <ul>
+                        <li>Users must provide accurate and truthful information when creating accounts and booking services</li>
+                        <li>Users are responsible for maintaining the confidentiality of their account credentials</li>
+                        <li>Users must respect the platform's community guidelines and treat all members with respect</li>
+                        <li>Users are responsible for all activities that occur under their account</li>
+                        <li>Users must not use the platform for any illegal or unauthorized purpose</li>
+                        <li>Users must not interfere with or disrupt the platform's services or servers</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

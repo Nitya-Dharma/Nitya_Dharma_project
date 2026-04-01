@@ -7,11 +7,11 @@
     
     <!-- Favicon (fallback avoids /favicon.ico 404 when no branding is set) -->
     {% if active_favicon and active_favicon.favicon_image %}
-    <link rel="icon" type="image/png" href="{{ active_favicon.favicon_image.url }}">
+    <link rel="icon" href="{{ active_favicon.favicon_image.url }}">
     {% elif active_favicon and active_favicon.logo_image %}
-    <link rel="icon" type="image/png" href="{{ active_favicon.logo_image.url }}">
+    <link rel="icon" href="{{ active_favicon.logo_image.url }}">
     {% elif site_branding and site_branding.favicon %}
-    <link rel="icon" type="image/png" href="{{ site_branding.favicon.url }}">
+    <link rel="icon" href="{{ site_branding.favicon.url }}">
     {% else %}
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='.9em' font-size='28'>🕉️</text></svg>">
     {% endif %}
@@ -97,9 +97,15 @@
     {% block extra_css %}{% endblock %}
 
     <!-- PWA: manifest, theme, app icon -->
-    <link rel="manifest" href="{% static 'pwa/manifest.json' %}">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#c62828">
+    {% if active_favicon and active_favicon.favicon_image %}
+    <link rel="apple-touch-icon" href="{{ active_favicon.favicon_image.url }}">
+    {% elif active_favicon and active_favicon.logo_image %}
+    <link rel="apple-touch-icon" href="{{ active_favicon.logo_image.url }}">
+    {% else %}
     <link rel="apple-touch-icon" href="{% static 'pwa/icons/icon-192.png' %}">
+    {% endif %}
     
     <!-- Tracking Snippets (Super-Admin-only GTM / Analytics) -->
     {% if tracking and tracking.head %}
@@ -495,6 +501,9 @@
     {% if ads_footer %}
     {% include 'partials/ad_unit.html' with ad=ads_footer slot='footer' %}
     {% endif %}
+
+    <!-- Browser compatibility polyfills -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default,Array.prototype.includes,Promise,Object.assign"></script>
     
     {# Premium Multi-level Poojas Dropdown JavaScript #}
     <script>
@@ -588,6 +597,13 @@
                 });
             });
         });
+    </script>
+    <script>
+    if (window.dataLayer) {
+        console.log("✅ GTM dataLayer initialized", window.dataLayer);
+    } else {
+        console.warn("❌ GTM dataLayer NOT found");
+    }
     </script>
 </body>
 </html>

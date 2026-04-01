@@ -52,6 +52,13 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Force white heading/subtitle on auth gradient headers */
+.auth-header h2,
+.auth-header h4,
+.auth-header p {
+    color: #FFFFFF !important;
+}
+
 .auth-body {
     padding: 2.5rem;
 }

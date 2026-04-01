@@ -140,6 +140,13 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Force white heading/subtitle on reset-password header */
+.admin-auth-header h2,
+.admin-auth-header h4,
+.admin-auth-header p {
+    color: #FFFFFF !important;
+}
+
 .admin-auth-body {
     padding: 2.5rem;
 }

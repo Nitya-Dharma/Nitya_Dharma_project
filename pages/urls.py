@@ -25,7 +25,7 @@ urlpatterns = [
     path('<str:page_public_id>/', views.page_detail, name='page_detail'),
     
     # Page edit
-    path('<str:page_public_id>/edit/', views.page_edit, name='page_edit'),
+    path('<slug:slug>/edit/', views.page_edit, name='page_edit'),
     
     # Page status management
     path('<str:page_public_id>/deactivate/', views.page_deactivate, name='page_deactivate'),

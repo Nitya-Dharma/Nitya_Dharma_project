@@ -217,22 +217,25 @@
     
     <script>
         // Disable submit button on form submission - Task 8.UI.5
-        document.getElementById('booking-intent-form')?.addEventListener('submit', function(e) {
-            // Validate mobile number before submission
-            const mobileInput = document.getElementById('user_mobile_number');
-            if (!mobileInput || !mobileInput.value.trim()) {
-                e.preventDefault();
-                alert('Please add your mobile number so the Pandit can contact you.');
-                mobileInput.focus();
-                return false;
-            }
-            
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
-            }
-        });
+        var bookingForm = document.getElementById('booking-intent-form');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function(e) {
+                // Validate mobile number before submission
+                const mobileInput = document.getElementById('user_mobile_number');
+                if (!mobileInput || !mobileInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Please add your mobile number so the Pandit can contact you.');
+                    mobileInput.focus();
+                    return false;
+                }
+                
+                const submitBtn = document.getElementById('submit-btn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
+                }
+            });
+        }
         
     </script>
 {% endblock %}
