@@ -258,7 +258,19 @@
     }
 }
 
+/* Login / register footer helper copy — scoped so it wins over any broad .auth-card rules in theme.css */
+.auth-body p.auth-helper-text {
+    color: #000 !important;
+}
 
+.auth-body p.auth-helper-text a {
+    color: #0d6efd !important; /* Bootstrap link blue */
+    text-decoration: none;
+}
+
+.auth-body p.auth-helper-text a:hover {
+    text-decoration: underline;
+}
 
 
 

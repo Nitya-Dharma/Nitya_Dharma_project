@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static %}
-{% load image_responsive %}
 
 {% block title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }} - Nitya Dharma{% endif %}{% endblock %}
 
@@ -489,9 +488,21 @@
                     <div class="temple-gallery-grid" id="gallery-images">
                         {% if page.cover_image %}
                         <div class="temple-gallery-item">
-                            <picture>
-                                <img src="{{ page.cover_image.url }}" srcset="{{ page.cover_image.url|responsive_srcset }}" sizes="(max-width: 768px) 100vw, 400px" alt="Cover Image" class="img-fluid" loading="lazy" decoding="async">
-                            </picture>
+                            <img
+                                src="{{ page.cover_image.url }}"
+                                alt="Cover Image"
+                                class="img-fluid rounded"
+                                style="width: 100%; height: 200px; object-fit: cover;"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </div>
+                        {% elif page.profile_image or gallery_images %}
+                        <div class="temple-gallery-item">
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                 style="height: 200px;">
+                                <span class="text-muted">No Cover Image</span>
+                            </div>
                         </div>
                         {% endif %}
                         {% if page.profile_image %}
@@ -520,7 +531,7 @@
                                 {% endif %}
                             </div>
                         {% endfor %}
-                        {% if not page.cover_image and not page.profile_image and not page.gallery_images.all %}
+                        {% if not page.cover_image and not page.profile_image and not gallery_images %}
                         <div class="temple-empty-state w-100">
                             <div class="temple-empty-state-icon">
                                 <i class="bi bi-images"></i>

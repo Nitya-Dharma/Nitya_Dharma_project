@@ -101,7 +101,13 @@ self.addEventListener("fetch", function (event) {
   event.respondWith(
     fetch(event.request)
       .then(function (response) {
-        if (response && response.status === 200 && (dest === "document" || dest === "script" || dest === "style")) {
+        var skipExternalPolyfill = url.indexOf("polyfill.io") !== -1;
+        if (
+          response &&
+          response.status === 200 &&
+          (dest === "document" || dest === "script" || dest === "style") &&
+          !skipExternalPolyfill
+        ) {
           var clone = response.clone();
           caches.open(RUNTIME_CACHE).then(function (cache) {
             cache.put(event.request, clone);

@@ -12,6 +12,7 @@ Service-layer functions for notification operations.
 Delivery-only, no business logic, no authority.
 """
 
+import json
 import logging
 from typing import List, Optional, Dict, Any
 from django.db import transaction
@@ -142,6 +143,16 @@ class NotificationService:
                 page=page,  # Temple-scoped notifications
             )
             logger.info(f"Notification {notification.id} created for {recipient.email}")
+            try:
+                # NOTE:
+                # If Redis is UP but Celery worker is DOWN,
+                # tasks will queue and NOT execute immediately.
+                # This is expected Celery behavior.
+                from notifications.tasks import send_notification_task
+
+                send_notification_task.delay(recipient.id, json.dumps(payload, default=str))
+            except Exception:
+                pass
             return notification
         except Exception as e:
             logger.error(f"Failed to create notification: {e}")

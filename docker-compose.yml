@@ -30,8 +30,13 @@ services:
       # DJANGO_SETTINGS_MODULE: set in .env (env_file) so local/prod stays in one place
       - DATABASE_HOST=db
       - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/1
+      # Must match celery_worker so .delay() uses same broker as workers (Redis DB 2; cache/sessions stay on DB 1)
+      - CELERY_BROKER_URL=redis://redis:6379/2
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
     depends_on:
       - db
+      - redis
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=2).read()\""]
@@ -56,8 +61,51 @@ services:
       - mysql_data:/var/lib/mysql
     # Internal only; do not expose 3306 to host in production
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    user: celeryuser
+    command:
+      - sh
+      - -c
+      - exec celery -A nityadharma worker --loglevel=$${CELERY_LOG_LEVEL:-info} --concurrency=2
+    env_file:
+      - ${DJANGO_ENV_FILE:-.env}
+    environment:
+      - DATABASE_HOST=db
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/2
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - CELERY_LOG_LEVEL=info
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A nityadharma inspect ping -t 5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 volumes:
   mysql_data:
   static_volume:
   media_volume:
   logs_volume:
+  redis_data:

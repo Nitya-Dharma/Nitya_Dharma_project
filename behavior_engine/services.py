@@ -69,6 +69,27 @@ def track_event(
         if user is not None:
             uid = user
         meta = metadata if metadata is not None else {}
+        data = {
+            "event_type": event_type,
+            "user_id": uid.pk if uid else None,
+            "session_id": session_id,
+            "object_type": object_type,
+            "object_id": object_id,
+            "metadata": meta,
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+        }
+        try:
+            # NOTE:
+            # If Redis is UP but Celery worker is DOWN,
+            # tasks will queue and NOT execute immediately.
+            # This is expected Celery behavior.
+            from analytics.tasks import log_analytics_task
+
+            log_analytics_task.delay(data)
+            return
+        except Exception:
+            pass
         UserBehaviorEvent.objects.create(
             event_type=event_type,
             user=uid,

@@ -1068,114 +1068,126 @@ def assign_moderator(request, page_public_id):
     POST params:
     - pandit_id: ID of the pandit to assign
     """
-    if reject_bigint_id(page_public_id):
-        return JsonResponse({'success': False, 'error': 'Invalid page ID format'}, status=400)
-    
-    page = resolve_public_id(Page, page_public_id)
-    if not page:
-        return JsonResponse({'success': False, 'error': 'Page not found'}, status=404)
-    
-    # Check permissions
-    if not can_assign_moderator(request.user, page):
-        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
-    
-    # TASK 2: Support both pandit_id and pandit_public_id
-    pandit_id = request.POST.get('pandit_id')
-    pandit_public_id = request.POST.get('pandit_public_id')
-    
-    if not pandit_id and not pandit_public_id:
-        return JsonResponse({'success': False, 'error': 'pandit_id or pandit_public_id is required'}, status=400)
-    
-    # Get pandit
-    from accounts.models import User
-    from core.public_id import resolve_public_id
-    
+    logger.info("Assign moderator request received")
+    logger.info(f"User: {request.user}")
+    logger.info(f"POST data: {request.POST}")
+
     try:
+        if reject_bigint_id(page_public_id):
+            return JsonResponse({'success': False, 'error': 'Invalid page ID format'}, status=400)
+
+        try:
+            page = resolve_public_id(Page, page_public_id)
+        except Exception:
+            return JsonResponse({'success': False, 'error': 'Invalid page ID format'}, status=400)
+        if not page:
+            return JsonResponse({'success': False, 'error': 'Page not found'}, status=404)
+
+        # Check permissions
+        if not can_assign_moderator(request.user, page):
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+        # TASK 2: Support both pandit_id and pandit_public_id
+        pandit_id = request.POST.get('pandit_id')
+        pandit_public_id = request.POST.get('pandit_public_id')
+
+        if not pandit_id and not pandit_public_id:
+            return JsonResponse({'success': False, 'error': 'pandit_id or pandit_public_id is required'}, status=400)
+
+        # Get pandit
+        from accounts.models import User
+
+        pandit = None
         if pandit_public_id:
             # Resolve by public_id
-            pandit = resolve_public_id(User, pandit_public_id)
-            if not pandit:
-                return JsonResponse({'success': False, 'error': 'Pandit not found'}, status=404)
+            try:
+                pandit = resolve_public_id(User, pandit_public_id)
+            except Exception:
+                return JsonResponse({'success': False, 'error': 'Invalid pandit_public_id'}, status=400)
         else:
             # Resolve by ID
             try:
                 pandit_id = int(pandit_id)
             except (ValueError, TypeError):
                 return JsonResponse({'success': False, 'error': 'Invalid pandit_id'}, status=400)
-            pandit = User.objects.get(id=pandit_id)
-    except User.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Pandit not found'}, status=404)
-    
-    # TASK 2: Validate pandit role and status
-    if pandit.role != 'pandit':
-        return JsonResponse({'success': False, 'error': 'User must be a Pandit to be assigned as moderator'}, status=400)
-    
-    if not pandit.is_active or pandit.status != 'active':
-        return JsonResponse({'success': False, 'error': 'Pandit must be active to be assigned as moderator'}, status=400)
-    
-    # TASK 2: Cannot assign Admin Pandit or End User
-    if pandit.role == 'admin' or pandit.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Admin Pandits cannot be assigned as moderators'}, status=400)
-    
-    # Check if already has a role
-    existing_role = PageRole.objects.filter(page=page, pandit=pandit).first()
-    if existing_role:
-        return JsonResponse({'success': False, 'error': f'Pandit already has role: {existing_role.get_role_display()}'}, status=400)
+            pandit = User.objects.filter(id=pandit_id).first()
 
-    from django.db import IntegrityError, OperationalError
+        if not pandit:
+            return JsonResponse({'success': False, 'error': 'Pandit not found'}, status=404)
 
-    try:
-        PageRole.objects.create(
-            page=page,
-            pandit=pandit,
-            role=PageRole.ROLE_MODERATOR
-        )
-    except IntegrityError as e:
-        logger.warning(f"Assign moderator IntegrityError: {e}")
-        return JsonResponse({
-            'success': False,
-            'error': 'This pandit may already be assigned to this page. Refresh the list and try again.',
-        }, status=400)
-    except OperationalError as e:
-        logger.error(f"Assign moderator OperationalError (table/schema?): {e}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'error': 'Database error. Ensure migrations are run (e.g. python manage.py migrate).',
-        }, status=500)
-    except ValidationError as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        # TASK 2: Validate pandit role and status
+        if pandit.role != 'pandit':
+            return JsonResponse({'success': False, 'error': 'User must be a Pandit to be assigned as moderator'}, status=400)
+
+        if not pandit.is_active or pandit.status != 'active':
+            return JsonResponse({'success': False, 'error': 'Pandit must be active to be assigned as moderator'}, status=400)
+
+        # TASK 2: Cannot assign Admin Pandit or End User
+        if pandit.role == 'admin' or pandit.is_superuser:
+            return JsonResponse({'success': False, 'error': 'Admin Pandits cannot be assigned as moderators'}, status=400)
+
+        # Check if already has a role
+        existing_role = PageRole.objects.filter(page=page, pandit=pandit).first()
+        if existing_role:
+            return JsonResponse({'success': False, 'error': f'Pandit already has role: {existing_role.get_role_display()}'}, status=400)
+
+        from django.db import IntegrityError, OperationalError
+
+        try:
+            PageRole.objects.create(
+                page=page,
+                pandit=pandit,
+                role=PageRole.ROLE_MODERATOR
+            )
+        except IntegrityError as e:
+            logger.warning(f"Assign moderator IntegrityError: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'This pandit may already be assigned to this page. Refresh the list and try again.',
+            }, status=400)
+        except OperationalError as e:
+            logger.error(f"Assign moderator OperationalError (table/schema?): {e}", exc_info=True)
+            return JsonResponse({
+                'success': False,
+                'error': 'Database error. Ensure migrations are run (e.g. python manage.py migrate).',
+            }, status=500)
+        except ValidationError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Error assigning moderator: {str(e)}", exc_info=True)
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+        try:
+            from .models import PageAuditLog
+            from .constants import AUDIT_ACTION_UPDATE
+            PageAuditLog.objects.create(
+                page=page,
+                action=AUDIT_ACTION_UPDATE,
+                performed_by=request.user
+            )
+        except Exception as e:
+            logger.warning(f"Audit log failed for moderator assign: {e}")
+
+        try:
+            from notifications.services import NotificationService
+            from notifications.constants import NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED
+            NotificationService.create_notification(
+                recipient=pandit,
+                notification_type=NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED,
+                source_module='pages',
+                payload={
+                    'page_public_id': getattr(page, 'public_id', None) or '',
+                    'page_title': page.title,
+                    'role_assigned': 'MODERATOR',
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create notification for moderator assignment: {str(e)}")
+
+        return JsonResponse({'success': True, 'message': f'Moderator {pandit.email} assigned successfully'})
     except Exception as e:
-        logger.error(f"Error assigning moderator: {str(e)}", exc_info=True)
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-    try:
-        from .models import PageAuditLog
-        from .constants import AUDIT_ACTION_UPDATE
-        PageAuditLog.objects.create(
-            page=page,
-            action=AUDIT_ACTION_UPDATE,
-            performed_by=request.user
-        )
-    except Exception as e:
-        logger.warning(f"Audit log failed for moderator assign: {e}")
-
-    try:
-        from notifications.services import NotificationService
-        from notifications.constants import NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED
-        NotificationService.create_notification(
-            recipient=pandit,
-            notification_type=NOTIFICATION_TYPE_PAGE_MODERATOR_ASSIGNED,
-            source_module='pages',
-            payload={
-                'page_public_id': getattr(page, 'public_id', None) or '',
-                'page_title': page.title,
-                'role_assigned': 'MODERATOR',
-            }
-        )
-    except Exception as e:
-        logger.warning(f"Failed to create notification for moderator assignment: {str(e)}")
-
-    return JsonResponse({'success': True, 'message': f'Moderator {pandit.email} assigned successfully'})
+        logger.exception("Error assigning moderator")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @login_required

@@ -21,6 +21,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.defaults import page_not_found, server_error
 from django.views.generic import TemplateView
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import user_passes_test
 from core import views as core_views
 from pages import views_static
 from branding import views as branding_views
@@ -37,9 +39,28 @@ def custom_500(request):
 handler404 = custom_404
 handler500 = custom_500
 
+# 🔐 Secure admin path (change as needed)
+SECURE_ADMIN_PATH = 'restricted-django-admin-page-of-nityadharma-secure-admin-portal-2k25/'
+
+
+def superuser_required(view):
+    decorated_view = user_passes_test(
+        lambda u: u.is_active and u.is_superuser,
+        login_url='/'
+    )(view)
+    return decorated_view
+
+
+# Enforce superuser-only admin access globally.
+# NOTE: Django's admin URLConf is a resolver, so decorator wrapping is not applied directly here.
+admin.site.has_permission = lambda request: bool(
+    request.user.is_active and request.user.is_superuser
+)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('nd-control-panel/', RedirectView.as_view(url='/admin/', permanent=False)),
+    path(SECURE_ADMIN_PATH, admin.site.urls),
+    path('admin/', lambda request: HttpResponseForbidden("Admin access is blocked")),
+    path('nd-control-panel/', RedirectView.as_view(url='/' + SECURE_ADMIN_PATH, permanent=False)),
     path(
         'service-worker.js',
         TemplateView.as_view(

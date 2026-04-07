@@ -5,7 +5,10 @@ This file contains all common settings shared across all environments.
 Environment-specific settings are in dev.py and prod.py
 """
 
+import os
 from pathlib import Path
+
+from kombu import Exchange, Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -129,19 +132,71 @@ AUTH_PASSWORD_VALIDATORS = [
 # Default: 3 days (259200), Set to 24 hours (86400) for better security
 PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
 
-# Cache Configuration (Phase 10A: Redis-ready, optional)
-# Used for rate limiting and session storage.
-# Default: in-memory (no Redis required). For production at scale, switch to Redis:
-#   'default': {
-#       'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-#       'LOCATION': 'redis://127.0.0.1:6379/1',
-#       'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
-#   }
-CACHES = {
+# Cache configuration (django-redis when REDIS_URL is set; safe fallback otherwise).
+# Docker Compose sets REDIS_URL=redis://redis:6379/1 on the web service.
+# IGNORE_EXCEPTIONS: django-redis swallows connection errors so views keep working if Redis stops.
+_LOC_MEM_CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'nityadharma-cache',
     }
+}
+
+try:
+    import django_redis  # noqa: F401
+
+    _redis_url = os.environ.get('REDIS_URL', '').strip()
+    if _redis_url:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': _redis_url,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'IGNORE_EXCEPTIONS': True,
+                },
+            }
+        }
+        # Shared session store across Gunicorn workers (use DB sessions when Redis is off).
+        SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+        SESSION_CACHE_ALIAS = 'default'
+    else:
+        CACHES = _LOC_MEM_CACHES
+except Exception:
+    CACHES = _LOC_MEM_CACHES
+
+# Celery (optional background worker). REDIS_URL unchanged for cache/sessions.
+# Prefer CELERY_BROKER_URL / CELERY_RESULT_BACKEND (e.g. Redis DB 2) to separate from Django cache (often DB 1).
+CELERY_BROKER_URL = os.getenv(
+    'CELERY_BROKER_URL',
+    os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
+)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = os.getenv(
+    'CELERY_RESULT_BACKEND',
+    os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
+)
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+# Result backend TTL (seconds) — limits growth of Celery result keys in Redis.
+CELERY_RESULT_EXPIRES = 3600  # 1 hour
+# Safe default: do not store task results unless a task explicitly opts in.
+CELERY_TASK_IGNORE_RESULT = True
+
+# Queue layout (preparation only; tasks keep default routing until CELERY_TASK_ROUTES assigns them).
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+CELERY_TASK_QUEUES = (
+    Queue('default', Exchange('default', type='direct'), routing_key='default'),
+    Queue('emails', Exchange('emails', type='direct'), routing_key='emails'),
+    Queue('analytics', Exchange('analytics', type='direct'), routing_key='analytics'),
+)
+CELERY_TASK_ROUTES = {
+    'core.tasks_email.send_email_task': {'queue': 'emails'},
+    'notifications.tasks.send_notification_task': {'queue': 'default'},
+    'analytics.tasks.log_analytics_task': {'queue': 'analytics'},
 }
 
 # Internationalization
@@ -189,6 +244,9 @@ LOGOUT_REDIRECT_URL = '/'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
+# Explicit session lifetime and sliding refresh (same for DB or Redis cache backend)
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 

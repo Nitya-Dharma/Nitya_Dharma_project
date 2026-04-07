@@ -626,13 +626,27 @@ def pandit_register(request, referral_token):
                 if admins and user.email:
                     recipient_list = [email for _, email in admins]
                     if recipient_list:
-                        send_mail(
-                            subject='[Nitya Dharma] New Pandit registration',
-                            message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
-                            from_email=django_settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=recipient_list,
-                            fail_silently=True,
-                        )
+                        try:
+                            # NOTE:
+                            # If Redis is UP but Celery worker is DOWN,
+                            # tasks will queue and NOT execute immediately.
+                            # This is expected Celery behavior.
+                            from core.tasks_email import send_email_task
+
+                            send_email_task.delay(
+                                '[Nitya Dharma] New Pandit registration',
+                                f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                                django_settings.DEFAULT_FROM_EMAIL,
+                                recipient_list,
+                            )
+                        except Exception:
+                            send_mail(
+                                subject='[Nitya Dharma] New Pandit registration',
+                                message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                                from_email=django_settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=recipient_list,
+                                fail_silently=True,
+                            )
             except Exception:
                 pass
             
@@ -1278,13 +1292,27 @@ Nitya Dharma Team
         '''
         
         try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            try:
+                # NOTE:
+                # If Redis is UP but Celery worker is DOWN,
+                # tasks will queue and NOT execute immediately.
+                # This is expected Celery behavior.
+                from core.tasks_email import send_email_task
+
+                send_email_task.delay(
+                    subject,
+                    message,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
+                    [user.email],
+                )
+            except Exception:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
             messages.success(request, 'If an account exists with this email, a password reset link has been sent.')
         except Exception as e:
             messages.error(request, f'Failed to send email: {str(e)}')

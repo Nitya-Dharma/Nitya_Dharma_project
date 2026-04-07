@@ -115,7 +115,10 @@ else:
 
 # Production Security Settings
 # Phase 2 Module 0 Task 0.1 / Phase 9: Security-first defaults for production
-# Trust X-Forwarded-Proto from Railway/Render/etc. so SSL redirect doesn't loop (proxy terminates SSL)
+# Trust X-Forwarded-Proto from the reverse proxy so Django detects HTTPS (is_secure(), secure cookies).
+# VPS Nginx MUST pass the header, e.g. proxy_set_header X-Forwarded-Proto $scheme;
+# ($scheme is "https" on ssl server blocks — equivalent to hardcoding https there only).
+# Without this header, Django may think the request is HTTP → wrong redirects / Secure cookies not sent.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Default True on VPS. Set SECURE_SSL_REDIRECT=False in .env for local HTTP smoke tests (e.g. Docker on 127.0.0.1).
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
@@ -186,16 +189,8 @@ _DATA_FILE_MAX = 20 * 1024 * 1024   # 20 MB (must be >= FILE_UPLOAD_MAX_IMAGE_BY
 DATA_UPLOAD_MAX_MEMORY_SIZE = _DATA_FILE_MAX
 FILE_UPLOAD_MAX_MEMORY_SIZE = _DATA_FILE_MAX
 
-# Optional Redis caching for production (safe fallback: runs without Redis if REDIS_URL not set)
-_redis_url = os.environ.get('REDIS_URL', '').strip()
-if _redis_url:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': _redis_url,
-        }
-    }
-# else: keep base.py CACHES (LocMemCache) so system runs normally without Redis
+# Redis cache + optional session backend: configured in base.py when REDIS_URL is set
+# (django-redis + IGNORE_EXCEPTIONS). Set REDIS_URL in VPS env to enable; omit for LocMem only.
 
 # ---------------------------------------------------------------------------
 # Email (production) — env-only, no secrets in code.

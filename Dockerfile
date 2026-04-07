@@ -27,6 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project code (excluding paths in .dockerignore; .env is not copied)
 COPY . .
 
+# Non-root user for Celery worker only (compose sets user: celeryuser on celery_worker; web stays default root)
+RUN useradd --system --no-create-home --shell /usr/sbin/nologin celeryuser
+
 # Expose Gunicorn port
 EXPOSE 8000
 

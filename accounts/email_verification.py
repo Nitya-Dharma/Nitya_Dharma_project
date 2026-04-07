@@ -285,13 +285,23 @@ Nitya Dharma Team
         logger.warning(f"[EMAIL DEBUG] Calling send_mail() NOW...")
         try:
             # TASK 2: Use from_email variable (already set above)
-            result = send_mail(
-                subject=subject,
-                message=message,
-                from_email=from_email,  # Use verified from_email
-                recipient_list=[user_email],  # Use saved field
-                fail_silently=False,  # Raise exception on failure
-            )
+            try:
+                # NOTE:
+                # If Redis is UP but Celery worker is DOWN,
+                # tasks will queue and NOT execute immediately.
+                # This is expected Celery behavior.
+                from core.tasks_email import send_email_task
+
+                send_email_task.delay(subject, message, from_email, [user_email])
+                result = 1
+            except Exception:
+                result = send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=from_email,  # Use verified from_email
+                    recipient_list=[user_email],  # Use saved field
+                    fail_silently=False,  # Raise exception on failure
+                )
             # TASK 2: Log delivery data (result is number of emails sent, typically 1)
             logger.warning(f"[EMAIL DEBUG] ✓ send_mail() completed successfully for {user_email}")
             logger.warning(f"[EMAIL DEBUG] send_mail() returned: {result} (1 = success)")

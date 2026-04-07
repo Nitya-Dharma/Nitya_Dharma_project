@@ -267,6 +267,41 @@ img {
     border-top-color: var(--accent-theme) !important;
 }
 
+/* Keep Pages dropdown arrow inline (use the same inline icon as Poojas) */
+.navbar-premium #pagesDropdown.dropdown-toggle::after {
+    display: none !important;
+}
+
+/* Keep account dropdown arrow inline with icon + username */
+.navbar-premium #userDropdown.dropdown-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap;
+}
+
+.navbar-premium #userDropdown.dropdown-toggle::after {
+    margin-left: 6px;
+    vertical-align: middle;
+    display: inline-block !important;
+    flex: 0 0 auto;
+    align-self: center;
+}
+
+.navbar-premium #userDropdown .username {
+    white-space: nowrap;
+}
+
+/* Use inline icon for user dropdown arrow; suppress Bootstrap pseudo-caret */
+.navbar-premium #userDropdown.dropdown-toggle::after {
+    display: none !important;
+}
+
+.navbar-premium #userDropdown .user-dropdown-chevron {
+    display: inline-block;
+    flex: 0 0 auto;
+    line-height: 1;
+}
+
 /* Dropdown Items */
 .navbar-premium .dropdown-item,
 .navbar-premium .dropdown-item-text {
@@ -1477,10 +1512,9 @@ p  { font-size: clamp(0.95rem, 1.2vw, 1rem); }
     padding-right: 20px;
 }
 
-/* Auth Pages Text Color Fix */
+/* Auth Pages Text Color Fix — header only (.auth-card p removed: it forced ALL card paragraphs white, hiding body helper text) */
 .auth-card h2,
 .auth-card h3,
-.auth-card p,
 .auth-header h2,
 .auth-header p,
 .admin-auth-header h2,
