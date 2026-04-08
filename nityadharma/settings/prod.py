@@ -144,6 +144,18 @@ else:
 # Production logging: rotating files sized for 8GB RAM (Hostinger KVM2); errors and warnings
 # RotatingFileHandler: 10MB per file, 5 backups (~60MB max) — safe for 8GB
 _log_file = os.path.join(_log_dir, 'django.log')
+
+# Celery runs as a non-root user in Docker. If the shared /logs volume files are owned by root
+# (common when the web container creates them), the worker can crash on startup.
+# To keep the system available, fall back to console logging when file logs are not writable.
+_file_logs_writable = True
+try:
+    os.makedirs(_log_dir, exist_ok=True)
+    open(_log_file, "a").close()
+    open(os.path.join(_log_dir, "django_errors.log"), "a").close()
+except Exception:
+    _file_logs_writable = False
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -154,30 +166,38 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': _log_file,
-            'maxBytes': 10 * 1024 * 1024,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'file_errors': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(_log_dir, 'django_errors.log'),
-            'maxBytes': 10 * 1024 * 1024,
-            'backupCount': 3,
-            'formatter': 'verbose',
-        },
+        **({
+            'file': {
+                'level': 'WARNING',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': _log_file,
+                'maxBytes': 10 * 1024 * 1024,  # 10 MB
+                'backupCount': 5,
+                'formatter': 'verbose',
+            },
+            'file_errors': {
+                'level': 'ERROR',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(_log_dir, 'django_errors.log'),
+                'maxBytes': 10 * 1024 * 1024,
+                'backupCount': 3,
+                'formatter': 'verbose',
+            },
+        } if _file_logs_writable else {
+            'console': {
+                'level': 'WARNING',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            }
+        }),
     },
     'root': {
-        'handlers': ['file', 'file_errors'],
+        'handlers': ['file', 'file_errors'] if _file_logs_writable else ['console'],
         'level': 'WARNING',
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'file_errors'],
+            'handlers': ['file', 'file_errors'] if _file_logs_writable else ['console'],
             'level': 'WARNING',
             'propagate': False,
         },
