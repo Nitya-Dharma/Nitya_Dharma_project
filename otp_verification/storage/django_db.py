@@ -182,7 +182,12 @@ class DjangoChallengeRepository(BaseChallengeRepository):
 
         if current_status in _TERMINAL_STATUSES:
             if incoming.status == current_status:
-                # Idempotent rewrite of same terminal state (e.g. verified_at stamp).
+                # A second VERIFIED write is a concurrent/replay consume, not success.
+                if incoming.status == ChallengeStatus.VERIFIED:
+                    raise ReplayAttackException(
+                        "OTP challenge is no longer reusable."
+                    )
+                # Other terminal same-status rewrites (e.g. LOCKED) remain idempotent.
                 return
             if ChallengeLifecycle.is_replay_blocked(current_status):
                 raise ReplayAttackException("OTP challenge is no longer reusable.")

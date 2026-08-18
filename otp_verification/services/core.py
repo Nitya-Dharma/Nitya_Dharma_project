@@ -331,9 +331,11 @@ class ChallengeManager(BaseChallengeManager):
 
         if matched:
             self.attempt_tracker.record_attempt(challenge_id=record.id, successful=True)
-            verified = self._transition(record, ChallengeStatus.VERIFIED)
-            verified = verified.copy_with(verified_at=_utcnow(), updated_at=_utcnow())
-            verified = self._persist(verified)
+            now = _utcnow()
+            verified = self._transition(
+                record.copy_with(verified_at=now, updated_at=now),
+                ChallengeStatus.VERIFIED,
+            )
             if hasattr(self.replay_protector, "mark_consumed"):
                 self.replay_protector.mark_consumed(token=verified.id)
             self._audit(
