@@ -1,1 +1,2 @@
-# Reusable services (e.g. location utilities). Not a Django app.
+# Services URLs, expert UI, and ExpertSocialLink (see models.py).
+

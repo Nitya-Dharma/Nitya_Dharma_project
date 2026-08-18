@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'recommendation_engine',  # Phase 15: Behavior-driven suggestions (read-only, no models)
     'admin_intelligence',  # Phase 16: Admin intelligence dashboard (read-only, no models)
     'feed_engine',  # Phase 17A: Personalized feed ranking engine
+    'services',
     'otp_verification',  # Phase 2 Task 1: isolated pre-registration OTP foundation
 ]
 

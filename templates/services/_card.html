@@ -1,0 +1,61 @@
+{# Expert card — matches services/astrology listing card structure. Expects: expert #}
+{% load expert_contact_tags %}
+<div class="col-12 col-md-6 col-lg-4">
+  <div class="card h-100 shadow-sm">
+    <div class="card-body d-flex flex-column p-4">
+      <h5 class="card-title mb-1">{{ expert.name|default:"-" }}</h5>
+      {% if expert.experience_years %}
+        <p class="text-muted mb-1">{{ expert.experience_years }} yrs experience</p>
+      {% endif %}
+      {% if expert.active_services %}
+        <div class="mb-2">
+          <small class="text-muted d-block mb-1">Services</small>
+          <div class="d-flex flex-wrap gap-1">
+            {% for service in expert.active_services %}
+              <span class="badge bg-light text-dark border">{{ service.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+      {% if expert.city %}
+        <p class="text-muted mb-2">{{ expert.city }}</p>
+      {% endif %}
+      {% if expert.description %}
+        <div class="mb-3">
+          <span class="badge bg-light text-dark me-1 mb-1">
+            {{ expert.description|truncatechars:80 }}
+          </span>
+        </div>
+      {% endif %}
+      <div class="mt-auto">
+        {% url 'expert_profile' expert.id as profile_url %}
+        <a href="{{ profile_url }}" class="btn btn-danger w-100 mb-2">
+          View Profile
+        </a>
+        {% if user.is_authenticated %}
+          <a href="{{ profile_url }}#booking" class="btn btn-danger w-100 mb-2">
+            Send Booking Intent
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}?next={{ profile_url|urlencode }}%23booking"
+             class="btn btn-danger w-100 mb-2">
+            Login to Send Booking Intent
+          </a>
+        {% endif %}
+        <div class="d-flex gap-2">
+          {% with contact_info=expert|expert_contact_info %}
+            {% if contact_info.has_call %}
+              <a href="{{ contact_info.call_url }}" class="btn btn-success w-100">Call</a>
+            {% endif %}
+            {% if contact_info.has_whatsapp %}
+              <a href="{{ contact_info.whatsapp_url }}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="btn btn-success w-100">WhatsApp</a>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

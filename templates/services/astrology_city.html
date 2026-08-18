@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+{% if not experts %}
+<meta name="robots" content="noindex, follow">
+{% endif %}
+{% endblock %}
+
+{% block title %}
+Best {{ city }} Astrologers | Nitya Dharma
+{% endblock %}
+
+{% block meta_description %}
+Find trusted astrologers in {{ city }} for consultation and guidance.
+{% endblock %}
+
+{% block meta_keywords %}
+{{ city }} astrologers, astrology {{ city }}, horoscope {{ city }}, kundli {{ city }}, Nitya Dharma
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4">Best Astrologers in {{ city }}</h1>
+
+  <p>
+    Find trusted {{ service_name }} experts in {{ city }}.
+    Connect with verified professionals for birth-chart readings, kundli matching, and dependable astrology consultation in your area.
+  </p>
+
+  <p class="text-muted small">
+    Showing experts related to {{ city }}.
+  </p>
+
+  <div class="row g-4 mt-1">
+    {% for expert in experts %}
+      {% include "services/_card.html" with expert=expert %}
+    {% empty %}
+      <div class="col-12">
+        <p class="text-muted mb-0">No experts found in {{ city }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-4">
+    <a href="/services/astrology/" class="btn btn-outline-danger">All Astrologers</a>
+    <a href="/bureaus/" class="btn btn-outline-danger">Marriage Bureaus</a>
+  </div>
+</div>
+{% endblock %}

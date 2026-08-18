@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}
+Best Astrologers Online | Astrology Consultation Near You
+{% endblock %}
+
+{% block meta_description %}
+Connect with verified astrologers for horoscope reading, kundli matching and astrology consultation.
+{% endblock %}
+
+{% block meta_keywords %}
+astrologer near me, online astrology consultation, kundli matching, horoscope reading
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+  <h1 class="mb-3">
+    Online Astrology Consultation with Trusted Experts
+  </h1>
+  <h2>Astrology Experts</h2>
+  <p class="text-muted">
+    Connect with trusted and verified astrologers.
+  </p>
+  <p>
+    Find the best astrologers, numerologists, and palmists near you.
+    Our platform connects you with verified experts for accurate guidance.
+  </p>
+</div>
+
+{% if featured_experts %}
+<div class="container mt-4">
+  <h3 class="mb-3">Featured Experts</h3>
+
+  <div class="row g-3">
+    {% for expert in featured_experts %}
+      <div class="col-md-4">
+        <div class="premium-card p-3">
+          <h5>{{ expert.name }}</h5>
+          <span class="badge bg-success">
+            {{ expert.experience_years }}+ Years
+          </span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<form method="get" class="container mt-5 mb-4">
+  <div class="card shadow-sm p-4 mb-4">
+    <h5 class="mb-3">Filter Experts</h5>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search expert..."
+          value="{{ request.GET.q }}"
+          class="form-control"
+        >
+      </div>
+
+      <div class="col-md-4">
+        <input
+          type="number"
+          name="min_exp"
+          placeholder="Min experience"
+          value="{{ request.GET.min_exp }}"
+          class="form-control"
+        >
+      </div>
+
+      <div class="col-md-4">
+        <select name="sort" class="form-select">
+          <option value="">Sort by</option>
+          <option value="exp_desc" {% if request.GET.sort == "exp_desc" %}selected{% endif %}>
+            Experience: High to Low
+          </option>
+          <option value="exp_asc" {% if request.GET.sort == "exp_asc" %}selected{% endif %}>
+            Experience: Low to High
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-3 text-end">
+      <button type="submit" class="btn btn-danger px-4">
+        Apply Filters
+      </button>
+    </div>
+  </div>
+</form>
+
+<div class="container mb-4">
+  <h3 class="mb-3">Popular Cities</h3>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="/services/astrology/hyderabad/" class="btn btn-outline-secondary">Hyderabad</a>
+    <a href="/services/astrology/bangalore/" class="btn btn-outline-secondary">Bangalore</a>
+    <a href="/services/astrology/chennai/" class="btn btn-outline-secondary">Chennai</a>
+  </div>
+</div>
+
+<div class="container mb-3 text-end">
+  <a href="/services/astrology/" class="btn btn-outline-secondary">
+    View All Experts
+  </a>
+</div>
+
+<h2 class="mt-4 mb-3 container">
+  Available Astrology Experts
+</h2>
+<div class="container mt-4">
+    <h3>Astrology Experts</h3>
+    <div class="row">
+        <!-- Expert cards will go here -->
+        {% for expert in experts %}
+            {% include "services/_card.html" with expert=expert %}
+        {% empty %}
+            {% if request.GET.q %}
+                <p class="text-muted">
+                    No experts found for "{{ request.GET.q }}".
+                </p>
+            {% else %}
+                <p class="text-muted">
+                    No experts available at the moment.
+                </p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="container mt-4 text-center">
+  {% if experts.has_previous %}
+    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ experts.previous_page_number }}" class="btn btn-outline-secondary">
+      Previous
+    </a>
+  {% endif %}
+
+  <span class="mx-2">
+    Page {{ experts.number }} of {{ experts.paginator.num_pages }}
+  </span>
+
+  {% if experts.has_next %}
+    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ experts.next_page_number }}" class="btn btn-outline-secondary">
+      Next
+    </a>
+  {% endif %}
+</div>
+
+<h2 class="mt-5 mb-4 container">
+  Why Choose Nitya Dharma?
+</h2>
+<section class="trust-section py-5 bg-light mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h3 class="text-center fw-bold mb-2">Why Trust Nitya Dharma</h3>
+                <p class="text-center text-muted mb-5">
+                    Verified Experts. Transparent profiles. Direct communication.
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-12 col-md-4">
+                <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                    <i class="bi bi-patch-check-fill fs-1 text-danger mb-3 d-block"></i>
+                    <h5 class="fw-semibold mb-2">Verified Profiles</h5>
+                    <p class="text-muted mb-0 small">All Experts go through a verification process to ensure authenticity and reliability.</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                    <i class="bi bi-chat-dots-fill fs-1 text-danger mb-3 d-block"></i>
+                    <h5 class="fw-semibold mb-2">Direct Contact</h5>
+                    <p class="text-muted mb-0 small">No middlemen. Connect directly with Experts via call or WhatsApp for transparent communication.</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
+                    <i class="bi bi-geo-alt-fill fs-1 text-danger mb-3 d-block"></i>
+                    <h5 class="fw-semibold mb-2">Local & Language-friendly</h5>
+                    <p class="text-muted mb-0 small">Find Experts in your area who understand your language and cultural preferences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="mt-5 container">
+  <h3 class="mb-4">Explore Other Services</h3>
+  <div class="d-flex flex-wrap gap-3 mt-3">
+    <a href="/" class="btn btn-outline-danger">Home</a>
+    <a href="/services/astrology/" class="btn btn-outline-danger">Find Astrologers</a>
+    <a href="/services/numerology/" class="btn btn-outline-danger">Find Numerologists</a>
+    <a href="/services/palmistry/" class="btn btn-outline-danger">Find Palmists</a>
+    <a href="/bureaus/" class="btn btn-outline-danger">Find Marriage Bureaus</a>
+  </div>
+</div>
+
+{% if debug_error %}
+    <div class="text-danger small">
+        <strong>Debug Info:</strong> {{ debug_error }}
+    </div>
+{% endif %}
+{% endblock %}

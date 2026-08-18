@@ -190,3 +190,90 @@ class PlatformKillSwitch(AuditBase):
                 disable_new_writes=False,
             )
         return kill_switch
+
+
+class ExpertService(models.Model):
+    """Catalog of expert service types (Astrology, Numerology, Palmistry)."""
+
+    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("display_order", "name")
+
+    def __str__(self):
+        return self.name
+
+
+class ExpertProfile(models.Model):
+    EXPERT_TYPE_CHOICES = (
+        ("ASTROLOGER", "Astrologer"),
+        ("NUMEROLOGIST", "Numerologist"),
+        ("PALMIST", "Palmist"),
+    )
+
+    name = models.CharField(max_length=100)
+    expert_type = models.CharField(max_length=20, choices=EXPERT_TYPE_CHOICES)
+    experience_years = models.IntegerField(default=0)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)
+    rating = models.FloatField(default=0)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    profile_image = models.ImageField(
+        upload_to="expert_profiles/", blank=True, null=True
+    )
+    cover_image = models.ImageField(
+        upload_to="expert_covers/",
+        blank=True,
+        null=True
+    )
+    profile_views = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    services = models.ManyToManyField(
+        "ExpertService",
+        related_name="experts",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"{self.name} ({self.expert_type})"
+
+
+class ExpertReview(models.Model):
+    expert = models.ForeignKey(
+        "ExpertProfile",
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    rating = models.IntegerField()
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ExpertInquiry(models.Model):
+    expert = models.ForeignKey(
+        "ExpertProfile",
+        on_delete=models.CASCADE,
+        related_name="inquiries"
+    )
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ExpertBookingIntent(models.Model):
+    expert = models.ForeignKey(
+        "ExpertProfile",
+        on_delete=models.CASCADE,
+        related_name="booking_intents"
+    )
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
