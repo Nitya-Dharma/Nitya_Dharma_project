@@ -1,0 +1,106 @@
+/**
+ * Mobile verification component — presentation only.
+ * No animation / transition effects (Phase 3 Task 5).
+ */
+
+.nd-mobile-verification {
+  max-width: 100%;
+}
+
+/* Shared vertical rhythm between sections */
+.nd-mobile-verification .nd-mv-section {
+  max-width: 100%;
+}
+
+/* ---- Action slot: reduce jump between Verify Mobile and loading ---- */
+.nd-mobile-verification .nd-mv-action-slot {
+  min-height: 2.5rem;
+}
+
+.nd-mobile-verification .nd-mv-loading-inner {
+  min-height: 2.25rem;
+}
+
+.nd-mobile-verification .nd-mv-loading-text {
+  line-height: 1.4;
+}
+
+/* ---- OTP input ---- */
+.nd-mobile-verification .nd-mv-otp-input {
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+}
+
+.nd-mobile-verification .nd-mv-otp-input:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.nd-mobile-verification .nd-mv-otp-row {
+  width: 100%;
+}
+
+.nd-mobile-verification .nd-mv-verify-otp-btn {
+  min-width: 7.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .nd-mobile-verification .nd-mv-verify-otp-btn {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .nd-mobile-verification .nd-mv-verify-mobile-btn {
+    width: 100%;
+  }
+}
+
+/* ---- Success + change number ---- */
+.nd-mobile-verification .nd-mv-success-cluster {
+  width: 100%;
+}
+
+.nd-mobile-verification .nd-mv-verified-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: normal;
+  text-align: left;
+}
+
+.nd-mobile-verification .nd-mv-change-number-btn,
+.nd-mobile-verification .nd-mv-resend-btn {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-weight: 500;
+}
+
+.nd-mobile-verification .nd-mv-change-number-btn:focus-visible,
+.nd-mobile-verification .nd-mv-resend-btn:focus-visible,
+.nd-mobile-verification .nd-mv-verify-mobile-btn:focus-visible,
+.nd-mobile-verification .nd-mv-verify-otp-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ---- Cooldown / resend ---- */
+.nd-mobile-verification .nd-mv-cooldown-text {
+  line-height: 1.4;
+}
+
+.nd-mobile-verification .nd-mv-cooldown-seconds {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ---- Errors ---- */
+.nd-mobile-verification .nd-mv-error-alert {
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+.nd-mobile-verification .nd-mv-error-icon {
+  line-height: 1;
+  margin-top: 0.15rem;
+}

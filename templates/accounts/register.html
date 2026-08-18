@@ -92,8 +92,41 @@
                                        autofocus>
                                 <label for="email">Email Address</label>
                             </div>
-                            
-                            
+
+                            <div class="form-floating mb-3">
+                                <input type="tel"
+                                       class="form-control"
+                                       id="phone_number"
+                                       name="phone_number"
+                                       placeholder=" "
+                                       inputmode="numeric"
+                                       maxlength="10"
+                                       pattern="[0-9]{10}"
+                                       autocomplete="tel-national"
+                                       value="{{ phone_number|default:'' }}"
+                                       {% if otp_required %}required{% endif %}>
+                                <label for="phone_number">Phone Number</label>
+                                <div class="form-text">Enter 10-digit mobile number</div>
+                            </div>
+
+                            <div id="post-register-otp-wrap"
+                                 class="{% if not post_register_otp %}d-none{% endif %}">
+                              <div id="post-register-alert"
+                                   class="alert alert-success {% if not post_register_otp %}d-none{% endif %}"
+                                   role="status">
+                                Your profile has been created. Please verify your mobile number.
+                              </div>
+                              {% if otp_required %}
+                              {% include "otp_verification/partials/mobile_verification.html" with id_prefix="user_mv" phone_input_name="phone_number" phone_input_id="phone_number" flow_type="user_registration" action_btn_class="btn btn-outline-primary" lock_register="0" hide_change_number="1" post_register_mode="1" %}
+                              {% endif %}
+                              <div id="post-register-proceed" class="d-grid mt-3 d-none">
+                                <a href="{% url 'module5_dashboards:dashboard_user' %}"
+                                   class="btn btn-primary-cta">
+                                  Proceed to Next Step
+                                </a>
+                              </div>
+                            </div>
+
                             <div class="form-floating mb-3 password-field-wrapper">
                                 <input type="password" 
                                        class="form-control password-input" 
@@ -134,7 +167,7 @@
                             
                             <!-- PART 5: Primary CTA Button (Accent Color - 10%) -->
                             <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary-cta">
+                                <button type="submit" class="btn btn-primary-cta" id="register-submit-btn">
                                     <i class="bi bi-person-plus me-2"></i>Create Account
                                 </button>
                             </div>
@@ -188,4 +221,106 @@
         </div>
     </div>
 </section>
+<script>
+(function () {
+  var form = document.querySelector('form[action*="register"]');
+  if (!form) return;
+  var submitBtn = document.getElementById("register-submit-btn");
+  var otpWrap = document.getElementById("post-register-otp-wrap");
+  var otpAlert = document.getElementById("post-register-alert");
+  var proceed = document.getElementById("post-register-proceed");
+  var otpRoot = document.querySelector('[data-nd-mobile-verification="1"]');
+
+  function csrfToken() {
+    var input = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    return input ? input.value : "";
+  }
+
+  function enterOtpPhase(phone) {
+    if (otpWrap) otpWrap.classList.remove("d-none");
+    if (otpAlert) otpAlert.classList.remove("d-none");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Account Created — Verify Mobile";
+    }
+    var phoneInput = document.getElementById("phone_number");
+    if (phoneInput) {
+      if (phone) phoneInput.value = phone;
+      phoneInput.readOnly = true;
+    }
+    ["email", "password", "password_confirm", "first_name", "last_name"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.readOnly = true;
+    });
+    if (otpRoot && window.NDMobileVerification) {
+      // Ensure widget is initialized if script loaded after DOM.
+      window.NDMobileVerification.init(otpRoot);
+    }
+  }
+
+  if (otpWrap && !otpWrap.classList.contains("d-none")) {
+    enterOtpPhase();
+  }
+
+  document.addEventListener("nd-mv-verified", function () {
+    if (otpRoot) otpRoot.classList.add("d-none");
+    if (otpAlert) otpAlert.classList.add("d-none");
+    if (proceed) proceed.classList.remove("d-none");
+  });
+
+  form.addEventListener("submit", function (evt) {
+    // Only AJAX when post-register OTP wrap exists (OTP enabled for users).
+    if (!otpWrap || !document.querySelector('#post-register-otp-wrap [data-nd-mobile-verification="1"]')) {
+      return;
+    }
+    evt.preventDefault();
+    if (submitBtn && submitBtn.disabled) return;
+
+    var body = new URLSearchParams(new FormData(form));
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating…';
+    }
+
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": csrfToken(),
+      },
+      credentials: "same-origin",
+      body: body.toString(),
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      })
+      .then(function (res) {
+        if (res.data && res.data.status === "created_unverified") {
+          alert(res.data.message || "Your profile has been created. Please verify your mobile number.");
+          enterOtpPhase(res.data.phone_number || "");
+          return;
+        }
+        if (res.data && res.data.status === "created" && res.data.redirect) {
+          window.location.href = res.data.redirect;
+          return;
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+        }
+        alert((res.data && res.data.message) || "Registration failed. Please try again.");
+      })
+      .catch(function () {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+        }
+        alert("Network error. Please try again.");
+      });
+  });
+})();
+</script>
 {% endblock %}

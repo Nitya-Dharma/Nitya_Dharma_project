@@ -175,7 +175,11 @@ class User(DeletionGuardMixin, AbstractUser):
         blank=True,
         null=True,
         verbose_name='Phone Number',
-        help_text='Phone number for contact (used for Call button)'
+        help_text=(
+            'Phone number for contact (used for Call button). '
+            'Recommended: enforce uniqueness via UniqueConstraint after cleaning '
+            'legacy duplicates (migration requires explicit approval).'
+        ),
     )
     whatsapp_number = models.CharField(
         max_length=20,
@@ -183,6 +187,20 @@ class User(DeletionGuardMixin, AbstractUser):
         null=True,
         verbose_name='WhatsApp Number',
         help_text='WhatsApp number for contact (used for WhatsApp button)'
+    )
+    # Mobile OTP verification (post-registration). Login allowed when False;
+    # critical features are restricted until True.
+    is_phone_verified = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name='Phone Verified',
+        help_text='Whether the user has verified their mobile number via OTP.',
+    )
+    phone_verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Phone Verified At',
+        help_text='Timestamp when mobile OTP verification succeeded.',
     )
     
     # Profile Picture

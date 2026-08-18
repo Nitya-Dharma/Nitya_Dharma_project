@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'recommendation_engine',  # Phase 15: Behavior-driven suggestions (read-only, no models)
     'admin_intelligence',  # Phase 16: Admin intelligence dashboard (read-only, no models)
     'feed_engine',  # Phase 17A: Personalized feed ranking engine
+    'otp_verification',  # Phase 2 Task 1: isolated pre-registration OTP foundation
 ]
 
 # Custom User Model
@@ -300,3 +301,59 @@ LOGGING = {
 FILE_UPLOAD_MAX_IMAGE_BYTES = 20 * 1024 * 1024   # 20 MB per image
 FILE_UPLOAD_MAX_CSV_BYTES = 5 * 1024 * 1024     # 5 MB per CSV (master data uploads)
 
+def _env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+
+# Pre-registration SMS OTP (Phase 2 — delivery providers; defaults keep mock offline)
+OTP_ENABLED = _env_bool("OTP_ENABLED", False)
+# Durable challenge store for multi-worker (Task 8). Use "memory" only for
+# single-worker rollback / isolated tests that do not inject a repository.
+OTP_CHALLENGE_STORAGE = (
+    os.environ.get("OTP_CHALLENGE_STORAGE", "database").strip().lower() or "database"
+)
+OTP_MODE = os.environ.get("OTP_MODE", "mock").strip() or "mock"
+OTP_PROVIDER = os.environ.get("OTP_PROVIDER", "mock_sms").strip() or "mock_sms"
+OTP_PROVIDER_ENABLED = _env_bool("OTP_PROVIDER_ENABLED", True)
+OTP_PROVIDER_AUDIT_ENABLED = _env_bool("OTP_PROVIDER_AUDIT_ENABLED", True)
+OTP_PROVIDER_METRICS_ENABLED = _env_bool("OTP_PROVIDER_METRICS_ENABLED", True)
+OTP_EXPIRY_SECONDS = max(1, _env_int("OTP_EXPIRY_SECONDS", 600))
+OTP_LENGTH = max(4, _env_int("OTP_LENGTH", 6))
+OTP_MAX_ATTEMPTS = max(1, _env_int("OTP_MAX_ATTEMPTS", 5))
+OTP_MAX_RESENDS = max(0, _env_int("OTP_MAX_RESENDS", 3))
+OTP_RESEND_COOLDOWN_SECONDS = max(0, _env_int("OTP_RESEND_COOLDOWN_SECONDS", 60))
+# Pending registration session TTL (default 15 minutes). Expired sessions cannot resume.
+OTP_REGISTRATION_PENDING_TTL_SECONDS = max(
+    60, _env_int("OTP_REGISTRATION_PENDING_TTL_SECONDS", 900)
+)
+# Idempotent completed-marker TTL (default 30 minutes).
+OTP_REGISTRATION_COMPLETED_TTL_SECONDS = max(
+    60, _env_int("OTP_REGISTRATION_COMPLETED_TTL_SECONDS", 1800)
+)
+OTP_MOCK_SIMULATION_MODE = os.environ.get("OTP_MOCK_SIMULATION_MODE", "success").strip() or "success"
+OTP_MOCK_EXECUTION_DELAY_MS = max(0, _env_int("OTP_MOCK_EXECUTION_DELAY_MS", 0))
+OTP_MOCK_ALLOW_RANDOM = _env_bool("OTP_MOCK_ALLOW_RANDOM", False)
+MSG91_AUTH_KEY = os.environ.get("MSG91_AUTH_KEY", "").strip()
+MSG91_BASE_URL = (
+    os.environ.get("MSG91_BASE_URL", "https://control.msg91.com/api/v5/flow/").strip()
+    or "https://control.msg91.com/api/v5/flow/"
+)
+MSG91_FLOW_ID = os.environ.get("MSG91_FLOW_ID", "").strip()
+MSG91_SENDER_ID = os.environ.get("MSG91_SENDER_ID", "").strip()
+MSG91_TEMPLATE_VARIABLE = os.environ.get("MSG91_TEMPLATE_VARIABLE", "OTP").strip() or "OTP"
+MSG91_COUNTRY_CODE = os.environ.get("MSG91_COUNTRY_CODE", "91").strip() or "91"
+MSG91_TIMEOUT_SECONDS = max(1, _env_int("MSG91_TIMEOUT_SECONDS", 10))
+# broadcast.run / Omni SMS (OTP_PROVIDER=broadcast_sms)
+SMS_API_KEY = os.environ.get("SMS_API_KEY", "").strip()

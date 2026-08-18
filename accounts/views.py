@@ -1106,100 +1106,226 @@ def login_view(request):
 def register_view(request):
     """
     End User registration view.
-    
-    This view handles self-registration for regular end users (role='user').
-    Pandit registration is handled separately via referral-based registration.
-    
-    Args:
-        request: HTTP request object
-        
-    Returns:
-        Rendered register template or redirect to login
+
+    Flow (when OTP enabled):
+      Validate form → create user (is_phone_verified=False) → return / show OTP UI.
+    OTP send/verify still uses existing /otp/registration/* endpoints.
     """
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.factory import is_registration_otp_required
+
+    from .phone_utils import normalize_phone_number, phone_already_registered
+
+    wants_json = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
+    otp_required = is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
+
+    # Logged-in unverified users should verify from profile, not re-register.
     if request.user.is_authenticated:
-        # User is already logged in, redirect to home
-        return redirect('core:home')
-    
-    if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '')
-        password_confirm = request.POST.get('password_confirm', '')
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        
-        # Basic validation
+        if (
+            getattr(request.user, "role", None) == "user"
+            and not getattr(request.user, "is_phone_verified", True)
+            and otp_required
+        ):
+            return redirect("accounts:profile_settings")
+        return redirect("core:home")
+
+    def _form_context(**extra):
+        ctx = {
+            "email": extra.get("email", ""),
+            "first_name": extra.get("first_name", ""),
+            "last_name": extra.get("last_name", ""),
+            "phone_number": extra.get("phone_number", ""),
+            "otp_required": otp_required,
+            "post_register_otp": False,
+        }
+        ctx.update(extra)
+        return ctx
+
+    def _error_response(message, status=400, **fields):
+        if wants_json:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": "validation_error",
+                    "error_code": "validation_error",
+                    "result": None,
+                    "message": message,
+                },
+                status=status,
+            )
+        messages.error(request, message)
+        return render(request, "accounts/register.html", _form_context(**fields))
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        password_confirm = request.POST.get("password_confirm", "")
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        phone_raw = request.POST.get("phone_number", "").strip()
+
         if not email:
-            messages.error(request, 'Email address is required.')
-            return render(request, 'accounts/register.html', {
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-            })
-        
+            return _error_response(
+                "Email address is required.",
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_raw,
+            )
         if not password:
-            messages.error(request, 'Password is required.')
-            return render(request, 'accounts/register.html', {
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-            })
-        
+            return _error_response(
+                "Password is required.",
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_raw,
+            )
         if password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'accounts/register.html', {
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-            })
-        
-        # Check if user already exists
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'A user with this email address already exists.')
-            return render(request, 'accounts/register.html', {
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-            })
-        
-        # Create user with role='user' and status='active'
+            return _error_response(
+                "Passwords do not match.",
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_raw,
+            )
+        if User.objects.filter(email__iexact=email).exists():
+            return _error_response(
+                "A user with this email address already exists.",
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_raw,
+            )
+
+        normalized_phone = ""
+        if otp_required or phone_raw:
+            if not phone_raw:
+                return _error_response(
+                    "Phone number is required for SMS verification.",
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone_number=phone_raw,
+                )
+            normalized_phone = normalize_phone_number(phone_raw)
+            if not normalized_phone:
+                return _error_response(
+                    "Phone number format is invalid.",
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone_number=phone_raw,
+                )
+            if phone_already_registered(normalized_phone):
+                logger.warning(
+                    "Duplicate phone registration attempt",
+                    extra={"email": email, "phone": normalized_phone},
+                )
+                return _error_response(
+                    "Phone number already registered",
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone_number=phone_raw,
+                )
+
         try:
             user = User.objects.create_user(
                 email=email,
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                role='user',  # End user role
-                status='active',  # Active by default for end users
+                role="user",
+                status="active",
                 is_active=True,
-                email_verified=False,  # Email verification required
+                email_verified=False,
+                phone_number=normalized_phone or None,
+                is_phone_verified=False,
             )
-            
-            # STEP 2: Send email verification for normal users
-            logger.warning(f"[EMAIL DEBUG] Normal user registration - creating verification for {user.email}")
-            try:
-                from .email_verification import create_email_verification
-                verification_token = create_email_verification(user)
-                logger.warning(f"[EMAIL DEBUG] Normal user verification email sent to {user.email}")
-            except Exception as e:
-                # Log error but don't fail registration
-                logger.error(f"[EMAIL DEBUG] Failed to send verification email for normal user {user.email}: {str(e)}", exc_info=True)
-            
-            messages.success(
-                request, 
-                'Account created successfully! Please check your email to verify your address before logging in.'
-            )
-            return redirect('accounts:login')
-            
         except Exception as e:
-            messages.error(request, f'Registration failed: {str(e)}')
-            return render(request, 'accounts/register.html', {
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-            })
-    
-    # GET request - show registration form
-    return render(request, 'accounts/register.html')
+            logger.exception("User registration failed for %s", email)
+            return _error_response(
+                f"Registration failed: {str(e)}",
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_raw,
+            )
+
+        try:
+            create_email_verification(user)
+        except Exception as e:
+            logger.error(
+                "Failed to send verification email for %s: %s",
+                user.email,
+                str(e),
+                exc_info=True,
+            )
+
+        # Log in so post-registration OTP can bind to this account.
+        login(request, user)
+
+        if otp_required:
+            display_phone = (
+                normalized_phone[2:]
+                if normalized_phone.startswith("91") and len(normalized_phone) == 12
+                else (normalized_phone or phone_raw)
+            )
+            if wants_json:
+                return JsonResponse(
+                    {
+                        "status": "created_unverified",
+                        "message": "Profile created. Please verify mobile.",
+                        "phone_number": display_phone,
+                        "flow_type": otp_constants.FLOW_USER_REGISTRATION,
+                        "result": {
+                            "phone_number": display_phone,
+                            "flow_type": otp_constants.FLOW_USER_REGISTRATION,
+                        },
+                        "error_code": None,
+                    }
+                )
+            messages.success(
+                request,
+                "Your profile has been created. Please verify your mobile number.",
+            )
+            return render(
+                request,
+                "accounts/register.html",
+                _form_context(
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone_number=display_phone,
+                    post_register_otp=True,
+                    otp_required=True,
+                ),
+            )
+
+        messages.success(
+            request,
+            "Account created successfully! Please check your email to verify your address before logging in.",
+        )
+        if wants_json:
+            return JsonResponse(
+                {
+                    "status": "created",
+                    "message": "Account created successfully.",
+                    "redirect": "/accounts/login/",
+                    "result": {"redirect": "/accounts/login/"},
+                    "error_code": None,
+                }
+            )
+        return redirect("accounts:login")
+
+    return render(
+        request,
+        "accounts/register.html",
+        {"otp_required": otp_required, "post_register_otp": False},
+    )
 
 
 def logout_view(request):
@@ -1427,6 +1553,17 @@ def profile_settings(request):
     
     UI-only view - backend handles validation and save logic.
     """
+    from otp_verification.registration.factory import is_registration_otp_required
+    from otp_verification import constants as otp_constants
+
+    from .phone_utils import normalize_phone_number, phone_already_registered
+
+    needs_phone_otp = (
+        getattr(request.user, "role", None) == "user"
+        and not getattr(request.user, "is_phone_verified", True)
+        and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
+    )
+
     if request.method == 'POST':
         # Get form data
         first_name = request.POST.get('first_name', '').strip()
@@ -1442,7 +1579,35 @@ def profile_settings(request):
         
         # Update phone numbers (if fields exist)
         if hasattr(user, 'phone_number'):
-            user.phone_number = phone_number if phone_number else None
+            normalized = normalize_phone_number(phone_number) if phone_number else None
+            if phone_number and not normalized:
+                messages.error(request, 'Phone number format is invalid.')
+                return render(request, 'account/profile_settings.html', {
+                    'user': request.user,
+                    'active_tab': 'profile',
+                    'user_id': request.user.id,
+                    'needs_phone_otp': needs_phone_otp,
+                    'display_phone': phone_number,
+                })
+            if normalized:
+                if phone_already_registered(normalized, exclude_user_id=user.pk):
+                    messages.error(request, 'Phone number already registered')
+                    return render(request, 'account/profile_settings.html', {
+                        'user': request.user,
+                        'active_tab': 'profile',
+                        'user_id': request.user.id,
+                        'needs_phone_otp': needs_phone_otp,
+                        'display_phone': phone_number,
+                    })
+                old = normalize_phone_number(str(user.phone_number or ""))
+                if old != normalized:
+                    user.is_phone_verified = False
+                    user.phone_verified_at = None
+                user.phone_number = normalized
+            else:
+                user.phone_number = None
+                user.is_phone_verified = False
+                user.phone_verified_at = None
         if hasattr(user, 'whatsapp_number'):
             user.whatsapp_number = whatsapp_number if whatsapp_number else None
         
@@ -1468,6 +1633,7 @@ def profile_settings(request):
                     'user': request.user,
                     'active_tab': 'profile',
                     'user_id': user_id,
+                    'needs_phone_otp': needs_phone_otp,
                 })
             
             # Delete old picture if exists
@@ -1488,10 +1654,23 @@ def profile_settings(request):
             messages.error(request, f'Error updating profile: {str(e)}')
     
     # GET request - show form
+    raw_phone = str(getattr(request.user, "phone_number", "") or "")
+    display_phone = (
+        raw_phone[2:]
+        if raw_phone.startswith("91") and len(raw_phone) == 12 and raw_phone.isdigit()
+        else raw_phone
+    )
+    needs_phone_otp = (
+        getattr(request.user, "role", None) == "user"
+        and not getattr(request.user, "is_phone_verified", True)
+        and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
+    )
     return render(request, 'account/profile_settings.html', {
         'user': request.user,
         'active_tab': 'profile',
         'user_id': request.user.id,
+        'needs_phone_otp': needs_phone_otp,
+        'display_phone': display_phone,
     })
 
 

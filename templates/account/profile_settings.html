@@ -68,14 +68,12 @@
 <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}"
                              alt="Profile Picture"
                              id="previewImg"
-                             class="rounded-circle img-fluid {% if not user.profile_picture %}d-none{% endif %}"
+                             class="rounded-circle img-fluid nd-profile-preview-100 {% if not user.profile_picture %}d-none{% endif %}"
                              loading="lazy"
-                             decoding="async"
-                             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #F1F5F9;">
-                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto {% if user.profile_picture %}d-none{% endif %}" 
-                             id="placeholderImg"
-                             style="width: 100px; height: 100px;">
-                            <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                             decoding="async">
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto nd-profile-placeholder-100 {% if user.profile_picture %}d-none{% endif %}" 
+                             id="placeholderImg">
+                            <i class="bi bi-person-fill text-white display-4"></i>
                         </div>
                     </div>
                     <h5 class="fw-bold mb-1 text-center">
@@ -92,6 +90,19 @@
             
             <!-- Details (Right) -->
             <div class="col-lg-8">
+                {% if needs_phone_otp %}
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" role="status">
+                  <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+                  <div>
+                    <strong>Please verify your mobile number</strong>
+                    <p class="mb-0 small">Some features stay locked until verification is complete.</p>
+                  </div>
+                </div>
+                <div class="premium-card p-4 mb-4" id="profile-phone-otp">
+                  <h6 class="fw-semibold mb-3">Verify Mobile Number</h6>
+                  {% include "otp_verification/partials/mobile_verification.html" with id_prefix="profile_mv" phone_input_name="phone_number" phone_input_id="phone_number" flow_type="user_registration" action_btn_class="btn btn-outline-primary" lock_register="0" hide_change_number="1" post_register_mode="1" %}
+                </div>
+                {% endif %}
                 <form method="post" action="{% if user_id %}{% url 'accounts:profile_settings_with_id' user_id=user_id %}{% else %}{% url 'accounts:profile_settings' %}{% endif %}" id="profileForm" enctype="multipart/form-data">
                     {% csrf_token %}
                     
@@ -103,14 +114,12 @@
 <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}"
                                      alt="Profile Picture"
                                      id="previewImgForm"
-                                     class="rounded-circle img-fluid {% if not user.profile_picture %}d-none{% endif %}"
+                                     class="rounded-circle img-fluid nd-profile-preview-80 {% if not user.profile_picture %}d-none{% endif %}"
                                      loading="lazy"
-                                     decoding="async"
-                                     style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #dee2e6;">
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center {% if user.profile_picture %}d-none{% endif %}" 
-                                     id="placeholderImgForm"
-                                     style="width: 80px; height: 80px;">
-                                    <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                                     decoding="async">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center nd-profile-placeholder-80 {% if user.profile_picture %}d-none{% endif %}" 
+                                     id="placeholderImgForm">
+                                    <i class="bi bi-person-fill text-white fs-2"></i>
                                 </div>
                             </div>
                             <div class="ms-3 flex-grow-1">
@@ -192,10 +201,13 @@
                             <input type="tel" 
                                    class="form-control" 
                                    id="phone_number" 
-                                   name="phone_number" 
-                                   value="{{ user.phone_number|default:'' }}"
-                                   placeholder="+91 9876543210">
-                            <small class="form-text text-muted">This number will be shown to Pandits for contact.</small>
+                                   name="phone_number"
+                                   inputmode="numeric"
+                                   maxlength="10"
+                                   pattern="[0-9]{10}"
+                                   value="{{ display_phone|default:user.phone_number|default:'' }}"
+                                   placeholder="10-digit mobile number">
+                            <small class="form-text text-muted">Enter 10-digit mobile number. Used for OTP verification and contact.</small>
                         </div>
                         
                         <!-- WhatsApp Number -->
@@ -299,6 +311,10 @@
             const spinner = document.getElementById('loadingSpinner');
             saveBtn.disabled = true;
             spinner.classList.remove('d-none');
+        });
+
+        document.addEventListener('nd-mv-verified', function () {
+            window.location.reload();
         });
     </script>
 {% endblock %}

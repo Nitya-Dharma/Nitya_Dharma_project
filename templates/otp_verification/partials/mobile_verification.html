@@ -1,0 +1,214 @@
+{# Reusable mobile verification UI. Renders only when registration OTP is required. #}
+{% load static %}
+{% load otp_registration_tags %}
+{% registration_otp_required flow_type|default:"" as nd_mv_otp_required %}
+{% if nd_mv_otp_required %}
+{% url 'otp_verification:send_registration_otp' as nd_mv_default_send_url %}
+{% url 'otp_verification:verify_registration_otp' as nd_mv_default_verify_url %}
+{% url 'otp_verification:resend_registration_otp' as nd_mv_default_resend_url %}
+<link rel="stylesheet" href="{% static 'css/mobile_verification.css' %}">
+{% with prefix=id_prefix|default:"mv" %}
+<div
+  class="nd-mobile-verification mt-2 mb-3"
+  id="{{ prefix }}-root"
+  data-nd-mobile-verification="1"
+  data-otp-required="1"
+  data-phone-input-name="{{ phone_input_name|default:'phone_number' }}"
+  data-phone-input-id="{{ phone_input_id|default:'' }}"
+  data-flow-type="{{ flow_type|default:'' }}"
+  data-send-url="{{ send_url|default:nd_mv_default_send_url }}"
+  data-verify-url="{{ verify_url|default:nd_mv_default_verify_url }}"
+  data-resend-url="{{ resend_url|default:nd_mv_default_resend_url }}"
+  data-otp-length="6"
+  data-lock-register="{{ lock_register|default:'1' }}"
+  data-hide-change-number="{{ hide_change_number|default:'0' }}"
+  data-post-register-mode="{{ post_register_mode|default:'0' }}"
+  role="region"
+  aria-label="Mobile phone verification"
+>
+  {# ---- Section 1 + 2: Phone action / loading (shared slot reduces layout jump) ---- #}
+  <div class="nd-mv-action-slot">
+    <div
+      class="nd-mv-section nd-mv-phone-action"
+      id="{{ prefix }}-phone-action"
+      data-nd-mv-section="phone-action"
+    >
+      <div class="d-grid d-sm-flex gap-2 align-items-center">
+        <button
+          type="button"
+          class="{{ action_btn_class|default:'btn btn-outline-primary' }} nd-mv-verify-mobile-btn"
+          id="{{ prefix }}-verify-mobile-btn"
+          data-nd-mv-action="verify-mobile"
+          aria-controls="{{ prefix }}-otp-entry"
+          aria-expanded="false"
+        >
+          <i class="bi bi-phone me-1" aria-hidden="true"></i>
+          Verify Mobile
+        </button>
+      </div>
+      <p class="form-text text-muted mb-0 mt-2 small" id="{{ prefix }}-phone-hint">
+        Verify your mobile number before registering.
+      </p>
+    </div>
+
+    <div
+      class="nd-mv-section nd-mv-loading d-none"
+      id="{{ prefix }}-loading"
+      data-nd-mv-section="loading"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    >
+      <div class="nd-mv-loading-inner d-flex align-items-center gap-2 text-secondary small">
+        <span
+          class="spinner-border spinner-border-sm flex-shrink-0"
+          role="presentation"
+          aria-hidden="true"
+        ></span>
+        <span class="nd-mv-loading-text fw-medium" id="{{ prefix }}-loading-text">Sending OTP…</span>
+      </div>
+    </div>
+  </div>
+
+  {# ---- Section 3: OTP entry (hidden) ---- #}
+  <div
+    class="nd-mv-section nd-mv-otp-entry d-none mt-3"
+    id="{{ prefix }}-otp-entry"
+    data-nd-mv-section="otp-entry"
+    aria-hidden="true"
+  >
+    <label class="form-label fw-semibold mb-1" for="{{ prefix }}-otp-input">
+      Enter OTP
+    </label>
+    <div class="nd-mv-otp-row d-grid d-sm-flex gap-2 align-items-stretch">
+      <input
+        type="text"
+        class="form-control nd-mv-otp-input"
+        id="{{ prefix }}-otp-input"
+        name="{{ prefix }}_otp"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="6"
+        minlength="6"
+        autocomplete="one-time-code"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="6-digit code"
+        aria-describedby="{{ prefix }}-otp-help {{ prefix }}-error"
+        data-nd-mv-field="otp"
+        disabled
+      >
+      <button
+        type="button"
+        class="{{ verify_otp_btn_class|default:'btn btn-primary' }} text-nowrap nd-mv-verify-otp-btn"
+        id="{{ prefix }}-verify-otp-btn"
+        data-nd-mv-action="verify-otp"
+        disabled
+      >
+        Verify OTP
+      </button>
+    </div>
+    <div class="form-text text-muted small mt-1 mb-0" id="{{ prefix }}-otp-help">
+      Enter the 6-digit code sent to your phone.
+    </div>
+  </div>
+
+  {# ---- Sections 4–5: Verified + Change number ---- #}
+  <div class="nd-mv-success-cluster d-flex flex-wrap align-items-center gap-2 gap-sm-3">
+    <div
+      class="nd-mv-section nd-mv-verified d-none mt-2"
+      id="{{ prefix }}-verified"
+      data-nd-mv-section="verified"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    >
+      <span
+        class="badge text-bg-success nd-mv-verified-badge d-inline-flex align-items-center gap-2 px-3 py-2"
+        id="{{ prefix }}-verified-badge"
+      >
+        <i class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></i>
+        <span>Mobile Verified</span>
+      </span>
+    </div>
+
+    <div
+      class="nd-mv-section nd-mv-change-number d-none mt-2"
+      id="{{ prefix }}-change-number"
+      data-nd-mv-section="change-number"
+      aria-hidden="true"
+      {% if hide_change_number == '1' or hide_change_number == 1 or hide_change_number == True %}style="display:none !important"{% endif %}
+    >
+      <button
+        type="button"
+        class="btn btn-link btn-sm px-0 py-1 nd-mv-change-number-btn"
+        id="{{ prefix }}-change-number-btn"
+        data-nd-mv-action="change-number"
+      >
+        Change Number
+      </button>
+    </div>
+  </div>
+
+  {# ---- Sections 6–7: Resend / cooldown ---- #}
+  <div class="nd-mv-resend-area">
+    <div
+      class="nd-mv-section nd-mv-resend d-none mt-2"
+      id="{{ prefix }}-resend"
+      data-nd-mv-section="resend"
+      aria-hidden="true"
+    >
+      <p class="small text-muted mb-1">Didn’t get the code?</p>
+      <button
+        type="button"
+        class="btn btn-link btn-sm px-0 py-0 nd-mv-resend-btn"
+        id="{{ prefix }}-resend-btn"
+        data-nd-mv-action="resend"
+      >
+        Resend OTP
+      </button>
+    </div>
+
+    <div
+      class="nd-mv-section nd-mv-cooldown d-none mt-2"
+      id="{{ prefix }}-cooldown"
+      data-nd-mv-section="cooldown"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    >
+      <p class="small text-muted mb-0 nd-mv-cooldown-text" id="{{ prefix }}-cooldown-text">
+        Resend in
+        <span
+          class="nd-mv-cooldown-seconds"
+          id="{{ prefix }}-cooldown-seconds"
+          data-nd-mv-field="cooldown-seconds"
+        >30</span>
+        sec
+      </p>
+    </div>
+  </div>
+
+  {# ---- Section 8: Error area (hidden) ---- #}
+  <div
+    class="nd-mv-section nd-mv-error d-none mt-2"
+    id="{{ prefix }}-error"
+    data-nd-mv-section="error"
+    role="alert"
+    aria-live="assertive"
+    aria-hidden="true"
+  >
+    <div class="alert alert-danger nd-mv-error-alert py-2 px-3 mb-0 small d-flex align-items-start gap-2 rounded-2">
+      <i class="bi bi-exclamation-circle-fill nd-mv-error-icon text-danger flex-shrink-0" aria-hidden="true"></i>
+      <div
+        id="{{ prefix }}-error-message"
+        data-nd-mv-field="error-message"
+      >
+        Unable to verify mobile number.
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/mobile_verification.js' %}" defer></script>
+{% endwith %}
+{% endif %}

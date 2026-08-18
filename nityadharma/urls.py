@@ -105,6 +105,7 @@ urlpatterns = [
     path('recommendations/', include('recommendation_engine.urls')),  # Phase 15: recommendation engine (read-only)
     # path('admin-intelligence/', include('admin_intelligence.urls')),  # Phase 16: moved to /dashboard/super-admin/intelligence/ (platform UI)
     path('feed/', include('feed_engine.urls')),  # Phase 17A: personalized feed
+    path('otp/', include(('otp_verification.urls', 'otp_verification'), namespace='otp_verification')),
 ]
 
 # Serve media files (dev always; prod for testing - e.g. Railway ephemeral disk)

@@ -5,10 +5,11 @@ These decorators enforce role-based access to views.
 They require authentication and check user roles before allowing access.
 """
 from functools import wraps
+from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 from .utils import is_admin, is_pandit
-
 
 def admin_required(view_func):
     """
@@ -67,3 +68,38 @@ def pandit_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
+
+def phone_verified_required(view_func):
+    """Require authenticated user to have verified mobile (OTP).
+
+    Unverified users may still log in and access profile verification.
+    Critical features (dashboard actions, booking) should use this decorator.
+    """
+
+    @wraps(view_func)
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        user = request.user
+        if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+            return view_func(request, *args, **kwargs)
+        if getattr(user, "is_phone_verified", False):
+            return view_func(request, *args, **kwargs)
+
+        wants_json = request.headers.get(
+            "X-Requested-With"
+        ) == "XMLHttpRequest" or "application/json" in (
+            request.headers.get("Accept") or ""
+        )
+        message = "Please verify your mobile number to continue."
+        if wants_json:
+            return JsonResponse(
+                {
+                    "error": "phone_verification_required",
+                    "message": message,
+                },
+                status=403,
+            )
+        messages.warning(request, message)
+        return redirect("accounts:profile_settings")
+
+    return _wrapped_view
