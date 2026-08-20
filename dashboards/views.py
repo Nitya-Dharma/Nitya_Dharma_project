@@ -1,4 +1,8 @@
+import csv
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
+from django.core.mail import send_mail
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -1253,6 +1257,188 @@ def remove_partial_block(request, block_id):
 # ============================================================================
 # PART 2: GOVERNANCE & CONTROL (Super Admin Only)
 # ============================================================================
+
+@login_required
+def super_admin_experts(request):
+    if not request.user.is_superuser:
+        from django.http import Http404
+
+        raise Http404("Page not found")
+
+    from core.models import ExpertProfile
+
+    if request.method == "POST":
+        expert_id = request.POST.get("expert_id")
+        action = request.POST.get("action")
+
+        expert = get_object_or_404(ExpertProfile, id=expert_id)
+
+        if action == "approve":
+            expert.is_active = True
+            expert.save()
+
+            try:
+                if expert.email:
+                    send_mail(
+                        subject="Your Expert Profile is Approved",
+                        message=(
+                            "Congratulations! Your expert profile is now approved and live.\n\n"
+                            "You can now log in and manage your profile.\n\n"
+                            "Login here: http://127.0.0.1:8000/login/\n"
+                            "Expert Dashboard: http://127.0.0.1:8000/dashboard/expert/\n\n"
+                            "Thank you for joining Nitya Dharma."
+                        ),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[expert.email],
+                        fail_silently=True,
+                    )
+            except Exception:
+                pass
+        elif action == "verify":
+            expert.is_verified = True
+            expert.save()
+
+        return redirect("module5_dashboards:super_admin_experts")
+
+    experts = (
+        ExpertProfile.objects.prefetch_related("social_links")
+        .all()
+        .order_by("-created_at")
+    )
+    pending_count = ExpertProfile.objects.filter(is_active=False).count()
+    approved_count = ExpertProfile.objects.filter(is_active=True).count()
+    verified_count = ExpertProfile.objects.filter(is_verified=True).count()
+    status = request.GET.get("status")
+
+    if status == "pending":
+        experts = experts.filter(is_active=False)
+    elif status == "approved":
+        experts = experts.filter(is_active=True)
+    elif status == "verified":
+        experts = experts.filter(is_verified=True)
+
+    expert_type_param = (request.GET.get("type") or "").upper()
+    expert_type_filter = (
+        expert_type_param
+        if expert_type_param in ("ASTROLOGER", "NUMEROLOGIST", "PALMIST")
+        else ""
+    )
+    if expert_type_filter:
+        experts = experts.filter(expert_type=expert_type_filter)
+
+    all_experts = experts
+
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="experts.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(["Name", "Type", "Experience", "Active", "Verified"])
+
+        for e in all_experts:
+            writer.writerow([e.name, e.expert_type, e.experience_years, e.is_active, e.is_verified])
+
+        return response
+
+    from core.api_constants import DEFAULT_PAGE_SIZE
+    from django.core.paginator import Paginator
+
+    paginator = Paginator(experts, DEFAULT_PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(
+        request,
+        "dashboard/super_admin/experts.html",
+        {
+            "experts": page_obj,
+            "page_obj": page_obj,
+            "pending_count": pending_count,
+            "approved_count": approved_count,
+            "verified_count": verified_count,
+            "context_type": expert_type_filter,
+        },
+    )
+
+
+@login_required
+@require_POST
+def bulk_approve_experts(request):
+    if not request.user.is_superuser:
+        from django.http import Http404
+
+        raise Http404("Page not found")
+
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from core.models import ExpertProfile
+
+    selected_ids = list(set(request.POST.getlist("selected_experts")))
+
+    def _redirect_back():
+        params = {}
+        t = request.POST.get("type") or ""
+        if t in ("ASTROLOGER", "NUMEROLOGIST", "PALMIST"):
+            params["type"] = t
+        s = request.POST.get("status") or ""
+        if s in ("pending", "approved", "verified"):
+            params["status"] = s
+        base = reverse("module5_dashboards:super_admin_experts")
+        if params:
+            return redirect(f"{base}?{urlencode(params)}")
+        return redirect(base)
+
+    if not selected_ids:
+        messages.warning(request, "No experts selected.")
+        return _redirect_back()
+
+    # Same queryset guards as the list view (POST hidden fields): avoid cross-type / wrong-tab approvals.
+    experts = ExpertProfile.objects.filter(id__in=selected_ids)
+
+    type_filter = (request.POST.get("type") or "").upper()
+    if type_filter in ("ASTROLOGER", "NUMEROLOGIST", "PALMIST"):
+        experts = experts.filter(expert_type=type_filter)
+
+    status_filter = request.POST.get("status") or ""
+    if status_filter == "pending":
+        experts = experts.filter(is_active=False)
+    elif status_filter == "approved":
+        experts = experts.filter(is_active=True)
+    elif status_filter == "verified":
+        experts = experts.filter(is_verified=True)
+
+    # Match super_admin_experts single "approve" action: is_active only (not is_verified); optional email.
+    approved_count = 0
+    for expert in experts:
+        if expert.is_active:
+            continue
+        expert.is_active = True
+        expert.save()
+
+        try:
+            if expert.email:
+                send_mail(
+                    subject="Your Expert Profile is Approved",
+                    message=(
+                        "Congratulations! Your expert profile is now approved and live.\n\n"
+                        "You can now log in and manage your profile.\n\n"
+                        "Login here: http://127.0.0.1:8000/login/\n"
+                        "Expert Dashboard: http://127.0.0.1:8000/dashboard/expert/\n\n"
+                        "Thank you for joining Nitya Dharma."
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[expert.email],
+                    fail_silently=True,
+                )
+        except Exception:
+            pass
+
+        approved_count += 1
+
+    messages.success(request, f"{approved_count} expert(s) approved successfully.")
+    return _redirect_back()
+
 
 @login_required
 @require_POST

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4 fw-bold">Manage Experts</h2>
+
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3">
+        <h6 class="text-muted">Total Experts</h6>
+        <h4>{{ page_obj.paginator.count }}</h4>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3">
+        <h6 class="text-muted">Pending</h6>
+        <h4>{{ pending_count }}</h4>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3">
+        <h6 class="text-muted">Approved</h6>
+        <h4>{{ approved_count }}</h4>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3">
+        <h6 class="text-muted">Verified</h6>
+        <h4>{{ verified_count }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <a href="?export=csv{% if context_type %}&amp;type={{ context_type }}{% endif %}{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}" class="btn btn-outline-primary mb-3">
+    Export CSV
+  </a>
+
+  <div class="mb-3 d-flex gap-2 flex-wrap">
+    <a href="{% url 'module5_dashboards:super_admin_experts' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" class="btn btn-outline-dark{% if not context_type %} active{% endif %}">
+      All Experts
+    </a>
+    <a href="{% url 'module5_dashboards:super_admin_experts' %}?type=ASTROLOGER{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}" class="btn btn-outline-primary{% if context_type == 'ASTROLOGER' %} active{% endif %}">
+      Astrologers
+    </a>
+    <a href="{% url 'module5_dashboards:super_admin_experts' %}?type=NUMEROLOGIST{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}" class="btn btn-outline-success{% if context_type == 'NUMEROLOGIST' %} active{% endif %}">
+      Numerologists
+    </a>
+    <a href="{% url 'module5_dashboards:super_admin_experts' %}?type=PALMIST{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}" class="btn btn-outline-warning{% if context_type == 'PALMIST' %} active{% endif %}">
+      Palmists
+    </a>
+  </div>
+
+  <form method="get" class="mb-3">
+    {% if context_type %}
+    <input type="hidden" name="type" value="{{ context_type }}">
+    {% endif %}
+    <select name="status" class="form-select" onchange="this.form.submit()">
+      <option value="">All Experts</option>
+      <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>Pending</option>
+      <option value="approved" {% if request.GET.status == "approved" %}selected{% endif %}>Approved</option>
+      <option value="verified" {% if request.GET.status == "verified" %}selected{% endif %}>Verified</option>
+    </select>
+  </form>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" id="bulk-approve-form" action="{% url 'module5_dashboards:bulk_approve_experts' %}">
+        {% csrf_token %}
+        {% if context_type %}
+        <input type="hidden" name="type" value="{{ context_type }}">
+        {% endif %}
+        {% if request.GET.status %}
+        <input type="hidden" name="status" value="{{ request.GET.status }}">
+        {% endif %}
+        <button type="submit" class="btn btn-success mb-3">
+          Approve Selected
+        </button>
+      </form>
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>
+                <input type="checkbox" id="select-all">
+              </th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Experience</th>
+              <th>Active</th>
+              <th>Verified</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if experts %}
+              {% for expert in experts %}
+              <tr>
+                <td>
+                  <input type="checkbox" name="selected_experts" value="{{ expert.id }}" class="expert-checkbox" form="bulk-approve-form">
+                </td>
+                <td>{{ expert.name }}</td>
+                <td>{{ expert.expert_type }}</td>
+                <td>{{ expert.experience_years }}</td>
+                <td>
+                  {% if expert.is_active %}
+                    <span class="badge bg-success">
+                      <i class="bi bi-check-circle"></i> Approved
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary">
+                      <i class="bi bi-clock"></i> Pending
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if expert.is_verified %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="bi bi-star-fill"></i> Verified
+                    </span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">Not Verified</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if expert.is_active %}
+                    <button class="btn btn-secondary btn-sm w-100 mb-2" disabled>
+                      Approved ✓
+                    </button>
+                  {% else %}
+                    <form method="post" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="expert_id" value="{{ expert.id }}">
+                      <input type="hidden" name="action" value="approve">
+                      <button class="btn btn-success btn-sm w-100 mb-2">
+                        <i class="bi bi-check"></i> Approve
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  {% if expert.is_verified %}
+                    <button class="btn btn-secondary btn-sm w-100">
+                      Verified ✓
+                    </button>
+                  {% else %}
+                    <form method="post" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="expert_id" value="{{ expert.id }}">
+                      <input type="hidden" name="action" value="verify">
+                      <button class="btn btn-warning btn-sm w-100">
+                        <i class="bi bi-star"></i> Verify
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% if expert.social_links.exists %}
+              <tr class="table-light">
+                <td colspan="7" class="py-3">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-body py-3">
+                      <h6 class="card-subtitle text-muted mb-2">Social Profiles — {{ expert.name }}</h6>
+                      <ul class="mb-0">
+                        {% for link in expert.social_links.all %}
+                          <li>
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.url }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  No experts available yet.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if page_obj and page_obj.has_other_pages %}
+      <nav aria-label="Experts pagination" class="mt-3">
+        <ul class="pagination mb-0 flex-wrap">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if context_type %}&amp;type={{ context_type }}{% endif %}{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}">Previous</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+          <li class="page-item{% if page_obj.number == num %} active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if context_type %}&amp;type={{ context_type }}{% endif %}{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+          </li>
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if context_type %}&amp;type={{ context_type }}{% endif %}{% if request.GET.status %}&amp;status={{ request.GET.status }}{% endif %}">Next</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("select-all")?.addEventListener("change", function() {
+  document.querySelectorAll(".expert-checkbox").forEach(cb => {
+    cb.checked = this.checked;
+  });
+});
+</script>
+{% endblock %}

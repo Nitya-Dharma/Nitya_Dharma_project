@@ -12,6 +12,12 @@ urlpatterns = [
     path('pandit/', views.dashboard_pandit, name='dashboard_pandit'),
     path('admin-pandit/', views.dashboard_admin_pandit, name='dashboard_admin_pandit'),
     path('super-admin/', views.dashboard_super_admin, name='dashboard_super_admin'),
+    path("super-admin/experts/", views.super_admin_experts, name="super_admin_experts"),
+    path(
+        "super-admin/experts/bulk-approve/",
+        views.bulk_approve_experts,
+        name="bulk_approve_experts",
+    ),
     path('super-admin/intelligence/', views_super_admin_intelligence.intelligence_dashboard, name='super_admin_intelligence'),
     # UNIT 8: Pandit Approval & Rejection (Super Admin only)
     path('super-admin/pandit/<int:user_id>/approve/', views.approve_pandit_super_admin, name='approve_pandit_super_admin'),
