@@ -4,6 +4,10 @@ from core.models import ExpertProfile, ExpertReview, ExpertInquiry
 from .models import ExpertBookingIntent
 
 
+def expert_pending_page(request):
+    return render(request, "expert/pending.html")
+
+
 def get_expert_by_user(user):
     from core.models import ExpertProfile
 
