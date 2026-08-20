@@ -245,6 +245,16 @@ def _complete_pandit(payload: dict[str, Any]) -> dict[str, Any]:
 
     password_hash = _password_from_payload(payload)
     referral_link_id = payload.get("referral_link_id")
+    referral_code = payload.get("referral_code")
+
+    from referrals.registration_validation import validate_referral_link_by_id
+
+    referral_validation = validate_referral_link_by_id(referral_link_id, referral_code)
+    if not referral_validation.is_valid or referral_validation.referral_link is None:
+        raise CompletionError(
+            referral_validation.error_message or "Invalid referral link for Pandit registration."
+        )
+    referral_link = referral_validation.referral_link
 
     with transaction.atomic():
         existing = User.objects.filter(email__iexact=email).first()
@@ -280,31 +290,35 @@ def _complete_pandit(payload: dict[str, Any]) -> dict[str, Any]:
         # (would otherwise commit a pandit User without PanditProfile).
         PanditProfile.objects.get_or_create(user=user)
 
-        if referral_link_id:
-            try:
-                from referrals.models import ReferralLink, ReferralUsage
+        from referrals.models import ReferralLink, ReferralUsage
 
-                referral_link = (
-                    ReferralLink.objects.select_for_update().filter(id=referral_link_id).first()
-                )
-                if referral_link is not None:
-                    already_used = ReferralUsage.objects.filter(
-                        referral_link=referral_link,
-                        referred_pandit=user,
-                    ).exists()
-                    if not already_used:
-                        user.referred_by = referral_link.created_by
-                        user.save(update_fields=["referred_by"])
-                        referral_link.used_count += 1
-                        if referral_link.used_count >= referral_link.max_uses:
-                            referral_link.is_active = False
-                        referral_link.save()
-                        ReferralUsage.objects.create(
-                            referral_link=referral_link,
-                            referred_pandit=user,
-                        )
-            except Exception:
-                logger.exception("Referral application failed during OTP completion")
+        locked_referral_link = (
+            ReferralLink.objects.select_for_update().filter(id=referral_link.id).first()
+        )
+        if locked_referral_link is None:
+            raise CompletionError("Referral token does not exist or is invalid")
+
+        revalidation = validate_referral_link_by_id(locked_referral_link.id, referral_code)
+        if not revalidation.is_valid or revalidation.referral_link is None:
+            raise CompletionError(
+                revalidation.error_message or "Invalid referral link for Pandit registration."
+            )
+
+        already_used = ReferralUsage.objects.filter(
+            referral_link=locked_referral_link,
+            referred_pandit=user,
+        ).exists()
+        if not already_used:
+            user.referred_by = locked_referral_link.created_by
+            user.save(update_fields=["referred_by"])
+            locked_referral_link.used_count += 1
+            if locked_referral_link.used_count >= locked_referral_link.max_uses:
+                locked_referral_link.is_active = False
+            locked_referral_link.save()
+            ReferralUsage.objects.create(
+                referral_link=locked_referral_link,
+                referred_pandit=user,
+            )
 
         try:
             create_email_verification(user)

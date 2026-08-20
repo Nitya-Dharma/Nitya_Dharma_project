@@ -145,7 +145,23 @@
                                     <label for="email">Email Address <span class="text-danger">*</span></label>
                                     <div class="form-text">We'll send a verification email to this address</div>
                                 </div>
-                                
+
+                                <div class="form-floating mb-3">
+                                    <input type="tel"
+                                           class="form-control"
+                                           id="phone_number"
+                                           name="phone_number"
+                                           placeholder=" "
+                                           inputmode="numeric"
+                                           maxlength="10"
+                                           pattern="[0-9]{10}"
+                                           autocomplete="tel-national"
+                                           value="{{ form_data.phone_number|default:'' }}">
+                                    <label for="phone_number">Phone Number</label>
+                                    <div class="form-text">Enter 10-digit mobile number</div>
+                                </div>
+                                {% include "otp_verification/partials/mobile_verification.html" with id_prefix="pandit_mv" phone_input_name="phone_number" phone_input_id="phone_number" flow_type="pandit_registration" action_btn_class="btn btn-outline-primary" %}
+
                                 <!-- Password -->
                                 <div class="form-floating mb-3 password-field-wrapper">
                                     <input type="password" 

@@ -110,54 +110,12 @@ def pandit_register(request, referral_token):
     referral_valid = False
     referral_error = None
     
-    if ReferralLink is not None:
-        try:
-            # Try to find referral link by token (primary lookup)
-            referral_link = ReferralLink.objects.filter(token=referral_token.strip()).first()
-            # If not found by token, try referral_code (backward compatibility)
-            if not referral_link:
-                referral_link = ReferralLink.objects.filter(referral_code=referral_token.strip()).first()
-            # If still not found, try code field (new format)
-            if not referral_link:
-                referral_link = ReferralLink.objects.filter(code=referral_token.strip()).first()
-            
-            if not referral_link:
-                raise ReferralLink.DoesNotExist("Referral link not found")
-            
-            # Check if referral link is active and can be used
-            if not referral_link.is_active:
-                referral_error = 'This referral link has been deactivated and cannot be used for registration.'
-            elif referral_link.used_count >= referral_link.max_uses:
-                referral_error = f'This referral link has reached its maximum usage limit ({referral_link.max_uses} uses).'
-            elif referral_link.status != ReferralLink.STATUS_ACTIVE:
-                referral_error = f'This referral link is {referral_link.get_status_display().lower()} and cannot be used.'
-            elif hasattr(referral_link, 'expires_at') and referral_link.expires_at:
-                from django.utils import timezone
-                if referral_link.expires_at < timezone.now():
-                    referral_error = 'This referral link has expired.'
-                else:
-                    referral_valid = True
-            else:
-                referral_valid = True
-                
-            # Validate referrer is active
-            if referral_valid and referral_link.created_by:
-                referrer = referral_link.created_by
-                if referrer.status != 'active' or not referrer.is_active:
-                    referral_valid = False
-                    referral_error = 'The referrer account is not active. This referral link cannot be used.'
-                    
-        except ReferralLink.DoesNotExist:
-            # Check if any referral links exist at all
-            total_links = ReferralLink.objects.count()
-            if total_links == 0:
-                referral_error = 'No referral links have been generated yet. Please ask an Admin Pandit to generate a referral link from their dashboard.'
-            else:
-                referral_error = 'Referral token does not exist or is invalid. Please check your referral link and ensure it was copied correctly.'
-        except Exception as e:
-            referral_error = f'An error occurred during referral validation: {str(e)}'
-    else:
-        referral_error = 'Referral system is not available. Please contact support.'
+    from referrals.registration_validation import validate_referral_for_pandit_get
+
+    get_validation = validate_referral_for_pandit_get(referral_token)
+    referral_link = get_validation.referral_link
+    referral_valid = get_validation.is_valid
+    referral_error = get_validation.error_message
     
     if referral_error:
         logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "validation_failed"})
@@ -179,7 +137,7 @@ def pandit_register(request, referral_token):
         try:
             from core.security_utils import safe_json_loads
             # Define allowed fields for registration
-            allowed_fields = ['referral_code', 'email', 'password', 'first_name', 'last_name']
+            allowed_fields = ['referral_code', 'email', 'password', 'first_name', 'last_name', 'phone_number', 'phone']
             data = safe_json_loads(request.body, allowed_fields=allowed_fields)
         except json.JSONDecodeError:
             return JsonResponse({
@@ -257,165 +215,54 @@ def pandit_register(request, referral_token):
             })
     
     # Referral validation (Module 3 - Task 3.4)
-    # Validate referral link exists, is active, and hasn't exceeded usage limit
-    referral_link = None
-    if ReferralLink is not None:
-        try:
-            # Try to find referral link by token (primary lookup)
-            referral_link = ReferralLink.objects.filter(token=referral_token.strip()).first()
-            # If not found by token, try referral_code (backward compatibility)
-            if not referral_link:
-                referral_link = ReferralLink.objects.filter(referral_code=referral_token.strip()).first()
-            # If still not found, try code field (new format)
-            if not referral_link:
-                referral_link = ReferralLink.objects.filter(code=referral_token.strip()).first()
-            
-            if not referral_link:
-                raise ReferralLink.DoesNotExist("Referral link not found")
-            
-            # Validate referral code matches token
-            if referral_link.referral_code != referral_code.strip():
-                logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "code_mismatch"})
-                error_msg = 'Referral code does not match the referral token'
-                if request.content_type == 'application/json':
-                    return JsonResponse({
-                        'error': 'Invalid referral code',
-                        'message': error_msg
-                    }, status=400)
-                else:
-                    messages.error(request, error_msg)
-                    return render(request, 'accounts/pandit_register.html', {
-                        'referral_token': referral_token,
-                        'referral_code': referral_code,
-                        'referral_valid': False,
-                        'referral_error': error_msg,
-                        'referral_link': referral_link,
-                        'form_data': {
-                            'email': email,
-                            'first_name': first_name,
-                            'last_name': last_name,
-                        }
-                    })
-            
-            # Validate referral link is active
-            if not referral_link.is_active:
-                logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "link_inactive"})
-                error_msg = 'This referral link has been deactivated and cannot be used for registration'
-                if request.content_type == 'application/json':
-                    return JsonResponse({
-                        'error': 'Referral link inactive',
-                        'message': error_msg
-                    }, status=400)
-                else:
-                    messages.error(request, error_msg)
-                    return render(request, 'accounts/pandit_register.html', {
-                        'referral_token': referral_token,
-                        'referral_code': referral_code,
-                        'referral_valid': False,
-                        'referral_error': error_msg,
-                        'referral_link': referral_link,
-                        'form_data': {
-                            'email': email,
-                            'first_name': first_name,
-                            'last_name': last_name,
-                        }
-                    })
-            
-            # Validate usage limit not exceeded
-            if referral_link.used_count >= referral_link.max_uses:
-                logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "usage_limit"})
-                error_msg = f'This referral link has reached its maximum usage limit ({referral_link.max_uses} uses)'
-                if request.content_type == 'application/json':
-                    return JsonResponse({
-                        'error': 'Referral link expired',
-                        'message': error_msg
-                    }, status=400)
-                else:
-                    messages.error(request, error_msg)
-                    return render(request, 'accounts/pandit_register.html', {
-                        'referral_token': referral_token,
-                        'referral_code': referral_code,
-                        'referral_valid': False,
-                        'referral_error': error_msg,
-                        'referral_link': referral_link,
-                        'form_data': {
-                            'email': email,
-                            'first_name': first_name,
-                            'last_name': last_name,
-                        }
-                    })
-            
-            # Validate referrer is active (not fully blocked)
-            # Note: For now, we check if referrer status is 'active'
-            # Future: Module 11 will add full block status checks
-            referrer = referral_link.created_by
-            if referrer.status != 'active' or not referrer.is_active:
-                logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "referrer_inactive"})
-                error_msg = 'The referrer account is not active. This referral link cannot be used.'
-                if request.content_type == 'application/json':
-                    return JsonResponse({
-                        'error': 'Referrer inactive',
-                        'message': error_msg
-                    }, status=400)
-                else:
-                    messages.error(request, error_msg)
-                    return render(request, 'accounts/pandit_register.html', {
-                        'referral_token': referral_token,
-                        'referral_code': referral_code,
-                        'referral_valid': False,
-                        'referral_error': error_msg,
-                        'referral_link': referral_link,
-                        'form_data': {
-                            'email': email,
-                            'first_name': first_name,
-                            'last_name': last_name,
-                        }
-                    })
-            
-        except ReferralLink.DoesNotExist:
-            logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "token_not_found"})
-            error_msg = 'Referral token does not exist or is invalid'
-            if request.content_type == 'application/json':
-                return JsonResponse({
-                    'error': 'Invalid referral token',
-                    'message': error_msg
-                }, status=400)
-            else:
-                messages.error(request, error_msg)
-                return render(request, 'accounts/pandit_register.html', {
-                    'referral_token': referral_token,
-                    'referral_code': referral_code,
-                    'referral_valid': False,
-                    'referral_error': error_msg,
-                    'referral_link': None,
-                    'form_data': {
-                        'email': email,
-                        'first_name': first_name,
-                        'last_name': last_name,
-                    }
-                })
-        except Exception as e:
-            logger.warning("Invalid referral attempt", extra={"ip": request.META.get("REMOTE_ADDR"), "token_prefix": (referral_token or "")[:12], "reason": "validation_error"})
-            error_msg = f'An error occurred during referral validation: {str(e)}'
-            if request.content_type == 'application/json':
-                return JsonResponse({
-                    'error': 'Referral validation failed',
-                    'message': error_msg
-                }, status=500)
-            else:
-                messages.error(request, error_msg)
-                return render(request, 'accounts/pandit_register.html', {
-                    'referral_token': referral_token,
-                    'referral_code': referral_code,
-                    'referral_valid': False,
-                    'referral_error': error_msg,
-                    'referral_link': None,
-                    'form_data': {
-                        'email': email,
-                        'first_name': first_name,
-                        'last_name': last_name,
-                    }
-                })
+    from referrals.registration_validation import validate_referral_for_pandit_post
+
+    post_validation = validate_referral_for_pandit_post(referral_token, referral_code)
+    referral_link = post_validation.referral_link
+    if not post_validation.is_valid:
+        logger.warning(
+            "Invalid referral attempt",
+            extra={
+                "ip": request.META.get("REMOTE_ADDR"),
+                "token_prefix": (referral_token or "")[:12],
+                "reason": "validation_failed",
+            },
+        )
+        error_msg = post_validation.error_message or "Invalid referral link."
+        json_error = "Invalid referral"
+        if "does not match" in error_msg:
+            json_error = "Invalid referral code"
+        elif "deactivated" in error_msg:
+            json_error = "Referral link inactive"
+        elif "maximum usage limit" in error_msg:
+            json_error = "Referral link expired"
+        elif "referrer account is not active" in error_msg:
+            json_error = "Referrer inactive"
+        elif "does not exist or is invalid" in error_msg:
+            json_error = "Invalid referral token"
+        elif "expired" in error_msg.lower() and "usage limit" not in error_msg:
+            json_error = "Referral link expired"
+        elif "cannot be used" in error_msg and post_validation.referral_link is not None:
+            json_error = "Referral link inactive"
+
+        if request.content_type == 'application/json':
+            return JsonResponse({
+                'error': json_error,
+                'message': error_msg
+            }, status=400)
+        messages.error(request, error_msg)
+        return render(request, 'accounts/pandit_register.html', {
+            'referral_token': referral_token,
+            'referral_code': referral_code,
+            'referral_valid': False,
+            'referral_error': error_msg,
+            'referral_link': referral_link,
+            'form_data': {
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+            }
+        })
     
     # Validate required user fields
     if not email:
@@ -484,7 +331,70 @@ def pandit_register(request, referral_token):
                     'last_name': last_name,
                 }
             })
-    
+
+    phone_number = ''
+    if request.content_type == 'application/json':
+        phone_number = str(data.get('phone_number') or data.get('phone') or '').strip()
+    else:
+        phone_number = request.POST.get('phone_number', '').strip() or request.POST.get('phone', '').strip()
+
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.factory import is_registration_otp_required
+    from otp_verification.registration.gate import begin_otp_or_continue
+
+    wants_json = request.content_type == 'application/json'
+    if is_registration_otp_required(otp_constants.FLOW_PANDIT_REGISTRATION):
+        if not phone_number:
+            error_msg = 'Phone number is required for SMS verification.'
+            if wants_json:
+                return JsonResponse({'error': 'phone_required', 'message': error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, 'accounts/pandit_register.html', {
+                'referral_token': referral_token,
+                'referral_code': referral_code,
+                'referral_valid': referral_valid,
+                'referral_error': referral_error,
+                'referral_link': referral_link,
+                'form_data': {
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone_number': phone_number,
+                }
+            })
+        otp_response = begin_otp_or_continue(
+            request,
+            flow_type=otp_constants.FLOW_PANDIT_REGISTRATION,
+            destination=phone_number,
+            payload={
+                "email": email,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name,
+                "phone_number": phone_number,
+                "referral_link_id": referral_link.id if referral_link else None,
+                "referral_code": referral_code,
+            },
+            resume_path=request.path,
+            wants_json=wants_json,
+        )
+        if otp_response is not None:
+            if otp_response.status_code == 400 and not wants_json:
+                return render(request, 'accounts/pandit_register.html', {
+                    'referral_token': referral_token,
+                    'referral_code': referral_code,
+                    'referral_valid': referral_valid,
+                    'referral_error': referral_error,
+                    'referral_link': referral_link,
+                    'form_data': {
+                        'email': email,
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'phone_number': phone_number,
+                    }
+                })
+            return otp_response
+
             # Create Pandit user with pending status and referral tracking (Module 3 - Task 3.4)
     try:
         with transaction.atomic():
@@ -674,6 +584,8 @@ def pandit_register(request, referral_token):
                 }
             
             # Return response based on request type
+            from otp_verification.registration.session import consume_phone_verified_session
+            consume_phone_verified_session(request)
             if request.content_type == 'application/json':
                 return JsonResponse(response_data, status=201)
             else:
