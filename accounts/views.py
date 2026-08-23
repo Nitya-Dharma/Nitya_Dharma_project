@@ -879,22 +879,23 @@ def login_view(request):
                             'next': next_url,
                         })
                 
-                # Expert guard: stop before session creation when expert approval is pending
-                from core.models import ExpertProfile
+                if user.role != 'pandit':
+                    # Expert guard: stop before session creation when expert approval is pending
+                    from core.models import ExpertProfile
 
-                pending_expert = ExpertProfile.objects.filter(
-                    email__iexact=user.email,
-                    is_active=False
-                ).first()
+                    pending_expert = ExpertProfile.objects.filter(
+                        email__iexact=user.email,
+                        is_active=False
+                    ).first()
 
-                active_expert = ExpertProfile.objects.filter(
-                    email__iexact=user.email,
-                    is_active=True
-                ).first()
+                    active_expert = ExpertProfile.objects.filter(
+                        email__iexact=user.email,
+                        is_active=True
+                    ).first()
 
-                if pending_expert and not active_expert:
-                    messages.error(request, "Your expert profile is pending admin approval.")
-                    return redirect("expert_pending")
+                    if pending_expert and not active_expert:
+                        messages.error(request, "Your expert profile is pending admin approval.")
+                        return redirect("expert_pending")
 
                 login(request, user)
                 # SECURITY FIX: Regenerate session ID to prevent session fixation
