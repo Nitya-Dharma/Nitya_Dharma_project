@@ -242,4 +242,4 @@ def mark_expert_intent_viewed(request, intent_id):
         intent.is_viewed = True
         intent.save(update_fields=["is_viewed"])
 
-    return redirect("/dashboard/expert/?tab=requests")
+    return redirect("/dashboard/expert/?tab=requests&updated=1")
