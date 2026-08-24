@@ -1,0 +1,41 @@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="premium-card border-accent p-4 h-100">
+            <h6 class="fw-semibold mb-1">Profile Status</h6>
+            {% if expert.is_active %}
+                <span class="badge bg-success">Approved</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Pending Approval</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="premium-card border-accent p-4 h-100">
+            <h6 class="fw-semibold mb-1">Completion</h6>
+            {% if is_complete %}
+                <span class="badge bg-success">Complete</span>
+            {% else %}
+                <span class="badge bg-danger">Incomplete</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="premium-card border-accent p-4 h-100">
+            <h6 class="fw-semibold mb-1">Total Requests</h6>
+            <h4 class="mb-0">{{ total_requests|default:0 }}</h4>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="premium-card border-accent p-4 h-100">
+            <h6 class="fw-semibold mb-1">Profile Views</h6>
+            <h4 class="mb-0">{{ profile_views|default:0 }}</h4>
+        </div>
+    </div>
+</div>
+
+<div class="premium-card p-4">
+    <h5 class="mb-3">Welcome, {{ expert.name|default:user.get_full_name|default:user.email }}</h5>
+    <p class="mb-2"><strong>Type:</strong> {{ expert.expert_type|default:"-" }}</p>
+    <p class="mb-2"><strong>Experience:</strong> {{ expert.experience_years|default:0 }} years</p>
+    <p class="mb-0"><strong>Description:</strong> {{ expert.description|default:"Not added yet." }}</p>
+</div>

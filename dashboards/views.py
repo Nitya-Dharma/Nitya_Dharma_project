@@ -11,6 +11,59 @@ from django.db import models
 from django.core.exceptions import PermissionDenied
 from accounts.decorators import pandit_required, admin_required
 from referrals.models import ReferralLink
+from services.views_expert_ui import get_expert_by_user
+from core.models import ExpertInquiry
+
+
+
+@login_required
+def expert_dashboard_view(request):
+    expert = get_expert_by_user(request.user)
+    if not expert:
+        return redirect("/dashboard/user/")
+
+    active_tab = request.GET.get("tab", "overview")
+    allowed_tabs = {"overview", "profile", "requests", "reviews", "analytics", "settings"}
+    if active_tab not in allowed_tabs:
+        active_tab = "overview"
+
+    is_complete = True
+    if not expert.name:
+        is_complete = False
+    if not expert.phone:
+        is_complete = False
+    if not expert.experience_years or expert.experience_years <= 0:
+        is_complete = False
+    if not expert.description:
+        is_complete = False
+
+    # Align with services.ExpertBookingIntent.related_name=service_booking_intents (not core.booking_intents).
+    unread_requests_qs = expert.service_booking_intents.filter(is_viewed=False)
+    has_active_intent = unread_requests_qs.exists()
+    total_requests = expert.service_booking_intents.count()
+    unread_requests_count = unread_requests_qs.count()
+
+    inquiries_queryset = ExpertInquiry.objects.filter(expert=expert).order_by("-created_at")
+    inquiries = list(inquiries_queryset[:10])
+
+    profile_views = getattr(expert, "profile_views", 0)
+
+    return render(
+        request,
+        "experts/dashboard.html",
+        {
+            "expert": expert,
+            "profile": expert,
+            "active_tab": active_tab,
+            "dashboard_has_data": True,
+            "is_complete": is_complete,
+            "inquiries": inquiries,
+            "total_requests": total_requests,
+            "profile_views": profile_views,
+            "has_active_intent": has_active_intent,
+            "unread_requests_count": unread_requests_count,
+        },
+    )
 
 
 @login_required

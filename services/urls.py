@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     astrology_city_view,
     expert_booking_intent_view,
+    mark_expert_intent_viewed,
     numerology_city_view,
     palmistry_city_view,
 )
@@ -20,6 +21,11 @@ urlpatterns = [
     path("palmistry/<str:city>/", palmistry_city_view, name="palmistry_city"),
     path("expert/register/", expert_register_page, name="expert_register"),
     path("expert/pending/", expert_pending_page, name="expert_pending"),
+    path(
+        "expert/intent/<int:intent_id>/mark-viewed/",
+        mark_expert_intent_viewed,
+        name="mark_expert_intent_viewed",
+    ),
     path(
         "expert/<int:expert_id>/intent/",
         expert_booking_intent_view,

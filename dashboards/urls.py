@@ -9,6 +9,7 @@ app_name = 'module5_dashboards'
 
 urlpatterns = [
     path('user/', views.dashboard_user, name='dashboard_user'),
+    path("expert/", views.expert_dashboard_view, name="expert_dashboard"),
     path('pandit/', views.dashboard_pandit, name='dashboard_pandit'),
     path('admin-pandit/', views.dashboard_admin_pandit, name='dashboard_admin_pandit'),
     path('super-admin/', views.dashboard_super_admin, name='dashboard_super_admin'),

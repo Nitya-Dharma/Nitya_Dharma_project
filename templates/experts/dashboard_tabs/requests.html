@@ -1,0 +1,61 @@
+<div class="premium-card p-4">
+    <h5 class="mb-3">Booking Requests</h5>
+    {% if request.GET.updated %}
+      <div class="alert alert-success py-2">
+        Request marked as viewed.
+      </div>
+      <script>
+      if (window.location.search.includes("updated=1")) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("updated");
+          window.history.replaceState({}, document.title, url.pathname + url.search);
+      }
+      </script>
+    {% endif %}
+
+    {# services.ExpertBookingIntent only (related_name service_booking_intents); not core.booking_intents #}
+    {% for intent in expert.service_booking_intents.all %}
+        <div class="card p-2 mb-2">
+            <strong>
+              {% if intent.user %}
+                {{ intent.user.get_username|default:intent.name }}
+              {% else %}
+                {{ intent.name }}
+              {% endif %}
+            </strong>
+            <p class="mb-1 small text-muted">{{ intent.phone|default:"—" }}</p>
+            <p class="mb-2">{{ intent.message|default:"—"|linebreaksbr }}</p>
+
+            {% if not intent.is_viewed %}
+                <span class="badge bg-danger">New</span>
+                <form method="post"
+                      action="{% url 'mark_expert_intent_viewed' intent.id %}"
+                      class="d-inline-block ms-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
+                      Mark as viewed
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="text-muted mb-0">No booking requests yet.</p>
+    {% endfor %}
+</div>
+
+<div class="premium-card p-4 mt-4">
+    <h6 class="mb-3">Recent Inquiries</h6>
+    {% if inquiries %}
+        {% for inquiry in inquiries %}
+            <div class="border rounded p-3 mb-2">
+                <strong>{{ inquiry.name|default:"User" }}</strong><br>
+                <span class="text-muted">{{ inquiry.phone|default:"-" }}</span>
+                {% if inquiry.message %}
+                    <p class="mb-0 mt-2">{{ inquiry.message }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted mb-0">No inquiries yet.</p>
+    {% endif %}
+</div>

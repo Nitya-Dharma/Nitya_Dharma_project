@@ -1,0 +1,62 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Expert Dashboard{% endblock %}
+{% block dashboard_heading %}Expert Dashboard{% endblock %}
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Overview of your expert profile and activity</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'overview' %}active{% endif %}" href="/dashboard/expert/?tab=overview">
+            <i class="bi bi-speedometer2 me-2"></i>Overview
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'profile' %}active{% endif %}" href="/dashboard/expert/?tab=profile">
+            <i class="bi bi-person-circle me-2"></i>Profile
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'requests' %}active{% endif %}" href="/dashboard/expert/?tab=requests">
+            <i class="bi bi-inbox me-2"></i>Booking Requests
+            {% if unread_requests_count|default:0 > 0 %}
+                <span class="badge bg-danger rounded-pill ms-2">{{ unread_requests_count|default:0 }}</span>
+            {% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'reviews' %}active{% endif %}" href="/dashboard/expert/?tab=reviews">
+            <i class="bi bi-star me-2"></i>Reviews
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'analytics' %}active{% endif %}" href="/dashboard/expert/?tab=analytics">
+            <i class="bi bi-graph-up me-2"></i>Analytics
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'settings' %}active{% endif %}" href="/dashboard/expert/?tab=settings">
+            <i class="bi bi-gear me-2"></i>Settings
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+    {% if active_tab == "overview" %}
+        {% include "experts/dashboard_tabs/overview.html" %}
+    {% elif active_tab == "profile" %}
+        {% include "experts/dashboard_tabs/profile.html" %}
+    {% elif active_tab == "requests" %}
+        {% include "experts/dashboard_tabs/requests.html" %}
+    {% elif active_tab == "reviews" %}
+        {% include "experts/dashboard_tabs/reviews.html" %}
+    {% elif active_tab == "analytics" %}
+        {% include "experts/dashboard_tabs/analytics.html" %}
+    {% elif active_tab == "settings" %}
+        {% include "experts/dashboard_tabs/settings.html" %}
+    {% else %}
+        {% include "experts/dashboard_tabs/overview.html" %}
+    {% endif %}
+{% endblock %}
