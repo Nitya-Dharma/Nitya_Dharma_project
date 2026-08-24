@@ -37,6 +37,7 @@ from .views_email_verification import verify_email_view
 
 # Import resend verification view (TASK 3: Resend capability)
 from .views_resend_verification import resend_pandit_verification
+from services.views_expert_ui import get_expert_by_user
 
 
 @login_required
@@ -973,8 +974,13 @@ def login_view(request):
                     logger.info(f"[LOGIN REDIRECT] User {user.email} has role='pandit' → dashboard_pandit")
                     return redirect('module5_dashboards:dashboard_pandit')
                 
-                # 4. End User (role='user') → Home Page (not dashboard)
+                # 4. Active Expert (email match via get_expert_by_user) → Expert Dashboard
+                # 5. End User (role='user') → Home Page (not dashboard)
                 else:
+                    expert = get_expert_by_user(user)
+                    if expert:
+                        logger.info(f"[LOGIN REDIRECT] User {user.email} matched active ExpertProfile → expert_dashboard")
+                        return redirect("/dashboard/expert/")
                     logger.info(f"[LOGIN REDIRECT] User {user.email} has role='{user.role}' → core:home")
                     return redirect('core:home')
             else:
