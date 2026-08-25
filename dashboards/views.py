@@ -7,12 +7,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import PermissionDenied
 from accounts.decorators import pandit_required, admin_required
 from referrals.models import ReferralLink
 from services.views_expert_ui import get_expert_by_user
-from core.models import ExpertInquiry
+from core.models import ExpertInquiry, ExpertService
+from services.expert_service_selection import (
+    ExpertServiceSelectionError,
+    primary_expert_type,
+    resolve_active_services_by_ids,
+)
 
 
 
@@ -37,6 +42,62 @@ def expert_dashboard_view(request):
     if not expert.description:
         is_complete = False
 
+    available_services = list(
+        ExpertService.objects.filter(is_active=True).order_by("display_order", "name")
+    )
+    selected_service_ids = list(expert.services.values_list("id", flat=True))
+    profile_error = None
+    success = False
+    if request.method == "POST":
+        try:
+            name = request.POST.get("name")
+            phone = request.POST.get("phone")
+            experience = request.POST.get("experience_years")
+            description = request.POST.get("description")
+            raw_service_ids = request.POST.getlist("services")
+            selected_service_ids = [
+                int(service_id)
+                for service_id in raw_service_ids
+                if str(service_id).isdigit()
+            ]
+            try:
+                selected_services = resolve_active_services_by_ids(
+                    raw_service_ids
+                )
+            except ExpertServiceSelectionError as exc:
+                selected_services = []
+                profile_error = str(exc)
+                active_tab = "profile"
+
+            if not profile_error and name and phone:
+                with transaction.atomic():
+                    expert.name = name
+                    expert.phone = phone
+                    try:
+                        expert.experience_years = int(experience)
+                    except Exception:
+                        pass
+                    expert.description = description
+                    expert.expert_type = primary_expert_type(selected_services)
+
+                    image = request.FILES.get("profile_image")
+                    if image:
+                        expert.profile_image = image
+                    cover = request.FILES.get("cover_image")
+                    if cover:
+                        expert.cover_image = cover
+
+                    expert.save()
+                    expert.services.set(selected_services)
+                selected_service_ids = [
+                    service.id for service in selected_services
+                ]
+                success = True
+                active_tab = "profile"
+        except Exception:
+            profile_error = "Unable to update profile. Please try again."
+            active_tab = "profile"
+
     # Align with services.ExpertBookingIntent.related_name=service_booking_intents (not core.booking_intents).
     unread_requests_qs = expert.service_booking_intents.filter(is_viewed=False)
     has_active_intent = unread_requests_qs.exists()
@@ -56,6 +117,10 @@ def expert_dashboard_view(request):
             "profile": expert,
             "active_tab": active_tab,
             "dashboard_has_data": True,
+            "success": success,
+            "profile_error": profile_error,
+            "available_services": available_services,
+            "selected_service_ids": selected_service_ids,
             "is_complete": is_complete,
             "inquiries": inquiries,
             "total_requests": total_requests,
