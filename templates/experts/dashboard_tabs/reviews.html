@@ -4,11 +4,14 @@
         {% for review in reviews %}
             <div class="border rounded p-3 mb-2">
                 <div class="d-flex justify-content-between">
-                    <strong>{{ review.user.get_full_name|default:"User" }}</strong>
-                    <span class="text-muted">Rating: {{ review.rating|default:"-" }}</span>
+                    <strong>Anonymous</strong>
+                    <span class="text-muted">Rating: {{ review.rating|default:"-" }}/5</span>
                 </div>
-                {% if review.review_text %}
-                    <p class="mb-0 mt-2">{{ review.review_text }}</p>
+                {% if review.comment %}
+                    <p class="mb-0 mt-2">{{ review.comment }}</p>
+                {% endif %}
+                {% if review.created_at %}
+                    <p class="mb-0 mt-2 small text-muted">{{ review.created_at }}</p>
                 {% endif %}
             </div>
         {% endfor %}

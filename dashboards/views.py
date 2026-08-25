@@ -107,6 +107,8 @@ def expert_dashboard_view(request):
     inquiries_queryset = ExpertInquiry.objects.filter(expert=expert).order_by("-created_at")
     inquiries = list(inquiries_queryset[:10])
 
+    reviews = list(expert.reviews.all().order_by("-created_at")[:10])
+
     profile_views = getattr(expert, "profile_views", 0)
 
     return render(
@@ -123,6 +125,7 @@ def expert_dashboard_view(request):
             "selected_service_ids": selected_service_ids,
             "is_complete": is_complete,
             "inquiries": inquiries,
+            "reviews": reviews,
             "total_requests": total_requests,
             "profile_views": profile_views,
             "has_active_intent": has_active_intent,
