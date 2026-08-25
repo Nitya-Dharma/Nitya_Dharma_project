@@ -25,6 +25,9 @@
             </strong>
             <p class="mb-1 small text-muted">{{ intent.phone|default:"—" }}</p>
             <p class="mb-2">{{ intent.message|default:"—"|linebreaksbr }}</p>
+            {% if intent.created_at %}
+                <p class="mb-2 small text-muted">{{ intent.created_at }}</p>
+            {% endif %}
 
             {% if not intent.is_viewed %}
                 <span class="badge bg-danger">New</span>
