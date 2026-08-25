@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.db import models, transaction
+from django.db.models import Avg
 from django.core.exceptions import PermissionDenied
 from accounts.decorators import pandit_required, admin_required
 from referrals.models import ReferralLink
@@ -109,6 +110,13 @@ def expert_dashboard_view(request):
 
     reviews = list(expert.reviews.all().order_by("-created_at")[:10])
 
+    total_reviews = expert.reviews.count()
+    avg_rating = expert.reviews.aggregate(avg_rating=Avg("rating"))["avg_rating"]
+    if avg_rating is None:
+        avg_rating = 0
+    else:
+        avg_rating = round(avg_rating, 2)
+
     profile_views = getattr(expert, "profile_views", 0)
 
     return render(
@@ -126,6 +134,8 @@ def expert_dashboard_view(request):
             "is_complete": is_complete,
             "inquiries": inquiries,
             "reviews": reviews,
+            "total_reviews": total_reviews,
+            "avg_rating": avg_rating,
             "total_requests": total_requests,
             "profile_views": profile_views,
             "has_active_intent": has_active_intent,
