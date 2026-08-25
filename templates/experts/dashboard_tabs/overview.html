@@ -27,6 +27,12 @@
     </div>
     <div class="col-12 col-sm-6 col-lg-3">
         <div class="premium-card border-accent p-4 h-100">
+            <h6 class="fw-semibold mb-1">New Requests</h6>
+            <h4 class="mb-0">{{ unread_requests_count|default:0 }}</h4>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="premium-card border-accent p-4 h-100">
             <h6 class="fw-semibold mb-1">Profile Views</h6>
             <h4 class="mb-0">{{ profile_views|default:0 }}</h4>
         </div>
