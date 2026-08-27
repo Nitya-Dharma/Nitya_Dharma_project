@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+  <h3 class="mb-3">Bureau Registration</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="/bureaus/register/" class="mt-3" id="bureau-register-form">
+    {% csrf_token %}
+    <div class="mb-2">
+      <label class="form-label">Bureau Name <span class="text-danger">*</span></label>
+      <input type="text" name="bureau_name" class="form-control" value="{{ form_data.bureau_name|default:'' }}" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Email <span class="text-danger">*</span></label>
+      <input type="email" name="email" class="form-control" value="{{ form_data.email|default:'' }}" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Password <span class="text-danger">*</span></label>
+      <input type="password" name="password" id="password" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+      <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+      <small id="password-match-hint" class="text-danger d-none">Passwords do not match.</small>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+      <input type="tel"
+             name="phone_number"
+             class="form-control"
+             inputmode="numeric"
+             maxlength="10"
+             pattern="[0-9]{10}"
+             autocomplete="tel-national"
+             value="{{ form_data.phone_number|default:'' }}"
+             required>
+      <div class="form-text">Enter 10-digit mobile number</div>
+      {% include "otp_verification/partials/mobile_verification.html" with id_prefix="bureau_mv" phone_input_name="phone_number" flow_type="bureau_registration" action_btn_class="btn btn-outline-primary" %}
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Address <span class="text-danger">*</span></label>
+      <textarea name="address" class="form-control" required>{{ form_data.address|default:'' }}</textarea>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">City <span class="text-danger">*</span></label>
+      <input type="text" name="city" class="form-control" value="{{ form_data.city|default:'' }}" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">WhatsApp Number (optional)</label>
+      <input type="text" name="whatsapp_number" class="form-control" value="{{ form_data.whatsapp_number|default:'' }}">
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Register</button>
+  </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    const form = document.getElementById("bureau-register-form");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const hint = document.getElementById("password-match-hint");
+
+    function syncPasswordHint() {
+      const hasMismatch = password.value && confirmPassword.value && password.value !== confirmPassword.value;
+      hint.classList.toggle("d-none", !hasMismatch);
+      confirmPassword.setCustomValidity(hasMismatch ? "Passwords do not match." : "");
+    }
+
+    password.addEventListener("input", syncPasswordHint);
+    confirmPassword.addEventListener("input", syncPasswordHint);
+    form.addEventListener("submit", syncPasswordHint);
+  })();
+</script>
+{% endblock %}
