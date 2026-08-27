@@ -4,10 +4,24 @@ from .models import BureauProfile
 
 
 def get_visible_bureaus():
-    return BureauProfile.objects.filter(
-        is_active=True,
-        is_approved=True,
-        is_email_verified=True,
+    """Public Bureau visibility queryset.
+
+    Requires status flags plus the same completeness rule as
+    is_profile_complete_for_listing() (truthy description/phone/address/city
+    and non-empty caste_data). Empty strings and caste_data={} are excluded;
+    whitespace-only strings remain included to match listing-helper truthiness.
+    """
+    return (
+        BureauProfile.objects.filter(
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        .exclude(description="")
+        .exclude(phone_number="")
+        .exclude(address="")
+        .exclude(city="")
+        .exclude(caste_data={})
     )
 
 

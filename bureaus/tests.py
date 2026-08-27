@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -22,6 +23,12 @@ from django.utils import timezone
 from accounts.email_verification import verify_email
 from accounts.models import EmailVerificationToken
 from bureaus.models import BureauBookingIntent, BureauProfile
+from bureaus.utils import (
+    get_bureau_for_user,
+    get_homepage_bureaus,
+    get_visible_bureaus,
+    is_profile_complete_for_listing,
+)
 from otp_verification import constants as otp_constants
 from otp_verification.registration.completions import _complete_bureau
 
@@ -46,20 +53,26 @@ def _make_bureau(
     email: str,
     bureau_name: str = "Test Marriage Bureau",
     city: str = "Hyderabad",
+    phone_number: str = "9876543210",
+    address: str = "12 Test Street",
+    description: str = "Full bureau description for listing completeness.",
+    caste_data: dict | None = None,
     is_active: bool = False,
     is_approved: bool = False,
     is_email_verified: bool = False,
 ) -> BureauProfile:
     user = _make_user(email=email)
+    if caste_data is None:
+        caste_data = {"OC": ["brahmin"]}
     return BureauProfile.objects.create(
         user=user,
         bureau_name=bureau_name,
-        phone_number="9876543210",
+        phone_number=phone_number,
         whatsapp_number="",
-        address="12 Test Street",
+        address=address,
         city=city,
-        description="Full bureau description for listing completeness.",
-        caste_data={"OC": ["brahmin"]},
+        description=description,
+        caste_data=caste_data,
         is_active=is_active,
         is_approved=is_approved,
         is_email_verified=is_email_verified,
@@ -566,6 +579,130 @@ class BureauSmokeTests(TestCase):
             reverse("bureaus:bureau_detail", kwargs={"public_id": visible.public_id})
         )
         self.assertEqual(visible_detail.status_code, 200)
+
+    def test_get_visible_bureaus_requires_listing_completeness(self):
+        """Public visibility queryset requires flags plus listing completeness."""
+        complete = _make_bureau(
+            email="visible-complete@example.com",
+            bureau_name="Complete Visible Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        missing_description = _make_bureau(
+            email="missing-description@example.com",
+            bureau_name="Missing Description Bureau",
+            description="",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        missing_phone = _make_bureau(
+            email="missing-phone@example.com",
+            bureau_name="Missing Phone Bureau",
+            phone_number="",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        missing_address = _make_bureau(
+            email="missing-address@example.com",
+            bureau_name="Missing Address Bureau",
+            address="",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        missing_city = _make_bureau(
+            email="missing-city@example.com",
+            bureau_name="Missing City Bureau",
+            city="",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        empty_caste = _make_bureau(
+            email="empty-caste@example.com",
+            bureau_name="Empty Caste Bureau",
+            caste_data={},
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        inactive = _make_bureau(
+            email="inactive-complete@example.com",
+            bureau_name="Inactive Complete Bureau",
+            is_active=False,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        unapproved = _make_bureau(
+            email="unapproved-complete@example.com",
+            bureau_name="Unapproved Complete Bureau",
+            is_active=True,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        unverified = _make_bureau(
+            email="unverified-complete@example.com",
+            bureau_name="Unverified Complete Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=False,
+        )
+
+        qs = get_visible_bureaus()
+        self.assertIsInstance(qs, QuerySet)
+        visible_ids = set(qs.values_list("id", flat=True))
+        self.assertIn(complete.id, visible_ids)
+        self.assertNotIn(missing_description.id, visible_ids)
+        self.assertNotIn(missing_phone.id, visible_ids)
+        self.assertNotIn(missing_address.id, visible_ids)
+        self.assertNotIn(missing_city.id, visible_ids)
+        self.assertNotIn(empty_caste.id, visible_ids)
+        self.assertNotIn(inactive.id, visible_ids)
+        self.assertNotIn(unapproved.id, visible_ids)
+        self.assertNotIn(unverified.id, visible_ids)
+
+        self.assertTrue(is_profile_complete_for_listing(complete))
+        self.assertFalse(is_profile_complete_for_listing(missing_description))
+        self.assertFalse(is_profile_complete_for_listing(empty_caste))
+
+        list_response = self.client.get(reverse("bureaus:bureau_list"))
+        self.assertEqual(list_response.status_code, 200)
+        body = list_response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Complete Visible Bureau", body)
+        self.assertNotIn("Missing Description Bureau", body)
+        self.assertNotIn("Empty Caste Bureau", body)
+
+        incomplete_detail = self.client.get(
+            reverse(
+                "bureaus:bureau_detail",
+                kwargs={"public_id": missing_description.public_id},
+            )
+        )
+        self.assertEqual(incomplete_detail.status_code, 302)
+        self.assertTrue(incomplete_detail["Location"].endswith("/bureaus/"))
+
+        homepage = get_homepage_bureaus()
+        homepage_ids = {b.id for b in homepage}
+        self.assertIn(complete.id, homepage_ids)
+        self.assertNotIn(missing_description.id, homepage_ids)
+        self.assertNotIn(empty_caste.id, homepage_ids)
+
+    def test_incomplete_public_profile_does_not_block_owner_lookup(self):
+        """Owner access helper stays flag-based; completeness is public-only."""
+        incomplete = _make_bureau(
+            email="owner-incomplete@example.com",
+            bureau_name="Owner Incomplete Bureau",
+            description="",
+            caste_data={},
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.assertNotIn(incomplete.id, get_visible_bureaus().values_list("id", flat=True))
+        self.assertEqual(get_bureau_for_user(incomplete.user).id, incomplete.id)
 
     def test_public_profile_visible_bureau_ok(self):
         """A fully visible bureau public profile returns HTTP 200."""
