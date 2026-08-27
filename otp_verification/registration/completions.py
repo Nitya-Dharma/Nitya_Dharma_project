@@ -160,6 +160,13 @@ def _complete_bureau(payload: dict[str, Any]) -> dict[str, Any]:
             is_approved=False,
             is_email_verified=False,
         )
+        try:
+            from accounts.email_verification import create_email_verification
+
+            create_email_verification(user)
+        except Exception:
+            logger.exception("Failed to create email verification after bureau OTP")
+
     return {"flow_type": constants.FLOW_BUREAU_REGISTRATION, "user_id": user.id, "email": email}
 
 

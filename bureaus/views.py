@@ -991,6 +991,15 @@ def bureau_register_view(request):
             status=500,
         )
 
+    try:
+        from accounts.email_verification import create_email_verification
+
+        create_email_verification(user)
+    except Exception:
+        logger.exception(
+            "Failed to create email verification after bureau registration"
+        )
+
     messages.success(request, "Registration successful. Awaiting admin approval.")
     from otp_verification.registration.session import consume_phone_verified_session
     consume_phone_verified_session(request)

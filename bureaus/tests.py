@@ -7,15 +7,23 @@ Does not exercise Pandit, Temple, Ads, or production implementations.
 
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
+from accounts.email_verification import verify_email
+from accounts.models import EmailVerificationToken
 from bureaus.models import BureauBookingIntent, BureauProfile
+from otp_verification import constants as otp_constants
+from otp_verification.registration.completions import _complete_bureau
 
 User = get_user_model()
 
@@ -90,12 +98,16 @@ class BureauSmokeTests(TestCase):
                 "otp_verification.registration.gate.begin_otp_or_continue",
                 return_value=otp_response,
             ) as begin_otp,
+            patch(
+                "accounts.email_verification.create_email_verification"
+            ) as create_email_verification,
         ):
             response = self.client.post(register_url, payload)
 
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.content, b"otp-challenge")
         begin_otp.assert_called_once()
+        create_email_verification.assert_not_called()
         self.assertFalse(User.objects.filter(email__iexact=payload["email"]).exists())
         self.assertFalse(
             BureauProfile.objects.filter(bureau_name=payload["bureau_name"]).exists()
@@ -372,6 +384,140 @@ class BureauSmokeTests(TestCase):
         self.assertFalse(profile.is_active)
         self.assertFalse(profile.is_approved)
         self.assertFalse(profile.is_email_verified)
+
+    def test_direct_registration_initiates_email_verification(self):
+        """Successful direct Bureau create calls existing create_email_verification once."""
+        register_url = reverse("bureaus:bureau_register")
+        payload = {
+            "bureau_name": "Email Init Bureau",
+            "email": "email-init-bureau@example.com",
+            "password": "BureauTestPass123!",
+            "confirm_password": "BureauTestPass123!",
+            "phone_number": "9123456793",
+            "address": "9 Email Init Road",
+            "city": "Hyderabad",
+            "whatsapp_number": "",
+        }
+
+        with (
+            patch(
+                "otp_verification.registration.factory.is_registration_otp_required",
+                return_value=False,
+            ),
+            patch(
+                "otp_verification.registration.session.consume_phone_verified_session",
+                return_value=None,
+            ),
+            patch(
+                "accounts.email_verification.create_email_verification"
+            ) as create_email_verification,
+        ):
+            response = self.client.post(register_url, payload)
+
+        self.assertEqual(response.status_code, 201)
+        user = User.objects.get(email__iexact=payload["email"])
+        profile = BureauProfile.objects.get(user=user)
+        create_email_verification.assert_called_once_with(user)
+        self.assertEqual(user.role, "user")
+        self.assertFalse(profile.is_active)
+        self.assertFalse(profile.is_approved)
+        self.assertFalse(profile.is_email_verified)
+
+    def test_otp_bureau_completion_initiates_email_verification(self):
+        """Successful _complete_bureau calls existing create_email_verification once."""
+        payload = {
+            "email": "otp-complete-bureau@example.com",
+            "password_hash": make_password("BureauTestPass123!"),
+            "bureau_name": "OTP Complete Bureau",
+            "phone_number": "9123456794",
+            "address": "10 OTP Complete Road",
+            "city": "Hyderabad",
+            "whatsapp_number": "",
+        }
+
+        with patch(
+            "accounts.email_verification.create_email_verification"
+        ) as create_email_verification:
+            result = _complete_bureau(payload)
+
+        user = User.objects.get(email__iexact=payload["email"])
+        profile = BureauProfile.objects.get(user=user)
+        self.assertEqual(result["flow_type"], otp_constants.FLOW_BUREAU_REGISTRATION)
+        self.assertEqual(result["user_id"], user.id)
+        create_email_verification.assert_called_once_with(user)
+        self.assertEqual(user.role, "user")
+        self.assertFalse(profile.is_active)
+        self.assertFalse(profile.is_approved)
+        self.assertFalse(profile.is_email_verified)
+
+    def test_bureau_email_verification_syncs_profile_flag(self):
+        """Valid verify_email sets User + BureauProfile email verified flags only."""
+        profile = _make_bureau(email="bureau-verify-sync@example.com")
+        user = profile.user
+        self.assertFalse(user.email_verified)
+        self.assertFalse(profile.is_email_verified)
+        token = EmailVerificationToken.objects.create(user=user)
+
+        verify_email(token.token)
+
+        user.refresh_from_db()
+        profile.refresh_from_db()
+        self.assertTrue(user.email_verified)
+        self.assertIsNotNone(user.email_verified_at)
+        self.assertTrue(profile.is_email_verified)
+        self.assertFalse(profile.is_active)
+        self.assertFalse(profile.is_approved)
+        self.assertEqual(user.role, "user")
+
+    def test_normal_user_email_verification_creates_no_bureau_profile(self):
+        """Valid verify_email for a non-bureau user does not create BureauProfile."""
+        user = _make_user(email="plain-verify@example.com")
+        self.assertFalse(user.email_verified)
+        self.assertFalse(BureauProfile.objects.filter(user=user).exists())
+        token = EmailVerificationToken.objects.create(user=user)
+
+        verify_email(token.token)
+
+        user.refresh_from_db()
+        self.assertTrue(user.email_verified)
+        self.assertIsNotNone(user.email_verified_at)
+        self.assertFalse(BureauProfile.objects.filter(user=user).exists())
+
+    def test_invalid_expired_used_token_does_not_sync_bureau_flag(self):
+        """Invalid, expired, and used tokens leave BureauProfile.is_email_verified False."""
+        profile = _make_bureau(email="bureau-bad-token@example.com")
+        user = profile.user
+
+        with self.assertRaises(ValidationError):
+            verify_email("not-a-real-verification-token")
+        profile.refresh_from_db()
+        self.assertFalse(profile.is_email_verified)
+        self.assertFalse(user.email_verified)
+
+        expired = EmailVerificationToken.objects.create(user=user)
+        EmailVerificationToken.objects.filter(pk=expired.pk).update(
+            expires_at=timezone.now() - timedelta(hours=1)
+        )
+        expired.refresh_from_db()
+        with self.assertRaises(ValidationError):
+            verify_email(expired.token)
+        profile.refresh_from_db()
+        user.refresh_from_db()
+        self.assertFalse(profile.is_email_verified)
+        self.assertFalse(user.email_verified)
+
+        used = EmailVerificationToken.objects.create(user=user)
+        EmailVerificationToken.objects.filter(pk=used.pk).update(
+            is_used=True,
+            used_at=timezone.now(),
+        )
+        used.refresh_from_db()
+        with self.assertRaises(ValidationError):
+            verify_email(used.token)
+        profile.refresh_from_db()
+        user.refresh_from_db()
+        self.assertFalse(profile.is_email_verified)
+        self.assertFalse(user.email_verified)
 
     def test_unauthorized_dashboard_access_rejected(self):
         """Anonymous and non-bureau users cannot open the Bureau dashboard."""

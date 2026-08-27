@@ -392,6 +392,12 @@ def verify_email(token):
             user.email_verified = True
             user.email_verified_at = timezone.now()
             user.save(update_fields=['email_verified', 'email_verified_at'])
+
+            # Bureau-only sync: flip BureauProfile.is_email_verified when a profile exists.
+            # Queryset update avoids save()/signals and does not approve or activate.
+            from bureaus.models import BureauProfile
+
+            BureauProfile.objects.filter(user=user).update(is_email_verified=True)
             
             # TASK 17: Verify that role/status were NOT changed by this operation
             user.refresh_from_db()
