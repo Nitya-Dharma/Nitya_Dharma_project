@@ -16,6 +16,27 @@
     {% endfor %}
   {% endif %}
 
+  <div class="alert alert-light border mt-2 mb-3" role="note">
+    <p class="mb-2 mb-md-1">
+      After registering, check your inbox and spam folder for a verification email.
+      Email verification is required before your bureau can be approved and activated.
+    </p>
+    {% if user.is_authenticated %}
+      <p class="mb-2">Didn't receive the verification email?</p>
+      <form method="post" action="{% url 'bureaus:bureau_resend_verification' %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-primary">
+          Resend verification email
+        </button>
+      </form>
+    {% else %}
+      <p class="mb-0">
+        Didn't receive the verification email?
+        <a href="{% url 'accounts:login' %}">Log in</a> to resend it.
+      </p>
+    {% endif %}
+  </div>
+
   <form method="post" action="/bureaus/register/" class="mt-3" id="bureau-register-form">
     {% csrf_token %}
     <div class="mb-2">

@@ -28,6 +28,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .models import BureauBookingIntent, BureauProfile, BureauReview
@@ -862,6 +863,53 @@ def bureau_profile_edit_view(request):
 
     messages.success(request, "Profile updated successfully.")
     return redirect("/dashboard/bureau/")
+
+
+@login_required
+@require_POST
+@csrf_protect
+def resend_bureau_verification_view(request):
+    """Authenticated Bureau owner self-service email verification resend."""
+    from bureaus.services_verification import (
+        BureauResendCooldownNotElapsed,
+        BureauResendNotAllowed,
+        BureauVerificationAlreadyCompleted,
+        resend_bureau_verification_email,
+    )
+
+    try:
+        resend_bureau_verification_email(request.user)
+    except BureauVerificationAlreadyCompleted:
+        messages.info(
+            request,
+            "Your email is already verified. No action needed.",
+        )
+    except BureauResendCooldownNotElapsed as exc:
+        messages.warning(request, str(exc))
+    except BureauResendNotAllowed:
+        messages.error(
+            request,
+            "Email verification resend is only available for Bureau owner accounts.",
+        )
+        return redirect("core:home")
+    except ValidationError as exc:
+        messages.error(request, str(exc))
+    except Exception:
+        logger.exception(
+            "Unexpected error resending Bureau verification for %s",
+            getattr(request.user, "email", "unknown"),
+        )
+        messages.error(
+            request,
+            "Failed to send verification email. Please try again later.",
+        )
+    else:
+        messages.success(
+            request,
+            "Verification email has been sent. Please check your inbox and spam folder.",
+        )
+
+    return redirect("bureaus:bureau_register")
 
 
 @require_http_methods(["GET", "POST"])

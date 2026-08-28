@@ -1378,3 +1378,180 @@ class BureauSuperAdminReviewTests(TestCase):
         self.assertNotIn('action="%s"' % activate_url, body)
         self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Approve\s*</button>')
         self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Activate\s*</button>')
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauResendVerificationTests(TestCase):
+    """Bureau owner authenticated email verification resend."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.resend_url = reverse("bureaus:bureau_resend_verification")
+        self.register_url = reverse("bureaus:bureau_register")
+
+    def test_anonymous_post_rejected(self):
+        response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+
+    def test_non_bureau_user_cannot_resend(self):
+        user = _make_user(email="plain-resend@example.com")
+        self.client.force_login(user)
+        response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("/bureaus/resend-verification/", response["Location"])
+
+    def test_unverified_bureau_owner_can_resend(self):
+        bureau = _make_bureau(email="bureau-resend-ok@example.com")
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.register_url)
+        create_email_verification.assert_called_once_with(bureau.user)
+
+    def test_verified_bureau_owner_cannot_resend(self):
+        bureau = _make_bureau(
+            email="bureau-resend-verified@example.com",
+            is_email_verified=True,
+        )
+        bureau.user.email_verified = True
+        bureau.user.email_verified_at = timezone.now()
+        bureau.user.save(update_fields=["email_verified", "email_verified_at"])
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_not_called()
+
+    def test_unapproved_bureau_owner_can_resend(self):
+        bureau = _make_bureau(
+            email="bureau-resend-unapproved@example.com",
+            is_approved=False,
+            is_active=False,
+        )
+        self.assertFalse(bureau.is_approved)
+        self.assertFalse(bureau.is_active)
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_called_once_with(bureau.user)
+        bureau.refresh_from_db()
+        self.assertFalse(bureau.is_approved)
+        self.assertFalse(bureau.is_active)
+
+    def test_inactive_bureau_owner_can_resend(self):
+        bureau = _make_bureau(
+            email="bureau-resend-inactive@example.com",
+            is_active=False,
+        )
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_called_once_with(bureau.user)
+        bureau.refresh_from_db()
+        self.assertFalse(bureau.is_active)
+
+    def test_endpoint_is_self_only_no_target_params(self):
+        owner = _make_bureau(email="bureau-resend-owner@example.com")
+        other = _make_bureau(email="bureau-resend-other@example.com")
+        self.client.force_login(owner.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(
+                self.resend_url,
+                data={"email": other.user.email, "user_id": other.user.id},
+            )
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_called_once_with(owner.user)
+
+    def test_cooldown_enforced(self):
+        bureau = _make_bureau(email="bureau-resend-cooldown@example.com")
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            first = self.client.post(self.resend_url)
+            second = self.client.post(self.resend_url)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(create_email_verification.call_count, 1)
+
+    def test_daily_limit_enforced(self):
+        bureau = _make_bureau(email="bureau-resend-limit@example.com")
+        user = bureau.user
+        user.last_verification_email_sent_at = timezone.now()
+        user.save(update_fields=["last_verification_email_sent_at"])
+        for _ in range(5):
+            EmailVerificationToken.objects.create(user=user)
+        self.client.force_login(user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_not_called()
+
+    def test_resend_invalidates_old_active_token_via_shared_helper(self):
+        bureau = _make_bureau(email="bureau-resend-token@example.com")
+        user = bureau.user
+        old_token = EmailVerificationToken.objects.create(user=user)
+        self.assertFalse(old_token.is_used)
+        self.client.force_login(user)
+        response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        old_token.refresh_from_db()
+        self.assertTrue(old_token.is_used)
+        new_token = (
+            EmailVerificationToken.objects.filter(user=user, is_used=False)
+            .order_by("-created_at")
+            .first()
+        )
+        self.assertIsNotNone(new_token)
+        self.assertNotEqual(old_token.token, new_token.token)
+
+    def test_lifecycle_fields_unchanged_after_resend(self):
+        bureau = _make_bureau(
+            email="bureau-resend-flags@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        original_user_id = bureau.user_id
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url)
+        self.assertEqual(response.status_code, 302)
+        create_email_verification.assert_called_once_with(bureau.user)
+        bureau.refresh_from_db()
+        self.assertFalse(bureau.is_active)
+        self.assertFalse(bureau.is_approved)
+        self.assertFalse(bureau.is_email_verified)
+        self.assertEqual(bureau.user_id, original_user_id)
+
+    def test_success_redirect_and_message(self):
+        bureau = _make_bureau(email="bureau-resend-success@example.com")
+        self.client.force_login(bureau.user)
+        with patch(
+            "bureaus.services_verification.create_email_verification"
+        ) as create_email_verification:
+            response = self.client.post(self.resend_url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request["PATH_INFO"], self.register_url)
+        create_email_verification.assert_called_once_with(bureau.user)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Verification email has been sent", body)

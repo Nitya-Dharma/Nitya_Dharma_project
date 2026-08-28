@@ -14,6 +14,11 @@ app_name = "bureaus"
 urlpatterns = [
     path("", bureau_list_view, name="bureau_list"),
     path("register/", bureau_register_view, name="bureau_register"),
+    path(
+        "resend-verification/",
+        views.resend_bureau_verification_view,
+        name="bureau_resend_verification",
+    ),
     path("profile/edit/", bureau_profile_edit_view, name="bureau_profile_edit"),
     path(
         "intent/<int:intent_id>/mark-viewed/",
