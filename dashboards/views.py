@@ -156,6 +156,18 @@ def dashboard_user(request):
     
     Display-only UI - no logic, no computation.
     """
+    # Bureau accounts are not end users; always route them to bureau dashboard.
+    # Keep this guard before role='user' handling because bureau accounts may
+    # still use role='user' in the auth model.
+    from bureaus.utils import get_bureau_for_user
+    bureau_profile = get_bureau_for_user(request.user)
+    if bureau_profile and bureau_profile.is_active and bureau_profile.is_approved and bureau_profile.is_email_verified:
+        return redirect("/dashboard/bureau/")
+
+    from bureaus.models import BureauProfile
+    if BureauProfile.objects.filter(user=request.user).exists():
+        return redirect("bureaus:bureau_owner_status")
+
     # Role-based redirect: Only regular users can access this dashboard
     if request.user.is_superuser:
         return redirect('module5_dashboards:dashboard_super_admin')

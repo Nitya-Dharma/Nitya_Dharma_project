@@ -1688,3 +1688,68 @@ class BureauOwnerStatusTests(TestCase):
     def test_phase6_resend_tests_still_present(self):
         """Guard: Phase 6 resend test class remains importable and runnable."""
         self.assertTrue(hasattr(BureauResendVerificationTests, "test_anonymous_post_rejected"))
+
+
+class BureauOwnerDashboardRoutingTests(TestCase):
+    """Phase 7 Slice B: pending Bureau owners route to status from user dashboard."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.dashboard_user_url = reverse("module5_dashboards:dashboard_user")
+        self.status_url = reverse("bureaus:bureau_owner_status")
+        self.bureau_dashboard_url = "/dashboard/bureau/"
+
+    def _login_phone_verified(self, user):
+        user.is_phone_verified = True
+        user.save(update_fields=["is_phone_verified"])
+        self.client.force_login(user)
+
+    def test_normal_user_dashboard_unchanged(self):
+        user = _make_user(email="sliceb-plain-user@example.com")
+        self._login_phone_verified(user)
+        response = self.client.get(self.dashboard_user_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(BureauProfile.objects.filter(user=user).exists())
+
+    def test_pending_bureau_owner_redirects_to_status(self):
+        bureau = _make_bureau(email="sliceb-pending@example.com")
+        self._login_phone_verified(bureau.user)
+        response = self.client.get(self.dashboard_user_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+
+    def test_fully_eligible_bureau_owner_redirects_to_bureau_dashboard(self):
+        bureau = _make_bureau(
+            email="sliceb-eligible@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self._login_phone_verified(bureau.user)
+        response = self.client.get(self.dashboard_user_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.bureau_dashboard_url)
+
+    def test_pending_bureau_owner_does_not_mutate_lifecycle(self):
+        bureau = _make_bureau(
+            email="sliceb-immutable@example.com",
+            is_approved=True,
+            is_active=False,
+            is_email_verified=False,
+        )
+        before = {
+            "is_email_verified": bureau.is_email_verified,
+            "is_approved": bureau.is_approved,
+            "is_active": bureau.is_active,
+            "user_id": bureau.user_id,
+        }
+        self._login_phone_verified(bureau.user)
+        response = self.client.get(self.dashboard_user_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+        bureau.refresh_from_db()
+        self.assertEqual(bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(bureau.is_approved, before["is_approved"])
+        self.assertEqual(bureau.is_active, before["is_active"])
+        self.assertEqual(bureau.user_id, before["user_id"])
