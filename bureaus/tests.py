@@ -22,7 +22,7 @@ from django.utils import timezone
 
 from accounts.email_verification import verify_email
 from accounts.models import EmailVerificationToken
-from bureaus.models import BureauBookingIntent, BureauProfile
+from bureaus.models import BureauBookingIntent, BureauProfile, BureauReview
 from bureaus.utils import (
     get_bureau_for_user,
     get_homepage_bureaus,
@@ -792,6 +792,126 @@ class BureauSmokeTests(TestCase):
         denied = self.client.get(edit_url)
         self.assertEqual(denied.status_code, 302)
         self.assertNotIn("/bureaus/profile/edit/", denied["Location"])
+
+
+class BureauReviewSubmissionTests(TestCase):
+    """Regression tests for bureau_review_submit_view (test-only slice)."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.reviewer = _make_user(email="review-submitter@example.com")
+        self.bureau = _make_bureau(
+            email="review-target-bureau@example.com",
+            bureau_name="Review Target Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.review_url = reverse(
+            "bureaus:bureau_review",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+
+    def test_anonymous_submission_rejected(self):
+        response = self.client.post(
+            self.review_url,
+            {"rating": "5", "review_text": "Should not be saved."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+        self.assertIn(f"/bureaus/{self.bureau.public_id}/", response["Location"])
+        self.assertFalse(BureauReview.objects.filter(bureau=self.bureau).exists())
+
+    def test_valid_review_for_visible_bureau_creates_and_upserts(self):
+        self.client.force_login(self.reviewer)
+        response = self.client.post(
+            self.review_url,
+            {"rating": "4", "review_text": "Good experience."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], f"/bureaus/{self.bureau.public_id}/")
+        review = BureauReview.objects.get(bureau=self.bureau, user=self.reviewer)
+        self.assertEqual(review.rating, 4)
+        self.assertEqual(review.review_text, "Good experience.")
+
+        response = self.client.post(
+            self.review_url,
+            {"rating": "5", "review_text": "Updated review."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            BureauReview.objects.filter(bureau=self.bureau, user=self.reviewer).count(),
+            1,
+        )
+        review.refresh_from_db()
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(review.review_text, "Updated review.")
+
+    def test_hidden_bureau_rejects_review(self):
+        hidden = _make_bureau(
+            email="hidden-review-bureau@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        url = reverse("bureaus:bureau_review", kwargs={"public_id": hidden.public_id})
+        self.client.force_login(self.reviewer)
+        response = self.client.post(
+            url,
+            {"rating": "5", "review_text": "Should not be saved."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/bureaus/")
+        self.assertFalse(BureauReview.objects.filter(bureau=hidden).exists())
+
+    def test_invalid_rating_rejected(self):
+        self.client.force_login(self.reviewer)
+        response = self.client.post(
+            self.review_url,
+            {"rating": "99", "review_text": "Invalid rating."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], f"/bureaus/{self.bureau.public_id}/")
+        self.assertFalse(BureauReview.objects.filter(bureau=self.bureau).exists())
+
+    def test_rate_limit_enforced(self):
+        self.client.force_login(self.reviewer)
+        for i in range(3):
+            response = self.client.post(
+                self.review_url,
+                {"rating": str(i + 1), "review_text": f"Review attempt {i + 1}."},
+            )
+            self.assertEqual(response.status_code, 302, msg=f"attempt {i + 1}")
+            self.assertEqual(response["Location"], f"/bureaus/{self.bureau.public_id}/")
+
+        limited = self.client.post(
+            self.review_url,
+            {"rating": "5", "review_text": "Should be rate limited."},
+        )
+        self.assertEqual(limited.status_code, 302)
+        self.assertEqual(limited["Location"], f"/bureaus/{self.bureau.public_id}/")
+        self.assertEqual(
+            BureauReview.objects.filter(bureau=self.bureau, user=self.reviewer).count(),
+            1,
+        )
+
+    def test_submission_does_not_mutate_lifecycle_flags(self):
+        self.client.force_login(self.reviewer)
+        before = {
+            "is_email_verified": self.bureau.is_email_verified,
+            "is_approved": self.bureau.is_approved,
+            "is_active": self.bureau.is_active,
+        }
+        response = self.client.post(
+            self.review_url,
+            {"rating": "5", "review_text": "Lifecycle check."},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(self.bureau.is_approved, before["is_approved"])
+        self.assertEqual(self.bureau.is_active, before["is_active"])
 
 
 @override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
