@@ -862,7 +862,9 @@ def bureau_profile_edit_view(request):
         )
 
     messages.success(request, "Profile updated successfully.")
-    return redirect("/dashboard/bureau/")
+    if get_bureau_for_user(request.user) is not None:
+        return redirect("/dashboard/bureau/")
+    return redirect("bureaus:bureau_owner_status")
 
 
 @login_required

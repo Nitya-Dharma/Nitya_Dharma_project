@@ -946,6 +946,137 @@ class BureauOwnerProfileEditAuthTests(TestCase):
 
 
 @override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauOwnerProfileEditRedirectTests(TestCase):
+    """Profile-edit success redirect alignment (Phase 7 post-Slice C)."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.edit_url = reverse("bureaus:bureau_profile_edit")
+        self.dashboard_url = "/dashboard/bureau/"
+        self.status_url = reverse("bureaus:bureau_owner_status")
+
+    def _post_profile(self, **overrides):
+        payload = {
+            "description": "Updated bureau description for owner edit.",
+            "phone_number": "9876543210",
+            "whatsapp_number": "",
+            "address": "99 Owner Edit Road",
+            "city": "Hyderabad",
+            "caste_data": '{"OC": ["brahmin"]}',
+        }
+        payload.update(overrides)
+        return self.client.post(self.edit_url, payload)
+
+    @patch(
+        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
+    )
+    @patch(
+        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
+        return_value="",
+    )
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_eligible_owner_success_redirects_to_dashboard(
+        self, _widget, _raw, _sync
+    ):
+        bureau = _make_bureau(
+            email="edit-redirect-eligible@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self._post_profile()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.dashboard_url)
+
+    @patch(
+        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
+    )
+    @patch(
+        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
+        return_value="",
+    )
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_non_eligible_owner_success_redirects_to_status(
+        self, _widget, _raw, _sync
+    ):
+        bureau = _make_bureau(
+            email="edit-redirect-pending@example.com",
+            description="",
+            caste_data={},
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self._post_profile()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+
+    @patch(
+        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
+    )
+    @patch(
+        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
+        return_value="",
+    )
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_successful_edit_does_not_mutate_lifecycle_for_pending_owner(
+        self, _widget, _raw, _sync
+    ):
+        bureau = _make_bureau(
+            email="edit-redirect-immutable@example.com",
+            description="",
+            caste_data={},
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        before = {
+            "is_email_verified": bureau.is_email_verified,
+            "is_approved": bureau.is_approved,
+            "is_active": bureau.is_active,
+            "user_id": bureau.user_id,
+        }
+        self.client.force_login(bureau.user)
+        response = self._post_profile()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+        bureau.refresh_from_db()
+        self.assertEqual(bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(bureau.is_approved, before["is_approved"])
+        self.assertEqual(bureau.is_active, before["is_active"])
+        self.assertEqual(bureau.user_id, before["user_id"])
+
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_unverified_owner_still_denied(self, _widget):
+        bureau = _make_bureau(
+            email="edit-redirect-unverified@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        self.client.force_login(bureau.user)
+        response = self._post_profile()
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("/bureaus/profile/edit/", response["Location"])
+        self.assertNotEqual(response["Location"], self.status_url)
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
 class BureauSuperAdminApproveTests(TestCase):
     """approve_bureau is Super Admin only; sets is_approved only."""
 
