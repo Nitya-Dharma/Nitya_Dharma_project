@@ -76,6 +76,7 @@ urlpatterns = [
     path('profiles/', include('profiles.urls')),  # Profiles app URLs
     path('api/pandit/', include('profiles.api.urls')),  # STEP-2: Pandit location update API
     path('referrals/', include('referrals.urls')),
+    path('dashboard/bureau/', include(('bureaus.dashboard_urls', 'bureaus_dashboard'), namespace='bureaus_dashboard')),
     path('dashboard/', include('dashboards.urls')),
     path('dashboard/super-admin/advertisements/', include(('ads.urls', 'ads'))),
     path('track/ad/', include('ads_analytics.urls')),
