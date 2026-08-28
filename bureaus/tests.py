@@ -26,6 +26,7 @@ from bureaus.models import BureauBookingIntent, BureauProfile
 from bureaus.utils import (
     get_bureau_for_user,
     get_homepage_bureaus,
+    get_owned_email_verified_bureau,
     get_visible_bureaus,
     is_profile_complete_for_listing,
 )
@@ -791,6 +792,159 @@ class BureauSmokeTests(TestCase):
         denied = self.client.get(edit_url)
         self.assertEqual(denied.status_code, 302)
         self.assertNotIn("/bureaus/profile/edit/", denied["Location"])
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauOwnerProfileEditAuthTests(TestCase):
+    """Owner profile-edit auth: ownership + email verified; not approval/activation."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.edit_url = reverse("bureaus:bureau_profile_edit")
+
+    def _post_profile(self, **overrides):
+        payload = {
+            "description": "Updated bureau description for owner edit.",
+            "phone_number": "9876543210",
+            "whatsapp_number": "",
+            "address": "99 Owner Edit Road",
+            "city": "Hyderabad",
+            "caste_data": '{"OC": ["brahmin"]}',
+        }
+        payload.update(overrides)
+        return self.client.post(self.edit_url, payload)
+
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_verified_owner_unapproved_inactive_can_open_edit(self, _widget):
+        bureau = _make_bureau(
+            email="owner-edit-ok@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.edit_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("bureau_profile", response.context)
+        self.assertEqual(response.context["bureau_profile"].id, bureau.id)
+
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_verified_owner_incomplete_can_open_edit(self, _widget):
+        bureau = _make_bureau(
+            email="owner-edit-incomplete@example.com",
+            description="",
+            caste_data={},
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.edit_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_unverified_owner_denied(self):
+        bureau = _make_bureau(
+            email="owner-edit-unverified@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.edit_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("/bureaus/profile/edit/", response["Location"])
+
+    def test_non_owner_and_anonymous_denied(self):
+        _make_bureau(
+            email="owner-edit-target@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        anon = self.client.get(self.edit_url)
+        self.assertEqual(anon.status_code, 302)
+        self.assertIn("/accounts/login/", anon["Location"])
+
+        other = _make_user(email="owner-edit-other@example.com")
+        self.client.force_login(other)
+        denied = self.client.get(self.edit_url)
+        self.assertEqual(denied.status_code, 302)
+        self.assertNotIn("/bureaus/profile/edit/", denied["Location"])
+
+    @patch(
+        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
+    )
+    @patch(
+        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
+        return_value="",
+    )
+    @patch(
+        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
+        return_value={},
+    )
+    def test_owner_edit_preserves_lifecycle_flags_and_ownership(
+        self, _widget, _raw, _sync
+    ):
+        bureau = _make_bureau(
+            email="owner-edit-flags@example.com",
+            description="",
+            caste_data={},
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        owner_id = bureau.user_id
+        self.client.force_login(bureau.user)
+
+        response = self._post_profile(
+            is_approved="true",
+            is_active="true",
+            is_email_verified="false",
+            user=str(owner_id + 999),
+            role="admin",
+            status="pending",
+        )
+        self.assertIn(response.status_code, (302, 200))
+
+        bureau.refresh_from_db()
+        self.assertFalse(bureau.is_approved)
+        self.assertFalse(bureau.is_active)
+        self.assertTrue(bureau.is_email_verified)
+        self.assertEqual(bureau.user_id, owner_id)
+        self.assertEqual(bureau.description, "Updated bureau description for owner edit.")
+        self.assertEqual(bureau.address, "99 Owner Edit Road")
+        self.assertEqual(bureau.city, "Hyderabad")
+        self.assertEqual(bureau.caste_data, {"OC": ["brahmin"]})
+        self.assertNotIn(bureau.id, get_visible_bureaus().values_list("id", flat=True))
+
+    def test_get_bureau_for_user_unchanged_for_pre_approval_owner(self):
+        bureau = _make_bureau(
+            email="owner-edit-helper@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.assertIsNone(get_bureau_for_user(bureau.user))
+        owned = get_owned_email_verified_bureau(bureau.user)
+        self.assertIsNotNone(owned)
+        self.assertEqual(owned.id, bureau.id)
+
+        eligible = _make_bureau(
+            email="owner-edit-eligible@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.assertEqual(get_bureau_for_user(eligible.user).id, eligible.id)
+
+
 @override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
 class BureauSuperAdminApproveTests(TestCase):
     """approve_bureau is Super Admin only; sets is_approved only."""

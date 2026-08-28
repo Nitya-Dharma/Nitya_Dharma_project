@@ -31,7 +31,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .models import BureauBookingIntent, BureauProfile, BureauReview
-from .utils import get_bureau_by_user_or_404, get_bureau_for_user, get_visible_bureaus
+from .utils import (
+    get_bureau_by_user_or_404,
+    get_bureau_for_user,
+    get_owned_email_verified_bureau,
+    get_visible_bureaus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -662,12 +667,13 @@ def bureau_dashboard_view(request):
 
 @require_http_methods(["GET", "POST"])
 def bureau_profile_edit_view(request):
-    if not is_valid_bureau_user(request.user):
+    # Owner edit: ownership + email verified only (not approval/activation).
+    # Do not use get_bureau_for_user here — that helper means fully eligible.
+    if not getattr(request.user, "is_authenticated", False):
         return _deny_bureau_access(request)
 
-    try:
-        bureau_profile = get_bureau_by_user_or_404(request.user)
-    except PermissionDenied:
+    bureau_profile = get_owned_email_verified_bureau(request.user)
+    if bureau_profile is None:
         return _deny_bureau_access(request)
 
     def _bureau_profile_edit_context(bureau, form_data):

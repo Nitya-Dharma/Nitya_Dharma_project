@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}
+Hindu Marriage Bureaus Near You | Verified Matrimonial Services
+{% endblock %}
+
+{% block meta_description %}
+Find trusted Hindu marriage bureaus for matchmaking and matrimonial services near you.
+{% endblock %}
+
+{% block meta_keywords %}
+hindu marriage bureau, matrimonial services india, matchmaking bureau, marriage consultants
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Hindu Marriage Bureaus</h1>
+
+  <form method="get" class="mb-4">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input
+          type="text"
+          name="city"
+          class="form-control"
+          placeholder="Enter city"
+          value="{{ city_filter|default:'' }}"
+        >
+      </div>
+
+      <div class="col-md-4">
+        <select name="caste" class="form-select">
+          <option value="">Select caste</option>
+          {% for category_label, items in caste_groups %}
+            <optgroup label="{{ category_label }}">
+              {% for value, display in items %}
+                <option value="{{ value }}"{% if caste_filter == value %} selected{% endif %}>
+                  {{ display }}
+                </option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">
+          Apply Filters
+        </button>
+        <a href="{% url 'bureaus:bureau_list' %}" class="btn btn-outline-secondary w-100">
+          Reset
+        </a>
+      </div>
+    </div>
+  </form>
+
+  {% if is_capped %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Showing top results. Refine filters for better accuracy.
+    </div>
+  {% endif %}
+
+  {% if bureaus %}
+    <div class="row">
+      {% for bureau in bureaus %}
+        <div class="col-md-4 mb-4">
+          {% include "bureaus/_card.html" with bureau=bureau %}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if bureaus.paginator.num_pages > 1 %}
+      <div class="d-flex justify-content-center mt-4 align-items-center flex-wrap gap-2">
+        {% if bureaus.has_previous %}
+          <a href="?page={{ bureaus.previous_page_number }}&city={{ city_filter|default:''|urlencode }}&caste={{ caste_filter|default:''|urlencode }}" class="btn btn-outline-secondary me-2">Previous</a>
+        {% endif %}
+
+        <span class="align-self-center">
+          Page {{ bureaus.number }} of {{ bureaus.paginator.num_pages }}
+        </span>
+
+        {% if bureaus.has_next %}
+          <a href="?page={{ bureaus.next_page_number }}&city={{ city_filter|default:''|urlencode }}&caste={{ caste_filter|default:''|urlencode }}" class="btn btn-outline-secondary ms-2">Next</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-5">
+      <p class="text-muted mb-0">No bureaus available at this time.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

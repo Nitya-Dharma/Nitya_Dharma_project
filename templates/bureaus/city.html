@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+{% if not bureaus %}
+<meta name="robots" content="noindex, follow">
+{% endif %}
+{% endblock %}
+
+{% block title %}
+Best {{ city }} Marriage Bureaus | Nitya Dharma
+{% endblock %}
+
+{% block meta_description %}
+Find trusted Hindu marriage bureaus in {{ city }} for matrimonial services and matchmaking guidance.
+{% endblock %}
+
+{% block meta_keywords %}
+marriage bureau {{ city }}, matrimonial {{ city }}, Hindu matchmaking {{ city }}, Nitya Dharma
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4">Best Marriage Bureaus in {{ city }}</h1>
+
+  <p>
+    Discover respected Hindu marriage bureaus serving families in {{ city }}.
+    Reach out to screened matchmaking teams for prudent introductions and culturally aligned matrimonial support in your area.
+  </p>
+
+  <div class="row g-4 mt-1">
+    {% for bureau in bureaus %}
+      <div class="col-12 col-md-6 col-lg-4">
+        {% include "bureaus/_card.html" with bureau=bureau %}
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <p class="text-muted mb-0">No marriage bureaus found in {{ city }}.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'bureaus:bureau_list' %}" class="btn btn-outline-danger">All Marriage Bureaus</a>
+  </div>
+</div>
+{% endblock %}

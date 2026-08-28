@@ -52,6 +52,22 @@ def get_bureau_for_user(user):
         return None
 
 
+def get_owned_email_verified_bureau(user):
+    """Owner profile-edit eligibility only.
+
+    Requires ownership (OneToOne user) and BureauProfile.is_email_verified.
+    Does not require is_approved or is_active.
+    Distinct from get_bureau_for_user (fully eligible) and get_visible_bureaus (public).
+    """
+    try:
+        return BureauProfile.objects.get(
+            user=user,
+            is_email_verified=True,
+        )
+    except BureauProfile.DoesNotExist:
+        return None
+
+
 def get_bureau_by_user_or_404(user):
     bureau = get_bureau_for_user(user)
     if not bureau:
