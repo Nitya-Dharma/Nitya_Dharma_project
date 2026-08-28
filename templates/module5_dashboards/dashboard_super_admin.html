@@ -32,6 +32,11 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link {% if request.GET.tab == 'bureaus' %}active{% endif %}" href="#bureaus" data-bs-toggle="tab" data-bs-target="#bureaus" onclick="return showDashboardTab('bureaus', event);">
+            <i class="bi bi-building me-2"></i>Hindu Marriage Bureaus
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link" href="#pandits" data-bs-toggle="tab" data-bs-target="#pandits" onclick="return showDashboardTab('pandits', event);">
             <i class="bi bi-people me-2"></i>Pandits
         </a>
