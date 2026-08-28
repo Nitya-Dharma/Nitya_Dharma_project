@@ -1753,3 +1753,122 @@ class BureauOwnerDashboardRoutingTests(TestCase):
         self.assertEqual(bureau.is_approved, before["is_approved"])
         self.assertEqual(bureau.is_active, before["is_active"])
         self.assertEqual(bureau.user_id, before["user_id"])
+
+
+class BureauOwnerLoginRoutingTests(TestCase):
+    """Phase 7 Slice C: Bureau-aware post-login routing (pending → status, eligible → dashboard)."""
+
+    PASSWORD = "BureauTestPass123!"
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.login_url = reverse("accounts:login")
+        self.status_url = reverse("bureaus:bureau_owner_status")
+        self.bureau_dashboard_url = "/dashboard/bureau/"
+        self.home_url = reverse("core:home")
+        self.user_dashboard_url = reverse("module5_dashboards:dashboard_user")
+        self.pandit_dashboard_url = reverse("module5_dashboards:dashboard_pandit")
+        self.super_admin_dashboard_url = reverse(
+            "module5_dashboards:dashboard_super_admin"
+        )
+
+    def _post_login(self, email: str, password: str | None = None):
+        return self.client.post(
+            self.login_url,
+            {
+                "email": email,
+                "password": password or self.PASSWORD,
+            },
+        )
+
+    def test_pending_bureau_owner_login_redirects_to_status(self):
+        bureau = _make_bureau(email="slicec-pending-login@example.com")
+        response = self._post_login(bureau.user.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+
+    def test_fully_eligible_bureau_owner_login_redirects_to_bureau_dashboard(self):
+        bureau = _make_bureau(
+            email="slicec-eligible-login@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        response = self._post_login(bureau.user.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.bureau_dashboard_url)
+
+    def test_normal_user_login_preserves_non_bureau_destination(self):
+        user = _make_user(email="slicec-plain-login@example.com")
+        response = self._post_login(user.email)
+        self.assertEqual(response.status_code, 302)
+        location = response["Location"]
+        self.assertNotEqual(location, self.status_url)
+        self.assertNotEqual(location, self.bureau_dashboard_url)
+        # Committed HEAD fallthrough is core:home. Working-tree may still contain
+        # unrelated end-user → dashboard_user WIP; Slice C must not Bureau-route them.
+        self.assertIn(
+            location,
+            {self.home_url, self.user_dashboard_url, "/"},
+        )
+
+    def test_pandit_login_unchanged(self):
+        pandit = User.objects.create_user(
+            email="slicec-pandit-login@example.com",
+            password=self.PASSWORD,
+            username="u_slicec_pandit",
+            role="pandit",
+            status="active",
+            is_active=True,
+            email_verified=True,
+        )
+        response = self._post_login(pandit.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.pandit_dashboard_url)
+
+    def test_expert_login_unchanged(self):
+        from core.models import ExpertProfile
+
+        expert_user = _make_user(email="slicec-expert-login@example.com")
+        ExpertProfile.objects.create(
+            name="Slice C Expert",
+            expert_type="ASTROLOGER",
+            email=expert_user.email,
+            is_active=True,
+        )
+        response = self._post_login(expert_user.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/dashboard/expert/")
+
+    def test_superuser_login_unchanged(self):
+        admin = User.objects.create_superuser(
+            email="slicec-super-login@example.com",
+            password=self.PASSWORD,
+            username="u_slicec_super",
+        )
+        response = self._post_login(admin.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.super_admin_dashboard_url)
+
+    def test_pending_bureau_login_does_not_mutate_lifecycle(self):
+        bureau = _make_bureau(
+            email="slicec-immutable-login@example.com",
+            is_approved=True,
+            is_active=False,
+            is_email_verified=False,
+        )
+        before = {
+            "is_email_verified": bureau.is_email_verified,
+            "is_approved": bureau.is_approved,
+            "is_active": bureau.is_active,
+            "user_id": bureau.user_id,
+        }
+        response = self._post_login(bureau.user.email)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.status_url)
+        bureau.refresh_from_db()
+        self.assertEqual(bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(bureau.is_approved, before["is_approved"])
+        self.assertEqual(bureau.is_active, before["is_active"])
+        self.assertEqual(bureau.user_id, before["user_id"])

@@ -977,6 +977,17 @@ def login_view(request):
                 # 4. Active Expert (email match via get_expert_by_user) → Expert Dashboard
                 # 5. End User (role='user') → Home Page (not dashboard)
                 else:
+                    # Bureau-aware login routing (Phase 7 Slice C).
+                    # Mirrors Slice B ordering: fully eligible first, then any BureauProfile owner.
+                    from bureaus.models import BureauProfile
+                    from bureaus.utils import get_bureau_for_user
+
+                    if get_bureau_for_user(user) is not None:
+                        return redirect("/dashboard/bureau/")
+
+                    if BureauProfile.objects.filter(user=user).exists():
+                        return redirect("bureaus:bureau_owner_status")
+
                     expert = get_expert_by_user(user)
                     if expert:
                         logger.info(f"[LOGIN REDIRECT] User {user.email} matched active ExpertProfile → expert_dashboard")
