@@ -15,7 +15,6 @@ This ensures isolation and prevents cross-domain leakage.
 """
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
@@ -24,6 +23,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count
 from django.core.paginator import Paginator
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.html import strip_tags
@@ -519,14 +519,54 @@ def mark_intent_viewed(request, intent_id):
     return redirect("/dashboard/bureau/?tab=requests&updated=1")
 
 
-@staff_member_required
+@login_required
 @require_POST
 def approve_bureau(request, public_id):
+    # Super Admin only (same gate pattern as Expert Super Admin actions).
+    if not request.user.is_superuser:
+        raise Http404("Page not found")
+
     bureau = get_object_or_404(BureauProfile, public_id=public_id)
     if not bureau.is_approved:
         bureau.is_approved = True
         bureau.save(update_fields=["is_approved"])
     return redirect("/dashboard/super-admin/?tab=bureaus")
+
+
+@login_required
+@require_POST
+def activate_bureau(request, public_id):
+    # Super Admin only (same gate pattern as approve_bureau).
+    if not request.user.is_superuser:
+        raise Http404("Page not found")
+
+    bureau = get_object_or_404(BureauProfile, public_id=public_id)
+    # Activation requires prior approval; never imply-approve.
+    if not bureau.is_approved:
+        raise Http404("Page not found")
+    if not bureau.is_active:
+        bureau.is_active = True
+        bureau.save(update_fields=["is_active"])
+    return redirect("/dashboard/super-admin/?tab=bureaus")
+
+
+@login_required
+@require_http_methods(["GET"])
+def review_bureau(request, public_id):
+    """Super Admin read-only review of any Bureau by public_id (not public visibility)."""
+    if not request.user.is_superuser:
+        raise Http404("Page not found")
+
+    bureau = get_object_or_404(BureauProfile, public_id=public_id)
+    return render(
+        request,
+        "module5_dashboards/bureau_review.html",
+        {
+            "bureau": bureau,
+            # Required by dashboard_base.html to render {% block dashboard_content %}.
+            "dashboard_has_data": True,
+        },
+    )
 
 
 def _deny_bureau_access(request):

@@ -1,0 +1,103 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+{% load static %}
+
+{% block dashboard_title %}Bureau Review{% endblock %}
+
+{% block dashboard_page_class %}super-admin-page{% endblock %}
+
+{% block sidebar_class %}super-admin-sidebar{% endblock %}
+
+{% block dashboard_heading %}Bureau Review{% endblock %}
+
+{% block dashboard_subtitle %}
+<p class="text-muted mb-0">Read-only Super Admin review. Does not approve, activate, or change public listing.</p>
+{% endblock %}
+
+{% block dashboard_actions %}
+<a href="{% url 'module5_dashboards:dashboard_super_admin' %}?tab=bureaus"
+   class="btn btn-sm btn-outline-secondary">
+  Back to Bureaus
+</a>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+<li class="nav-item">
+  <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}?tab=bureaus">
+    <i class="bi bi-building me-2"></i>Hindu Marriage Bureaus
+  </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card p-3 mb-3">
+  <h2 class="h5">{{ bureau.bureau_name }}</h2>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="badge {% if bureau.is_email_verified %}bg-success{% else %}bg-secondary{% endif %}">
+      Email {% if bureau.is_email_verified %}verified{% else %}unverified{% endif %}
+    </span>
+    <span class="badge {% if bureau.is_approved %}bg-success{% else %}bg-warning text-dark{% endif %}">
+      {% if bureau.is_approved %}Approved{% else %}Not approved{% endif %}
+    </span>
+    <span class="badge {% if bureau.is_active %}bg-primary{% else %}bg-secondary{% endif %}">
+      {% if bureau.is_active %}Active{% else %}Inactive{% endif %}
+    </span>
+  </div>
+
+  <div class="mb-3">
+    <h3 class="h6 mb-2">Actions</h3>
+    {% if not bureau.is_approved %}
+      <form method="POST"
+            action="{% url 'module5_dashboards:approve_bureau' bureau.public_id %}"
+            class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success">
+          Approve
+        </button>
+      </form>
+    {% elif not bureau.is_active %}
+      <form method="POST"
+            action="{% url 'module5_dashboards:activate_bureau' bureau.public_id %}"
+            class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-primary">
+          Activate
+        </button>
+      </form>
+    {% else %}
+      <p class="text-muted small mb-0">No lifecycle action available.</p>
+    {% endif %}
+  </div>
+
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Public ID</dt>
+    <dd class="col-sm-9"><code>{{ bureau.public_id }}</code></dd>
+
+    <dt class="col-sm-3">Owner email</dt>
+    <dd class="col-sm-9">{{ bureau.user.email }}</dd>
+
+    <dt class="col-sm-3">City</dt>
+    <dd class="col-sm-9">{{ bureau.city|default:"-" }}</dd>
+
+    <dt class="col-sm-3">Phone</dt>
+    <dd class="col-sm-9">{{ bureau.phone_number|default:"-" }}</dd>
+
+    <dt class="col-sm-3">WhatsApp</dt>
+    <dd class="col-sm-9">{{ bureau.whatsapp_number|default:"-" }}</dd>
+
+    <dt class="col-sm-3">Address</dt>
+    <dd class="col-sm-9">{{ bureau.address|default:"-" }}</dd>
+
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9" style="white-space: pre-wrap;">{{ bureau.description|default:"-" }}</dd>
+
+    <dt class="col-sm-3">Caste data</dt>
+    <dd class="col-sm-9"><pre class="mb-0 small bg-light p-2 rounded">{{ bureau.caste_data }}</pre></dd>
+
+    <dt class="col-sm-3">Created</dt>
+    <dd class="col-sm-9">{{ bureau.created_at }}</dd>
+
+    <dt class="col-sm-3">Updated</dt>
+    <dd class="col-sm-9">{{ bureau.updated_at }}</dd>
+  </dl>
+</div>
+{% endblock %}

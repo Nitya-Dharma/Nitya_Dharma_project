@@ -791,3 +791,436 @@ class BureauSmokeTests(TestCase):
         denied = self.client.get(edit_url)
         self.assertEqual(denied.status_code, 302)
         self.assertNotIn("/bureaus/profile/edit/", denied["Location"])
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauSuperAdminApproveTests(TestCase):
+    """approve_bureau is Super Admin only; sets is_approved only."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.bureau = _make_bureau(
+            email="approve-target@example.com",
+            description="Complete enough for listing checks.",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.approve_url = reverse(
+            "module5_dashboards:approve_bureau",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+
+    def _make_superuser(self, *, email: str) -> User:
+        return User.objects.create_superuser(
+            email=email,
+            password="BureauTestPass123!",
+            username=f"su_{email.split('@')[0][:16]}",
+        )
+
+    def test_superuser_post_approves_only_is_approved(self):
+        superuser = self._make_superuser(email="su-approve@example.com")
+        self.client.force_login(superuser)
+
+        before_active = self.bureau.is_active
+        before_email = self.bureau.is_email_verified
+        response = self.client.post(self.approve_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.bureau.refresh_from_db()
+        self.assertTrue(self.bureau.is_approved)
+        self.assertEqual(self.bureau.is_active, before_active)
+        self.assertEqual(self.bureau.is_email_verified, before_email)
+        self.assertFalse(self.bureau.is_active)
+        self.assertNotIn(
+            self.bureau.id,
+            get_visible_bureaus().values_list("id", flat=True),
+        )
+
+    def test_get_approve_rejected(self):
+        superuser = self._make_superuser(email="su-approve-get@example.com")
+        self.client.force_login(superuser)
+        response = self.client.get(self.approve_url)
+        self.assertEqual(response.status_code, 405)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+    def test_anonymous_normal_owner_admin_pandit_staff_denied(self):
+        anon = self.client.post(self.approve_url)
+        self.assertEqual(anon.status_code, 302)
+        self.assertIn("/accounts/login/", anon["Location"])
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+        normal = _make_user(email="approve-normal@example.com")
+        self.client.force_login(normal)
+        self.assertEqual(self.client.post(self.approve_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+        self.client.force_login(self.bureau.user)
+        self.assertEqual(self.client.post(self.approve_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+        admin_pandit = _make_user(email="approve-admin-pandit@example.com")
+        admin_pandit.role = "admin"
+        admin_pandit.is_staff = True
+        admin_pandit.is_superuser = False
+        admin_pandit.save(update_fields=["role", "is_staff", "is_superuser"])
+        self.client.force_login(admin_pandit)
+        self.assertEqual(self.client.post(self.approve_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+        staff = _make_user(email="approve-staff@example.com")
+        staff.is_staff = True
+        staff.is_superuser = False
+        staff.save(update_fields=["is_staff", "is_superuser"])
+        self.client.force_login(staff)
+        self.assertEqual(self.client.post(self.approve_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_approved)
+
+    def test_approved_unverified_or_incomplete_still_hidden(self):
+        unverified = _make_bureau(
+            email="approve-unverified@example.com",
+            is_active=True,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        incomplete = _make_bureau(
+            email="approve-incomplete@example.com",
+            description="",
+            caste_data={},
+            is_active=True,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        superuser = self._make_superuser(email="su-approve-vis@example.com")
+        self.client.force_login(superuser)
+
+        for bureau in (unverified, incomplete, self.bureau):
+            url = reverse(
+                "module5_dashboards:approve_bureau",
+                kwargs={"public_id": bureau.public_id},
+            )
+            self.client.post(url)
+            bureau.refresh_from_db()
+            self.assertTrue(bureau.is_approved)
+            self.assertNotIn(
+                bureau.id,
+                get_visible_bureaus().values_list("id", flat=True),
+            )
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauSuperAdminActivateTests(TestCase):
+    """activate_bureau is Super Admin only; sets is_active only after approval."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.bureau = _make_bureau(
+            email="activate-target@example.com",
+            description="Complete enough for listing checks.",
+            is_active=False,
+            is_approved=True,
+            is_email_verified=False,
+        )
+        self.activate_url = reverse(
+            "module5_dashboards:activate_bureau",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+
+    def _make_superuser(self, *, email: str) -> User:
+        return User.objects.create_superuser(
+            email=email,
+            password="BureauTestPass123!",
+            username=f"su_{email.split('@')[0][:16]}",
+        )
+
+    def test_superuser_post_activates_only_is_active(self):
+        superuser = self._make_superuser(email="su-activate@example.com")
+        self.client.force_login(superuser)
+
+        before_approved = self.bureau.is_approved
+        before_email = self.bureau.is_email_verified
+        before_user_id = self.bureau.user_id
+        response = self.client.post(self.activate_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.bureau.refresh_from_db()
+        self.assertTrue(self.bureau.is_active)
+        self.assertEqual(self.bureau.is_approved, before_approved)
+        self.assertTrue(self.bureau.is_approved)
+        self.assertEqual(self.bureau.is_email_verified, before_email)
+        self.assertFalse(self.bureau.is_email_verified)
+        self.assertEqual(self.bureau.user_id, before_user_id)
+        # Email still unverified → not publicly visible.
+        self.assertNotIn(
+            self.bureau.id,
+            get_visible_bureaus().values_list("id", flat=True),
+        )
+
+    def test_get_activate_rejected(self):
+        superuser = self._make_superuser(email="su-activate-get@example.com")
+        self.client.force_login(superuser)
+        response = self.client.get(self.activate_url)
+        self.assertEqual(response.status_code, 405)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+    def test_anonymous_normal_owner_admin_pandit_staff_denied(self):
+        anon = self.client.post(self.activate_url)
+        self.assertEqual(anon.status_code, 302)
+        self.assertIn("/accounts/login/", anon["Location"])
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+        normal = _make_user(email="activate-normal@example.com")
+        self.client.force_login(normal)
+        self.assertEqual(self.client.post(self.activate_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+        self.client.force_login(self.bureau.user)
+        self.assertEqual(self.client.post(self.activate_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+        admin_pandit = _make_user(email="activate-admin-pandit@example.com")
+        admin_pandit.role = "admin"
+        admin_pandit.is_staff = True
+        admin_pandit.is_superuser = False
+        admin_pandit.save(update_fields=["role", "is_staff", "is_superuser"])
+        self.client.force_login(admin_pandit)
+        self.assertEqual(self.client.post(self.activate_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+        staff = _make_user(email="activate-staff@example.com")
+        staff.is_staff = True
+        staff.is_superuser = False
+        staff.save(update_fields=["is_staff", "is_superuser"])
+        self.client.force_login(staff)
+        self.assertEqual(self.client.post(self.activate_url).status_code, 404)
+        self.bureau.refresh_from_db()
+        self.assertFalse(self.bureau.is_active)
+
+    def test_unapproved_bureau_cannot_be_activated(self):
+        unapproved = _make_bureau(
+            email="activate-unapproved@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        url = reverse(
+            "module5_dashboards:activate_bureau",
+            kwargs={"public_id": unapproved.public_id},
+        )
+        superuser = self._make_superuser(email="su-activate-unapproved@example.com")
+        self.client.force_login(superuser)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 404)
+        unapproved.refresh_from_db()
+        self.assertFalse(unapproved.is_active)
+        self.assertFalse(unapproved.is_approved)
+        self.assertTrue(unapproved.is_email_verified)
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauSuperAdminReviewTests(TestCase):
+    """review_bureau is Super Admin GET-only; never mutates lifecycle flags."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.bureau = _make_bureau(
+            email="review-target@example.com",
+            description="Reviewable bureau description.",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        self.review_url = reverse(
+            "module5_dashboards:review_bureau",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+
+    def _make_superuser(self, *, email: str) -> User:
+        return User.objects.create_superuser(
+            email=email,
+            password="BureauTestPass123!",
+            username=f"su_{email.split('@')[0][:16]}",
+        )
+
+    def test_superuser_get_review_ok_and_no_flag_changes(self):
+        superuser = self._make_superuser(email="su-review@example.com")
+        self.client.force_login(superuser)
+
+        before_approved = self.bureau.is_approved
+        before_active = self.bureau.is_active
+        before_email = self.bureau.is_email_verified
+
+        response = self.client.get(self.review_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.bureau.bureau_name)
+        self.assertContains(response, str(self.bureau.public_id))
+        self.assertContains(response, self.bureau.user.email)
+
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_approved, before_approved)
+        self.assertEqual(self.bureau.is_active, before_active)
+        self.assertEqual(self.bureau.is_email_verified, before_email)
+        self.assertFalse(self.bureau.is_approved)
+        self.assertFalse(self.bureau.is_active)
+        self.assertFalse(self.bureau.is_email_verified)
+
+    def test_review_inactive_unverified_unapproved_ok(self):
+        superuser = self._make_superuser(email="su-review-states@example.com")
+        self.client.force_login(superuser)
+        response = self.client.get(self.review_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            self.bureau.id,
+            get_visible_bureaus().values_list("id", flat=True),
+        )
+
+    def test_anonymous_normal_owner_admin_pandit_staff_denied(self):
+        anon = self.client.get(self.review_url)
+        self.assertEqual(anon.status_code, 302)
+        self.assertIn("/accounts/login/", anon["Location"])
+
+        normal = _make_user(email="review-normal@example.com")
+        self.client.force_login(normal)
+        self.assertEqual(self.client.get(self.review_url).status_code, 404)
+
+        self.client.force_login(self.bureau.user)
+        self.assertEqual(self.client.get(self.review_url).status_code, 404)
+
+        admin_pandit = _make_user(email="review-admin-pandit@example.com")
+        admin_pandit.role = "admin"
+        admin_pandit.is_staff = True
+        admin_pandit.is_superuser = False
+        admin_pandit.save(update_fields=["role", "is_staff", "is_superuser"])
+        self.client.force_login(admin_pandit)
+        self.assertEqual(self.client.get(self.review_url).status_code, 404)
+
+        staff = _make_user(email="review-staff@example.com")
+        staff.is_staff = True
+        staff.is_superuser = False
+        staff.save(update_fields=["is_staff", "is_superuser"])
+        self.client.force_login(staff)
+        self.assertEqual(self.client.get(self.review_url).status_code, 404)
+
+    def test_post_rejected_and_no_writes(self):
+        superuser = self._make_superuser(email="su-review-post@example.com")
+        self.client.force_login(superuser)
+        before_approved = self.bureau.is_approved
+        before_active = self.bureau.is_active
+        before_email = self.bureau.is_email_verified
+
+        response = self.client.post(self.review_url)
+        self.assertEqual(response.status_code, 405)
+
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_approved, before_approved)
+        self.assertEqual(self.bureau.is_active, before_active)
+        self.assertEqual(self.bureau.is_email_verified, before_email)
+
+    def test_missing_public_id_404(self):
+        superuser = self._make_superuser(email="su-review-missing@example.com")
+        self.client.force_login(superuser)
+        missing = reverse(
+            "module5_dashboards:review_bureau",
+            kwargs={"public_id": "00000000-0000-4000-8000-000000000001"},
+        )
+        self.assertEqual(self.client.get(missing).status_code, 404)
+
+    def test_visibility_helper_unchanged_after_review(self):
+        visible_ids_before = set(get_visible_bureaus().values_list("id", flat=True))
+        superuser = self._make_superuser(email="su-review-vis@example.com")
+        self.client.force_login(superuser)
+        self.client.get(self.review_url)
+        visible_ids_after = set(get_visible_bureaus().values_list("id", flat=True))
+        self.assertEqual(visible_ids_before, visible_ids_after)
+        self.assertNotIn(self.bureau.id, visible_ids_after)
+
+    def test_pending_review_shows_approve_not_activate(self):
+        superuser = self._make_superuser(email="su-review-approve-btn@example.com")
+        self.client.force_login(superuser)
+        approve_url = reverse(
+            "module5_dashboards:approve_bureau",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+        activate_url = reverse(
+            "module5_dashboards:activate_bureau",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+        response = self.client.get(self.review_url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn('action="%s"' % approve_url, body)
+        self.assertIn("csrfmiddlewaretoken", body)
+        self.assertRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Approve\s*</button>')
+        self.assertNotIn('action="%s"' % activate_url, body)
+        self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Activate\s*</button>')
+
+    def test_approved_inactive_review_shows_activate_not_approve(self):
+        approved = _make_bureau(
+            email="review-approved-inactive@example.com",
+            is_active=False,
+            is_approved=True,
+            is_email_verified=False,
+        )
+        url = reverse(
+            "module5_dashboards:review_bureau",
+            kwargs={"public_id": approved.public_id},
+        )
+        approve_url = reverse(
+            "module5_dashboards:approve_bureau",
+            kwargs={"public_id": approved.public_id},
+        )
+        activate_url = reverse(
+            "module5_dashboards:activate_bureau",
+            kwargs={"public_id": approved.public_id},
+        )
+        superuser = self._make_superuser(email="su-review-activate-btn@example.com")
+        self.client.force_login(superuser)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn('action="%s"' % activate_url, body)
+        self.assertIn("csrfmiddlewaretoken", body)
+        self.assertRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Activate\s*</button>')
+        self.assertNotIn('action="%s"' % approve_url, body)
+        self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Approve\s*</button>')
+
+    def test_approved_active_review_shows_no_lifecycle_actions(self):
+        live = _make_bureau(
+            email="review-approved-active@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        url = reverse(
+            "module5_dashboards:review_bureau",
+            kwargs={"public_id": live.public_id},
+        )
+        approve_url = reverse(
+            "module5_dashboards:approve_bureau",
+            kwargs={"public_id": live.public_id},
+        )
+        activate_url = reverse(
+            "module5_dashboards:activate_bureau",
+            kwargs={"public_id": live.public_id},
+        )
+        superuser = self._make_superuser(email="su-review-no-btn@example.com")
+        self.client.force_login(superuser)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("No lifecycle action available.", body)
+        self.assertNotIn('action="%s"' % approve_url, body)
+        self.assertNotIn('action="%s"' % activate_url, body)
+        self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Approve\s*</button>')
+        self.assertNotRegex(body, r'<button[^>]*type="submit"[^>]*>\s*Activate\s*</button>')

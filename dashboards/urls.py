@@ -4,6 +4,7 @@ URL configuration for dashboards app.
 from django.urls import path
 from . import views
 from . import views_super_admin_intelligence
+from bureaus import views as bureau_views
 
 app_name = 'module5_dashboards'
 
@@ -18,6 +19,21 @@ urlpatterns = [
         "super-admin/experts/bulk-approve/",
         views.bulk_approve_experts,
         name="bulk_approve_experts",
+    ),
+    path(
+        'super-admin/bureaus/<uuid:public_id>/approve/',
+        bureau_views.approve_bureau,
+        name='approve_bureau',
+    ),
+    path(
+        'super-admin/bureaus/<uuid:public_id>/activate/',
+        bureau_views.activate_bureau,
+        name='activate_bureau',
+    ),
+    path(
+        'super-admin/bureaus/<uuid:public_id>/review/',
+        bureau_views.review_bureau,
+        name='review_bureau',
     ),
     path('super-admin/intelligence/', views_super_admin_intelligence.intelligence_dashboard, name='super_admin_intelligence'),
     # UNIT 8: Pandit Approval & Rejection (Super Admin only)

@@ -741,6 +741,7 @@ def dashboard_super_admin(request):
     
     # Import User model
     from accounts.models import User
+    from bureaus.models import BureauProfile
     
     # UNIT 3: Platform Overview - Use DashboardMetricsService
     from .services import DashboardMetricsService
@@ -774,6 +775,24 @@ def dashboard_super_admin(request):
     
     # Chart Data (read-only, from Module 14 backend)
     chart_data_list = []  # Backend should provide from Module 14
+
+    # Bureau Overview (read-only, isolated to BureauProfile model only)
+    bureau_pending_count = BureauProfile.objects.filter(is_approved=False).count()
+    bureau_approved_count = BureauProfile.objects.filter(is_approved=True).count()
+    bureau_overview = {
+        "pending": bureau_pending_count,
+        "approved": bureau_approved_count,
+    }
+    pending_bureaus = list(
+        BureauProfile.objects.filter(is_approved=False)
+        .only("id", "bureau_name", "city", "public_id")
+        .order_by("-created_at", "-id")
+    )
+    approved_bureaus = list(
+        BureauProfile.objects.filter(is_approved=True)
+        .only("id", "bureau_name", "city", "public_id", "is_active")
+        .order_by("-created_at", "-id")
+    )
     
     # Governance Table Data (read-only summaries)
     # UNIT 14: Governance Action Review - will be built from unified_audit_records below
@@ -1042,6 +1061,9 @@ def dashboard_super_admin(request):
         'governance_overview_summaries': governance_overview_summaries,
         'analytics_trends': analytics_trends,
         'chart_data_list': chart_data_list,
+        'bureau_overview': bureau_overview,
+        'pending_bureaus': pending_bureaus,
+        'approved_bureaus': approved_bureaus,
         'governance_table_data': governance_table_data,
         'governance_table_headers': governance_table_headers,
         'governance_table_pagination': governance_table_pagination,
