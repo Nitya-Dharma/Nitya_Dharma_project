@@ -1555,3 +1555,136 @@ class BureauResendVerificationTests(TestCase):
         create_email_verification.assert_called_once_with(bureau.user)
         body = response.content.decode("utf-8", errors="ignore")
         self.assertIn("Verification email has been sent", body)
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauOwnerStatusTests(TestCase):
+    """Bureau owner read-only onboarding status page (Phase 7 Slice A)."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.status_url = reverse("bureaus:bureau_owner_status")
+        self.dashboard_url = "/dashboard/bureau/"
+        self.resend_url = reverse("bureaus:bureau_resend_verification")
+        self.profile_edit_url = reverse("bureaus:bureau_profile_edit")
+
+    def test_anonymous_get_redirects_to_login(self):
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+        self.assertIn("/bureaus/status/", response["Location"])
+
+    def test_non_bureau_user_redirects_home(self):
+        user = _make_user(email="status-plain-user@example.com")
+        self.client.force_login(user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("core:home"))
+        self.assertFalse(BureauProfile.objects.filter(user=user).exists())
+
+    def test_unverified_bureau_owner_sees_pending_email(self):
+        bureau = _make_bureau(email="status-unverified@example.com")
+        before = {
+            "is_email_verified": bureau.is_email_verified,
+            "is_approved": bureau.is_approved,
+            "is_active": bureau.is_active,
+            "user_id": bureau.user_id,
+        }
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Email Verification", body)
+        self.assertIn("Pending", body)
+        self.assertIn(self.resend_url, body)
+        bureau.refresh_from_db()
+        self.assertEqual(bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(bureau.is_approved, before["is_approved"])
+        self.assertEqual(bureau.is_active, before["is_active"])
+        self.assertEqual(bureau.user_id, before["user_id"])
+
+    def test_verified_unapproved_owner_sees_approval_pending(self):
+        bureau = _make_bureau(
+            email="status-verified-unapproved@example.com",
+            is_email_verified=True,
+            description="",
+        )
+        bureau.user.email_verified = True
+        bureau.user.email_verified_at = timezone.now()
+        bureau.user.save(update_fields=["email_verified", "email_verified_at"])
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Admin Approval", body)
+        self.assertIn("Pending", body)
+        self.assertIn(self.profile_edit_url, body)
+
+    def test_approved_inactive_owner_sees_activation_pending(self):
+        bureau = _make_bureau(
+            email="status-approved-inactive@example.com",
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Account Activation", body)
+        self.assertIn("Pending", body)
+
+    def test_fully_ready_owner_redirects_to_dashboard(self):
+        bureau = _make_bureau(
+            email="status-ready@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.dashboard_url)
+
+    def test_eligible_incomplete_profile_shows_profile_edit_link(self):
+        bureau = _make_bureau(
+            email="status-incomplete-profile@example.com",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+            description="",
+        )
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("Profile Completeness", body)
+        self.assertIn("Incomplete", body)
+        self.assertIn(self.profile_edit_url, body)
+
+    def test_post_returns_method_not_allowed(self):
+        bureau = _make_bureau(email="status-post@example.com")
+        self.client.force_login(bureau.user)
+        response = self.client.post(self.status_url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_get_does_not_mutate_lifecycle_fields(self):
+        bureau = _make_bureau(
+            email="status-immutable@example.com",
+            is_approved=True,
+            is_active=False,
+            is_email_verified=False,
+        )
+        original_user_id = bureau.user_id
+        self.client.force_login(bureau.user)
+        response = self.client.get(self.status_url)
+        self.assertEqual(response.status_code, 200)
+        bureau.refresh_from_db()
+        self.assertFalse(bureau.is_email_verified)
+        self.assertTrue(bureau.is_approved)
+        self.assertFalse(bureau.is_active)
+        self.assertEqual(bureau.user_id, original_user_id)
+
+    def test_phase6_resend_tests_still_present(self):
+        """Guard: Phase 6 resend test class remains importable and runnable."""
+        self.assertTrue(hasattr(BureauResendVerificationTests, "test_anonymous_post_rejected"))

@@ -21,6 +21,11 @@ urlpatterns = [
     ),
     path("profile/edit/", bureau_profile_edit_view, name="bureau_profile_edit"),
     path(
+        "status/",
+        views.bureau_owner_status_view,
+        name="bureau_owner_status",
+    ),
+    path(
         "intent/<int:intent_id>/mark-viewed/",
         views.mark_intent_viewed,
         name="mark_intent_viewed"

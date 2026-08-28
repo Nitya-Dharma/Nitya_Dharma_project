@@ -912,6 +912,32 @@ def resend_bureau_verification_view(request):
     return redirect("bureaus:bureau_register")
 
 
+@login_required
+@require_http_methods(["GET"])
+def bureau_owner_status_view(request):
+    """Read-only Bureau owner onboarding status (email, approval, activation, profile)."""
+    try:
+        bureau_profile = BureauProfile.objects.get(user=request.user)
+    except BureauProfile.DoesNotExist:
+        return redirect("core:home")
+
+    eligible_profile = get_bureau_for_user(request.user)
+    if eligible_profile and is_bureau_profile_complete(eligible_profile):
+        return redirect("/dashboard/bureau/")
+
+    return render(
+        request,
+        "bureaus/status.html",
+        {
+            "bureau_profile": bureau_profile,
+            "email_verified": bureau_profile.is_email_verified,
+            "is_approved": bureau_profile.is_approved,
+            "is_active": bureau_profile.is_active,
+            "profile_complete": is_bureau_profile_complete(bureau_profile),
+        },
+    )
+
+
 @require_http_methods(["GET", "POST"])
 def bureau_register_view(request):
     if request.method == "GET":
