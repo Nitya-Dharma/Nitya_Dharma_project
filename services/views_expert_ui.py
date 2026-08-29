@@ -275,7 +275,8 @@ def get_expert_by_user(user):
         return None
 
 def expert_profile_page(request, id):
-    expert = get_object_or_404(ExpertProfile, id=id)
+    # Public detail must match listing/discovery: only active Experts are exposed.
+    expert = get_object_or_404(ExpertProfile, id=id, is_active=True)
     ExpertProfile.objects.filter(id=expert.id).update(
         profile_views=F("profile_views") + 1
     )

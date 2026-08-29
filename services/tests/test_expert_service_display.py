@@ -235,3 +235,13 @@ class ExpertServiceDisplayTests(TestCase):
         self.assertNotIn("Astrologer", section)
         self.assertNotIn("Expert Service", section)
         self.assertNotContains(response, '<i class="bi bi-stars"></i>', html=False)
+
+    def test_inactive_expert_public_detail_is_not_accessible(self):
+        """Public detail must match listing: inactive Experts are not exposed by ID."""
+        expert = self.create_expert("Inactive Detail Expert", [self.astrology])
+        expert.is_active = False
+        expert.save(update_fields=["is_active"])
+
+        response = self.client.get(reverse("expert_profile", args=[expert.pk]))
+
+        self.assertEqual(response.status_code, 404)
