@@ -2542,3 +2542,142 @@ class BureauBookingIntentEdgeCaseTests(TestCase):
         self.assertFalse(
             BureauBookingIntent.objects.filter(bureau=self.bureau).exists()
         )
+
+
+class BureauPublicReviewDisplayTests(TestCase):
+    """Regression: public detail + owner reviews-tab display of BureauReview data."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.reviewer_a = _make_user(email="review-display-a@example.com")
+        self.reviewer_b = _make_user(email="review-display-b@example.com")
+        self.bureau = _make_bureau(
+            email="review-display-owner@example.com",
+            bureau_name="Review Display Owner Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.detail_url = reverse(
+            "bureaus:bureau_detail",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+
+    def test_public_detail_displays_review_content(self):
+        BureauReview.objects.create(
+            bureau=self.bureau,
+            user=self.reviewer_a,
+            rating=4,
+            review_text="UNIQUE_DISPLAY_ALPHA_REVIEW_TEXT",
+        )
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "UNIQUE_DISPLAY_ALPHA_REVIEW_TEXT")
+        self.assertContains(response, "4/5")
+        self.assertEqual(response.context["bureau"]["review_count"], 1)
+        self.assertEqual(response.context["bureau"]["avg_rating"], 4.0)
+        self.assertEqual(len(response.context["bureau"]["reviews"]), 1)
+        self.assertEqual(
+            response.context["bureau"]["reviews"][0]["review_text"],
+            "UNIQUE_DISPLAY_ALPHA_REVIEW_TEXT",
+        )
+        self.assertEqual(response.context["bureau"]["reviews"][0]["rating"], 4)
+
+    def test_public_detail_displays_multiple_reviews(self):
+        BureauReview.objects.create(
+            bureau=self.bureau,
+            user=self.reviewer_a,
+            rating=5,
+            review_text="UNIQUE_DISPLAY_MULTI_FIRST",
+        )
+        BureauReview.objects.create(
+            bureau=self.bureau,
+            user=self.reviewer_b,
+            rating=3,
+            review_text="UNIQUE_DISPLAY_MULTI_SECOND",
+        )
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "UNIQUE_DISPLAY_MULTI_FIRST")
+        self.assertContains(response, "UNIQUE_DISPLAY_MULTI_SECOND")
+        self.assertContains(response, "5/5")
+        self.assertContains(response, "3/5")
+        self.assertEqual(response.context["bureau"]["review_count"], 2)
+        self.assertEqual(response.context["bureau"]["avg_rating"], 4.0)
+        rendered_texts = {
+            item["review_text"] for item in response.context["bureau"]["reviews"]
+        }
+        self.assertEqual(
+            rendered_texts,
+            {"UNIQUE_DISPLAY_MULTI_FIRST", "UNIQUE_DISPLAY_MULTI_SECOND"},
+        )
+
+    def test_hidden_bureau_detail_does_not_expose_reviews(self):
+        hidden = _make_bureau(
+            email="review-display-hidden@example.com",
+            bureau_name="Review Display Hidden Bureau",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        BureauReview.objects.create(
+            bureau=hidden,
+            user=self.reviewer_a,
+            rating=5,
+            review_text="UNIQUE_HIDDEN_BUREAU_REVIEW_SECRET",
+        )
+        response = self.client.get(
+            reverse(
+                "bureaus:bureau_detail",
+                kwargs={"public_id": hidden.public_id},
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("/bureaus/"))
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertNotIn("UNIQUE_HIDDEN_BUREAU_REVIEW_SECRET", body)
+
+    def test_owner_reviews_tab_displays_own_bureau_reviews(self):
+        other_bureau = _make_bureau(
+            email="review-display-other@example.com",
+            bureau_name="Review Display Other Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        BureauReview.objects.create(
+            bureau=self.bureau,
+            user=self.reviewer_a,
+            rating=5,
+            review_text="UNIQUE_OWNER_TAB_OWN_REVIEW",
+        )
+        BureauReview.objects.create(
+            bureau=other_bureau,
+            user=self.reviewer_b,
+            rating=2,
+            review_text="UNIQUE_OWNER_TAB_OTHER_REVIEW",
+        )
+
+        self.client.force_login(self.bureau.user)
+        response = self.client.get("/dashboard/bureau/?tab=reviews")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "UNIQUE_OWNER_TAB_OWN_REVIEW")
+        self.assertNotContains(response, "UNIQUE_OWNER_TAB_OTHER_REVIEW")
+        self.assertEqual(response.context["bureau_profile"].id, self.bureau.id)
+        self.assertEqual(response.context["review_count"], 1)
+        self.assertEqual(response.context["avg_rating"], 5.0)
+        scoped_ids = set(
+            response.context["bureau_profile"].reviews.values_list("id", flat=True)
+        )
+        own_review = BureauReview.objects.get(
+            bureau=self.bureau,
+            review_text="UNIQUE_OWNER_TAB_OWN_REVIEW",
+        )
+        other_review = BureauReview.objects.get(
+            bureau=other_bureau,
+            review_text="UNIQUE_OWNER_TAB_OTHER_REVIEW",
+        )
+        self.assertIn(own_review.id, scoped_ids)
+        self.assertNotIn(other_review.id, scoped_ids)
