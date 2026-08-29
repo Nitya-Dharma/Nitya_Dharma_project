@@ -7,6 +7,7 @@ import re
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
@@ -23,6 +24,7 @@ from .expert_discovery import experts_offering
 from .models import ExpertBookingIntent
 from .views_expert_ui import get_expert_by_user
 
+User = get_user_model()
 _SERVICE_EXPERT_TYPES = {"ASTROLOGER", "NUMEROLOGIST", "PALMIST"}
 
 
@@ -165,6 +167,7 @@ def expert_booking_intent_view(request, expert_id):
             messages.error(request, err)
         return _expert_booking_redirect(expert_id)
 
+    expert_owner = None
     try:
         with transaction.atomic():
             # Lock parent expert first so concurrent posts serialize when no intent row
@@ -209,6 +212,9 @@ def expert_booking_intent_view(request, expert_id):
                 phone=phone,
                 message=message,
             )
+            # Soft email ownership (no User FK on ExpertProfile): resolve owner User for notify.
+            if expert.email:
+                expert_owner = User.objects.filter(email__iexact=expert.email).first()
     except ExpertProfile.DoesNotExist:
         messages.error(request, "Unable to process your request.")
         return redirect(reverse("core:home"))
@@ -218,6 +224,28 @@ def expert_booking_intent_view(request, expert_id):
     except Exception:
         messages.error(request, "Unable to process your request.")
         return _expert_booking_redirect(expert_id)
+
+    # Shared Notification for Expert owner (Bureau-style create_notification).
+    # Must not fail the successful booking-intent submission.
+    if expert_owner is not None:
+        try:
+            from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+            from notifications.services import NotificationService
+
+            NotificationService.create_notification(
+                recipient=expert_owner,
+                notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                source_module="services",
+                payload={
+                    "title": "New booking request",
+                    "message": (
+                        "You received a new booking request for your expert profile."
+                    ),
+                    "url": "/dashboard/expert/?tab=requests",
+                },
+            )
+        except Exception:
+            pass
 
     # PRG: always redirect after successful POST so refresh cannot resubmit.
     messages.success(request, "Your booking request has been sent.")
