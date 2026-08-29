@@ -2375,3 +2375,170 @@ class BureauOwnerMarkIntentViewedTests(TestCase):
         self.assertIn(self.intent.id, scoped_ids)
         self.assertNotIn(other_intent.id, scoped_ids)
         self.assertEqual(response.context["bureau_profile"].id, self.bureau.id)
+
+
+class BureauBookingIntentEdgeCaseTests(TestCase):
+    """Regression: duplicate pending, phone cooldown, IP rate limit, validation, GET."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.requester = _make_user(email="intent-edge-requester@example.com")
+        self.bureau = _make_bureau(
+            email="intent-edge-target@example.com",
+            bureau_name="Intent Edge Target Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.intent_url = reverse(
+            "bureaus:bureau_intent",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+        self.detail_booking = (
+            reverse(
+                "bureaus:bureau_detail",
+                kwargs={"public_id": self.bureau.public_id},
+            )
+            + "#booking"
+        )
+        self.valid_payload = {
+            "name": "Edge Seeker",
+            "phone": "9111222333",
+            "message": "Need matrimony assistance soon.",
+        }
+
+    def test_duplicate_pending_intent_rejected(self):
+        self.client.force_login(self.requester)
+        first = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+                is_viewed=False,
+            ).count(),
+            1,
+        )
+
+        second = self.client.post(
+            self.intent_url,
+            {
+                "name": "Edge Seeker Again",
+                "phone": "9111222334",
+                "message": "Second attempt while pending.",
+            },
+        )
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(second["Location"], self.detail_booking)
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+                is_viewed=False,
+            ).count(),
+            1,
+        )
+
+    def test_phone_cooldown_enforced(self):
+        other_requester = _make_user(email="intent-edge-other@example.com")
+        self.client.force_login(self.requester)
+        first = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                phone="9111222333",
+            ).count(),
+            1,
+        )
+
+        self.client.force_login(other_requester)
+        blocked = self.client.post(
+            self.intent_url,
+            {
+                "name": "Other Seeker Same Phone",
+                "phone": "9111222333",
+                "message": "Same phone within cooldown window.",
+            },
+        )
+        self.assertEqual(blocked.status_code, 302)
+        self.assertEqual(blocked["Location"], f"/bureaus/{self.bureau.public_id}/")
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                phone="9111222333",
+            ).count(),
+            1,
+        )
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=other_requester,
+            ).exists()
+        )
+
+    def test_ip_rate_limit_enforced(self):
+        self.client.force_login(self.requester)
+        for i in range(5):
+            response = self.client.post(
+                self.intent_url,
+                {
+                    "name": f"Rate Seeker {i}",
+                    "phone": f"922233344{i}",
+                    "message": f"Rate limit probe {i}.",
+                },
+            )
+            self.assertEqual(response.status_code, 302, msg=f"attempt {i + 1}")
+
+        limited = self.client.post(
+            self.intent_url,
+            {
+                "name": "Rate Seeker Limited",
+                "phone": "9333444555",
+                "message": "Should be IP rate limited.",
+            },
+        )
+        self.assertEqual(limited.status_code, 302)
+        self.assertEqual(limited["Location"], f"/bureaus/{self.bureau.public_id}/")
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).count(),
+            1,
+        )
+
+    def test_invalid_payload_rejected(self):
+        self.client.force_login(self.requester)
+        response = self.client.post(
+            self.intent_url,
+            {
+                "name": "Invalid Seeker",
+                "phone": "9444555666",
+                "message": "",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.detail_booking)
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).exists()
+        )
+
+    def test_get_request_rejected(self):
+        self.client.force_login(self.requester)
+        response = self.client.get(self.intent_url)
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(bureau=self.bureau).exists()
+        )
