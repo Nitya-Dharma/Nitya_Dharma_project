@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from core.models import ExpertProfile, ExpertService
+from core.models import ExpertProfile, ExpertReview, ExpertService
 from services.views import _experts_for_city_slug
 
 
@@ -245,3 +245,70 @@ class ExpertServiceDisplayTests(TestCase):
         response = self.client.get(reverse("expert_profile", args=[expert.pk]))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_public_detail_displays_review_content(self):
+        """Active Expert public detail renders associated ExpertReview content."""
+        expert = self.create_expert("Review Display Expert", [self.astrology])
+        ExpertReview.objects.create(
+            expert=expert,
+            rating=4,
+            comment="UNIQUE_EXPERT_DISPLAY_ALPHA_REVIEW_TEXT",
+        )
+
+        response = self.client.get(reverse("expert_profile", args=[expert.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "UNIQUE_EXPERT_DISPLAY_ALPHA_REVIEW_TEXT")
+        self.assertContains(response, "4/5")
+        reviews = list(response.context["reviews"])
+        self.assertEqual(len(reviews), 1)
+        self.assertEqual(reviews[0].expert_id, expert.id)
+        self.assertEqual(reviews[0].rating, 4)
+        self.assertEqual(
+            reviews[0].comment,
+            "UNIQUE_EXPERT_DISPLAY_ALPHA_REVIEW_TEXT",
+        )
+
+    def test_public_detail_reviews_are_scoped_to_expert(self):
+        """Reviews for Expert A must not appear on Expert B's public detail."""
+        expert_a = self.create_expert("Review Scope Expert A", [self.astrology])
+        expert_b = self.create_expert("Review Scope Expert B", [self.numerology])
+        ExpertReview.objects.create(
+            expert=expert_a,
+            rating=5,
+            comment="UNIQUE_EXPERT_A_ONLY_REVIEW_TEXT",
+        )
+        ExpertReview.objects.create(
+            expert=expert_b,
+            rating=2,
+            comment="UNIQUE_EXPERT_B_ONLY_REVIEW_TEXT",
+        )
+
+        response = self.client.get(reverse("expert_profile", args=[expert_b.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "UNIQUE_EXPERT_B_ONLY_REVIEW_TEXT")
+        self.assertContains(response, "2/5")
+        self.assertNotContains(response, "UNIQUE_EXPERT_A_ONLY_REVIEW_TEXT")
+        self.assertNotContains(response, "5/5")
+        reviews = list(response.context["reviews"])
+        self.assertEqual(len(reviews), 1)
+        self.assertEqual(reviews[0].expert_id, expert_b.id)
+        self.assertEqual(reviews[0].comment, "UNIQUE_EXPERT_B_ONLY_REVIEW_TEXT")
+
+    def test_inactive_expert_detail_does_not_expose_reviews(self):
+        """Inactive Expert detail remains 404; review text must not leak."""
+        expert = self.create_expert("Inactive Review Expert", [self.astrology])
+        ExpertReview.objects.create(
+            expert=expert,
+            rating=5,
+            comment="UNIQUE_INACTIVE_EXPERT_REVIEW_SECRET",
+        )
+        expert.is_active = False
+        expert.save(update_fields=["is_active"])
+
+        response = self.client.get(reverse("expert_profile", args=[expert.pk]))
+
+        self.assertEqual(response.status_code, 404)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertNotIn("UNIQUE_INACTIVE_EXPERT_REVIEW_SECRET", body)
