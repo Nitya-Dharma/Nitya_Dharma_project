@@ -49,6 +49,8 @@ def numerology_service_view(request):
             experts = experts.order_by("-experience_years")
         elif sort == "exp_asc":
             experts = experts.order_by("experience_years")
+        else:
+            experts = experts.order_by("-experience_years", "pk")
 
         paginator = Paginator(experts, 6)
         page_number = request.GET.get("page")
