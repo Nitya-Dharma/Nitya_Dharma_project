@@ -2215,3 +2215,163 @@ class BureauOwnerLoginRoutingTests(TestCase):
         self.assertEqual(bureau.is_approved, before["is_approved"])
         self.assertEqual(bureau.is_active, before["is_active"])
         self.assertEqual(bureau.user_id, before["user_id"])
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauOwnerMarkIntentViewedTests(TestCase):
+    """Regression: owner mark_intent_viewed + requests-tab ownership (test-only)."""
+
+    REQUESTS_UPDATED = "/dashboard/bureau/?tab=requests&updated=1"
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.requester = _make_user(email="mark-viewed-requester@example.com")
+        self.bureau = _make_bureau(
+            email="mark-viewed-owner@example.com",
+            bureau_name="Mark Viewed Owner Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.intent = BureauBookingIntent.objects.create(
+            bureau=self.bureau,
+            user=self.requester,
+            name="Seeking Match",
+            phone="9123456789",
+            message="Please contact me about membership.",
+            is_viewed=False,
+        )
+        self.mark_url = reverse(
+            "bureaus:mark_intent_viewed",
+            kwargs={"intent_id": self.intent.id},
+        )
+
+    def _lifecycle_snapshot(self, bureau):
+        return {
+            "is_email_verified": bureau.is_email_verified,
+            "is_approved": bureau.is_approved,
+            "is_active": bureau.is_active,
+        }
+
+    def _intent_snapshot(self, intent):
+        return {
+            "name": intent.name,
+            "phone": intent.phone,
+            "message": intent.message,
+            "status": intent.status,
+            "user_id": intent.user_id,
+            "bureau_id": intent.bureau_id,
+        }
+
+    def test_owner_can_mark_own_intent_viewed(self):
+        before_lifecycle = self._lifecycle_snapshot(self.bureau)
+        before_intent = self._intent_snapshot(self.intent)
+        self.assertFalse(self.intent.is_viewed)
+
+        self.client.force_login(self.bureau.user)
+        response = self.client.post(self.mark_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.REQUESTS_UPDATED)
+
+        self.intent.refresh_from_db()
+        self.assertTrue(self.intent.is_viewed)
+        self.assertEqual(self._intent_snapshot(self.intent), before_intent)
+
+        self.bureau.refresh_from_db()
+        self.assertEqual(self._lifecycle_snapshot(self.bureau), before_lifecycle)
+
+    def test_already_viewed_intent_remains_viewed(self):
+        self.intent.is_viewed = True
+        self.intent.save(update_fields=["is_viewed"])
+        before_count = BureauBookingIntent.objects.filter(bureau=self.bureau).count()
+        before_lifecycle = self._lifecycle_snapshot(self.bureau)
+        before_intent = self._intent_snapshot(self.intent)
+
+        self.client.force_login(self.bureau.user)
+        response = self.client.post(self.mark_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.REQUESTS_UPDATED)
+
+        self.intent.refresh_from_db()
+        self.assertTrue(self.intent.is_viewed)
+        self.assertEqual(self._intent_snapshot(self.intent), before_intent)
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(bureau=self.bureau).count(),
+            before_count,
+        )
+
+        self.bureau.refresh_from_db()
+        self.assertEqual(self._lifecycle_snapshot(self.bureau), before_lifecycle)
+
+    def test_cross_owner_mark_viewed_returns_404(self):
+        other_bureau = _make_bureau(
+            email="mark-viewed-other-owner@example.com",
+            bureau_name="Other Owner Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        other_url = reverse(
+            "bureaus:mark_intent_viewed",
+            kwargs={"intent_id": self.intent.id},
+        )
+        before_lifecycle = self._lifecycle_snapshot(self.bureau)
+
+        self.client.force_login(other_bureau.user)
+        response = self.client.post(other_url)
+
+        self.assertEqual(response.status_code, 404)
+        self.intent.refresh_from_db()
+        self.assertFalse(self.intent.is_viewed)
+
+        self.bureau.refresh_from_db()
+        self.assertEqual(self._lifecycle_snapshot(self.bureau), before_lifecycle)
+
+    def test_anonymous_mark_viewed_redirects_to_login(self):
+        response = self.client.post(self.mark_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+        self.assertIn("next=", response["Location"])
+        self.assertIn(self.mark_url, response["Location"])
+
+        self.intent.refresh_from_db()
+        self.assertFalse(self.intent.is_viewed)
+
+    def test_get_mark_viewed_rejected(self):
+        self.client.force_login(self.bureau.user)
+        response = self.client.get(self.mark_url)
+
+        self.assertEqual(response.status_code, 405)
+        self.intent.refresh_from_db()
+        self.assertFalse(self.intent.is_viewed)
+
+    def test_requests_tab_scopes_intents_to_owner_bureau(self):
+        other_bureau = _make_bureau(
+            email="requests-tab-other@example.com",
+            bureau_name="Requests Tab Other Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        other_intent = BureauBookingIntent.objects.create(
+            bureau=other_bureau,
+            user=self.requester,
+            name="Other Bureau Seeker",
+            phone="9000000001",
+            message="Should not appear for owner A.",
+            is_viewed=False,
+        )
+
+        self.client.force_login(self.bureau.user)
+        response = self.client.get("/dashboard/bureau/?tab=requests")
+
+        self.assertEqual(response.status_code, 200)
+        scoped = response.context["bureau_profile"].booking_intents.all()
+        scoped_ids = set(scoped.values_list("id", flat=True))
+        self.assertIn(self.intent.id, scoped_ids)
+        self.assertNotIn(other_intent.id, scoped_ids)
+        self.assertEqual(response.context["bureau_profile"].id, self.bureau.id)
