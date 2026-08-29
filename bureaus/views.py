@@ -378,6 +378,7 @@ def bureau_booking_intent_view(request, public_id):
             + "#booking"
         )
 
+    bureau_owner = None
     try:
         with transaction.atomic():
             try:
@@ -430,6 +431,7 @@ def bureau_booking_intent_view(request, public_id):
                 phone=phone,
                 message=message,
             )
+            bureau_owner = bureau_profile.user
     except IntegrityError:
         messages.warning(
             request,
@@ -442,6 +444,28 @@ def bureau_booking_intent_view(request, public_id):
     except Exception:
         messages.error(request, "Unable to process your request.")
         return redirect(f"/bureaus/{public_id}/")
+
+    # Shared Notification for Bureau owner (reuse Pandit-style create_notification).
+    # Must not fail the successful booking-intent submission.
+    if bureau_owner is not None:
+        try:
+            from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+            from notifications.services import NotificationService
+
+            NotificationService.create_notification(
+                recipient=bureau_owner,
+                notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                source_module="bureaus",
+                payload={
+                    "title": "New booking request",
+                    "message": (
+                        "You received a new booking request for your Marriage Bureau."
+                    ),
+                    "url": "/dashboard/bureau/?tab=requests",
+                },
+            )
+        except Exception:
+            pass
 
     messages.success(request, "Your booking request has been sent.")
     return redirect(

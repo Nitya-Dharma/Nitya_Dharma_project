@@ -30,6 +30,8 @@ from bureaus.utils import (
     get_visible_bureaus,
     is_profile_complete_for_listing,
 )
+from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+from notifications.models import Notification
 from otp_verification import constants as otp_constants
 from otp_verification.registration.completions import _complete_bureau
 
@@ -2681,3 +2683,155 @@ class BureauPublicReviewDisplayTests(TestCase):
         )
         self.assertIn(own_review.id, scoped_ids)
         self.assertNotIn(other_review.id, scoped_ids)
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
+class BureauBookingIntentNotificationTests(TestCase):
+    """Shared Notification created after successful Bureau booking intent only."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.requester = _make_user(email="bureau-notif-requester@example.com")
+        self.bureau = _make_bureau(
+            email="bureau-notif-owner@example.com",
+            bureau_name="Notification Target Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.intent_url = reverse(
+            "bureaus:bureau_intent",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+        self.valid_payload = {
+            "name": "Notification Seeker",
+            "phone": "9000111222",
+            "message": "Need marriage bureau assistance.",
+        }
+
+    def _owner_booking_notifications(self):
+        return Notification.objects.filter(
+            recipient=self.bureau.user,
+            notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+            source_module="bureaus",
+        )
+
+    def test_successful_intent_creates_owner_notification(self):
+        self.client.force_login(self.requester)
+        before_flags = {
+            "is_email_verified": self.bureau.is_email_verified,
+            "is_approved": self.bureau.is_approved,
+            "is_active": self.bureau.is_active,
+        }
+
+        response = self.client.post(self.intent_url, self.valid_payload)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).exists()
+        )
+        notifications = self._owner_booking_notifications()
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications.get()
+        self.assertEqual(notification.recipient_id, self.bureau.user_id)
+        self.assertFalse(notification.is_read)
+        self.assertEqual(notification.payload.get("url"), "/dashboard/bureau/?tab=requests")
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_email_verified, before_flags["is_email_verified"])
+        self.assertEqual(self.bureau.is_approved, before_flags["is_approved"])
+        self.assertEqual(self.bureau.is_active, before_flags["is_active"])
+
+    def test_anonymous_request_creates_no_notification(self):
+        response = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(bureau=self.bureau).exists()
+        )
+        self.assertEqual(self._owner_booking_notifications().count(), 0)
+
+    def test_hidden_bureau_creates_no_notification(self):
+        hidden = _make_bureau(
+            email="bureau-notif-hidden@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        url = reverse(
+            "bureaus:bureau_intent",
+            kwargs={"public_id": hidden.public_id},
+        )
+        self.client.force_login(self.requester)
+        response = self.client.post(
+            url,
+            {
+                "name": "Hidden Seeker",
+                "phone": "9000333444",
+                "message": "Should not notify.",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/bureaus/")
+        self.assertFalse(BureauBookingIntent.objects.filter(bureau=hidden).exists())
+        self.assertEqual(
+            Notification.objects.filter(
+                recipient=hidden.user,
+                notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                source_module="bureaus",
+            ).count(),
+            0,
+        )
+
+    def test_rejected_duplicate_creates_no_extra_notification(self):
+        self.client.force_login(self.requester)
+        first = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(self._owner_booking_notifications().count(), 1)
+
+        second = self.client.post(
+            self.intent_url,
+            {
+                "name": "Notification Seeker Again",
+                "phone": "9000111223",
+                "message": "Duplicate while pending.",
+            },
+        )
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).count(),
+            1,
+        )
+        self.assertEqual(self._owner_booking_notifications().count(), 1)
+
+    def test_notification_failure_does_not_destroy_successful_intent(self):
+        self.client.force_login(self.requester)
+        before_flags = {
+            "is_email_verified": self.bureau.is_email_verified,
+            "is_approved": self.bureau.is_approved,
+            "is_active": self.bureau.is_active,
+        }
+        with patch(
+            "notifications.services.NotificationService.create_notification",
+            side_effect=RuntimeError("forced notification failure"),
+        ):
+            response = self.client.post(self.intent_url, self.valid_payload)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).exists()
+        )
+        self.assertEqual(self._owner_booking_notifications().count(), 0)
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_email_verified, before_flags["is_email_verified"])
+        self.assertEqual(self.bureau.is_approved, before_flags["is_approved"])
+        self.assertEqual(self.bureau.is_active, before_flags["is_active"])
