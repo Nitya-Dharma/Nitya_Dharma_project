@@ -914,6 +914,98 @@ class BureauReviewSubmissionTests(TestCase):
         self.assertEqual(self.bureau.is_active, before["is_active"])
 
 
+class BureauBookingIntentSubmissionTests(TestCase):
+    """Regression tests for bureau_booking_intent_view (test-only slice)."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.requester = _make_user(email="booking-intent-requester@example.com")
+        self.bureau = _make_bureau(
+            email="booking-intent-target@example.com",
+            bureau_name="Booking Intent Target Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        self.intent_url = reverse(
+            "bureaus:bureau_intent",
+            kwargs={"public_id": self.bureau.public_id},
+        )
+        self.valid_payload = {
+            "name": "Booking Seeker",
+            "phone": "9988776655",
+            "message": "Looking for matrimony assistance.",
+        }
+
+    def test_anonymous_submission_rejected(self):
+        response = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(bureau=self.bureau).exists()
+        )
+
+    def test_visible_bureau_submission_creates_intent(self):
+        self.client.force_login(self.requester)
+        response = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(f"/bureaus/{self.bureau.public_id}/", response["Location"])
+        intent = BureauBookingIntent.objects.get(
+            bureau=self.bureau,
+            user=self.requester,
+        )
+        self.assertEqual(intent.name, "Booking Seeker")
+        self.assertEqual(intent.phone, "9988776655")
+        self.assertEqual(intent.message, "Looking for matrimony assistance.")
+
+    def test_hidden_bureau_rejects_submission(self):
+        hidden = _make_bureau(
+            email="booking-intent-hidden@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=False,
+        )
+        url = reverse(
+            "bureaus:bureau_intent",
+            kwargs={"public_id": hidden.public_id},
+        )
+        self.client.force_login(self.requester)
+        response = self.client.post(
+            url,
+            {
+                "name": "Hidden Seeker",
+                "phone": "8877665544",
+                "message": "Should not be created.",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/bureaus/")
+        self.assertFalse(
+            BureauBookingIntent.objects.filter(bureau=hidden).exists()
+        )
+
+    def test_submission_does_not_mutate_lifecycle_flags(self):
+        self.client.force_login(self.requester)
+        before = {
+            "is_email_verified": self.bureau.is_email_verified,
+            "is_approved": self.bureau.is_approved,
+            "is_active": self.bureau.is_active,
+        }
+        response = self.client.post(self.intent_url, self.valid_payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            BureauBookingIntent.objects.filter(
+                bureau=self.bureau,
+                user=self.requester,
+            ).exists()
+        )
+        self.bureau.refresh_from_db()
+        self.assertEqual(self.bureau.is_email_verified, before["is_email_verified"])
+        self.assertEqual(self.bureau.is_approved, before["is_approved"])
+        self.assertEqual(self.bureau.is_active, before["is_active"])
+
+
 @override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
 class BureauOwnerProfileEditAuthTests(TestCase):
     """Owner profile-edit auth: ownership + email verified; not approval/activation."""
