@@ -20,12 +20,45 @@ from .models import ExpertBookingIntent, ExpertSocialLink
 
 User = get_user_model()
 
+VALID_TYPES = ["astrologer", "numerologist", "palmist"]
+
 
 def _redirect_expert_register(request):
     url = reverse("expert_register")
     if request.GET:
         url = f"{url}?{request.GET.urlencode()}"
     return redirect(url)
+
+def become_expert_home(request):
+    """
+    Thin landing only. Does NOT create ExpertProfile/User/OTP.
+    Canonical registration remains the sole Expert creation lifecycle.
+    """
+    if request.method == "POST":
+        # Neutralize legacy WIP create: never write ExpertProfile here.
+        return redirect(reverse("expert_register"))
+
+    return render(
+        request,
+        "expert/become_expert.html",
+        {
+            "expert_register_url": reverse("expert_register"),
+        },
+    )
+
+
+def expert_type_page(request, expert_type):
+    """
+    Entry helper into canonical register. Does NOT create ExpertProfile.
+    Uses existing expert_register ?type= preselect (already supported).
+    """
+    if expert_type not in VALID_TYPES:
+        return render(request, "expert/invalid_type.html")
+
+    return redirect(
+        f"{reverse('expert_register')}?type={expert_type}"
+    )
+
 
 def expert_register_page(request):
     expert_type = request.GET.get("type")
