@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import HttpResponse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -20,6 +21,24 @@ from services.expert_service_selection import (
     resolve_active_services_by_ids,
 )
 
+
+
+def _absolute_site_url(view_name, *args, **kwargs):
+    """Build absolute URL using SITE_URL + reverse (same pattern as Pandit email)."""
+    site_url = getattr(settings, "SITE_URL", None)
+    if not site_url:
+        allowed_hosts = getattr(settings, "ALLOWED_HOSTS", [])
+        if allowed_hosts and allowed_hosts[0] != "*":
+            host = allowed_hosts[0]
+        else:
+            host = "127.0.0.1:8000"
+        protocol = "https" if getattr(settings, "USE_HTTPS", False) else "http"
+        site_url = f"{protocol}://{host}"
+    site_url = site_url.rstrip("/")
+    relative_path = reverse(view_name, args=args, **kwargs)
+    if not relative_path.startswith("/"):
+        relative_path = "/" + relative_path
+    return f"{site_url}{relative_path}"
 
 
 @login_required
@@ -1449,8 +1468,8 @@ def super_admin_experts(request):
                         message=(
                             "Congratulations! Your expert profile is now approved and live.\n\n"
                             "You can now log in and manage your profile.\n\n"
-                            "Login here: http://127.0.0.1:8000/login/\n"
-                            "Expert Dashboard: http://127.0.0.1:8000/dashboard/expert/\n\n"
+                            f"Login here: {_absolute_site_url('accounts:login')}\n"
+                            f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
                             "Thank you for joining Nitya Dharma."
                         ),
                         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -1588,8 +1607,8 @@ def bulk_approve_experts(request):
                     message=(
                         "Congratulations! Your expert profile is now approved and live.\n\n"
                         "You can now log in and manage your profile.\n\n"
-                        "Login here: http://127.0.0.1:8000/login/\n"
-                        "Expert Dashboard: http://127.0.0.1:8000/dashboard/expert/\n\n"
+                        f"Login here: {_absolute_site_url('accounts:login')}\n"
+                        f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
                         "Thank you for joining Nitya Dharma."
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,

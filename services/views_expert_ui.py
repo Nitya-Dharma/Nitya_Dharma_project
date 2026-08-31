@@ -23,6 +23,24 @@ User = get_user_model()
 VALID_TYPES = ["astrologer", "numerologist", "palmist"]
 
 
+def _absolute_site_url(view_name, *args, **kwargs):
+    """Build absolute URL using SITE_URL + reverse (same pattern as Pandit email)."""
+    site_url = getattr(settings, "SITE_URL", None)
+    if not site_url:
+        allowed_hosts = getattr(settings, "ALLOWED_HOSTS", [])
+        if allowed_hosts and allowed_hosts[0] != "*":
+            host = allowed_hosts[0]
+        else:
+            host = "127.0.0.1:8000"
+        protocol = "https" if getattr(settings, "USE_HTTPS", False) else "http"
+        site_url = f"{protocol}://{host}"
+    site_url = site_url.rstrip("/")
+    relative_path = reverse(view_name, args=args, **kwargs)
+    if not relative_path.startswith("/"):
+        relative_path = "/" + relative_path
+    return f"{site_url}{relative_path}"
+
+
 def _redirect_expert_register(request):
     url = reverse("expert_register")
     if request.GET:
@@ -225,7 +243,7 @@ def expert_register_page(request):
                                         message=(
                                             "Your expert account has been created.\n\n"
                                             "Please reset your password here:\n"
-                                            "http://127.0.0.1:8000/accounts/password-reset/"
+                                            f"{_absolute_site_url('accounts:password_reset')}"
                                         ),
                                         from_email=settings.DEFAULT_FROM_EMAIL,
                                         recipient_list=[email],
