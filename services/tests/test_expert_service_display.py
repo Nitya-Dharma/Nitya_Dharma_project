@@ -111,7 +111,6 @@ class ExpertServiceDisplayTests(TestCase):
         self.assertNotIn("Astrologer", html)
 
     def test_card_query_sources_attach_prefetched_active_services(self):
-        from search.views_ui import search_results
         from services.views_astrology import astrology_service_view
         from services.views_numerology import numerology_service_view
         from services.views_palmistry import palmistry_service_view
@@ -120,6 +119,8 @@ class ExpertServiceDisplayTests(TestCase):
             "All Service Sources",
             [self.astrology, self.numerology, self.palmistry],
         )
+        # HEAD ships service listings and city discovery only; Expert Search tabs
+        # are not implemented on HEAD (see search/views_ui.py).
         cases = (
             (
                 astrology_service_view,
@@ -135,11 +136,6 @@ class ExpertServiceDisplayTests(TestCase):
                 palmistry_service_view,
                 "/services/palmistry/",
                 "services.views_palmistry.render",
-            ),
-            (
-                search_results,
-                "/search/results/?tab=astrology",
-                "search.views_ui.render",
             ),
         )
 
