@@ -1,16 +1,22 @@
 """Regression: ExpertInquiry public create + owner scoping (core.ExpertInquiry)."""
 
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from core.models import ExpertInquiry, ExpertProfile
+from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+from notifications.models import Notification
 
 User = get_user_model()
 
 
 class ExpertInquiryRegressionTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = Client()
         self.owner_a = User.objects.create_user(
             email="expert-inquiry-owner-a@example.com",
@@ -114,3 +120,57 @@ class ExpertInquiryRegressionTests(TestCase):
         )
         body = post_response.content.decode("utf-8", errors="ignore")
         self.assertNotIn("UNIQUE_INACTIVE_EXPERT_INQUIRY_SECRET", body)
+
+    def _owner_inquiry_notifications(self):
+        return Notification.objects.filter(
+            recipient=self.owner_a,
+            notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+            source_module="services",
+        )
+
+    def test_successful_inquiry_creates_owner_notification(self):
+        response = self.client.post(self.detail_a, self.valid_payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["contact_success"])
+        self.assertEqual(ExpertInquiry.objects.filter(expert=self.expert_a).count(), 1)
+        notifications = self._owner_inquiry_notifications()
+        self.assertEqual(notifications.count(), 1)
+        notification = notifications.get()
+        self.assertEqual(notification.recipient_id, self.owner_a.id)
+        self.assertFalse(notification.is_read)
+        self.assertEqual(notification.payload.get("title"), "New inquiry")
+        self.assertEqual(
+            notification.payload.get("url"),
+            "/dashboard/expert/?tab=requests",
+        )
+        self.assertFalse(
+            Notification.objects.filter(recipient=self.owner_b).exists()
+        )
+
+    def test_invalid_inquiry_does_not_notify(self):
+        response = self.client.post(
+            self.detail_a,
+            {
+                "name": "",
+                "phone": "9111222333",
+                "message": "Should not notify.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["contact_success"])
+        self.assertFalse(ExpertInquiry.objects.filter(expert=self.expert_a).exists())
+        self.assertEqual(self._owner_inquiry_notifications().count(), 0)
+
+    def test_notification_failure_does_not_break_inquiry(self):
+        with patch(
+            "notifications.services.NotificationService.create_notification",
+            side_effect=RuntimeError("forced notification failure"),
+        ):
+            response = self.client.post(self.detail_a, self.valid_payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["contact_success"])
+        self.assertEqual(ExpertInquiry.objects.filter(expert=self.expert_a).count(), 1)
+        self.assertEqual(self._owner_inquiry_notifications().count(), 0)

@@ -347,6 +347,35 @@ def expert_profile_page(request, id):
                     message=message or "",
                 )
                 contact_success = True
+
+                # Shared Notification for Expert owner (same pattern as booking intent).
+                # Must not fail the successful inquiry submission.
+                expert_owner = None
+                if expert.email:
+                    expert_owner = User.objects.filter(
+                        email__iexact=expert.email
+                    ).first()
+                if expert_owner is not None:
+                    try:
+                        from notifications.constants import (
+                            NOTIFICATION_TYPE_BOOKING_INTENT,
+                        )
+                        from notifications.services import NotificationService
+
+                        NotificationService.create_notification(
+                            recipient=expert_owner,
+                            notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                            source_module="services",
+                            payload={
+                                "title": "New inquiry",
+                                "message": (
+                                    "You received a new inquiry on your expert profile."
+                                ),
+                                "url": "/dashboard/expert/?tab=requests",
+                            },
+                        )
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
