@@ -15,6 +15,7 @@ from otp_verification.registration.completions import (
     AlreadyCompletedError,
     CompletionError,
     complete_pending_registration,
+    mark_bureau_user_phone_verified,
     mark_expert_user_phone_verified,
 )
 from otp_verification.registration.exceptions import (
@@ -234,15 +235,23 @@ def _verify_template_context(pending: dict) -> dict:
 
 def _expert_skip_phone_verification_context(pending: dict) -> dict:
     flow_type = str(pending.get("flow_type") or "")
-    if flow_type != constants.FLOW_EXPERT_REGISTRATION:
-        return {}
-    return {
-        "allow_skip_phone_verification": True,
-        "skip_phone_verification_url": _safe_reverse(
-            "expert_register_skip_phone_otp",
-            "/services/expert/register/skip-phone-otp/",
-        ),
-    }
+    if flow_type == constants.FLOW_EXPERT_REGISTRATION:
+        return {
+            "allow_skip_phone_verification": True,
+            "skip_phone_verification_url": _safe_reverse(
+                "expert_register_skip_phone_otp",
+                "/services/expert/register/skip-phone-otp/",
+            ),
+        }
+    if flow_type == constants.FLOW_BUREAU_REGISTRATION:
+        return {
+            "allow_skip_phone_verification": True,
+            "skip_phone_verification_url": _safe_reverse(
+                "bureaus:bureau_register_skip_phone_otp",
+                "/bureaus/register/skip-phone-otp/",
+            ),
+        }
+    return {}
 
 
 def _success_message(flow_type: str) -> str:
@@ -503,6 +512,12 @@ def verify_registration_otp(request):
             mark_expert_user_phone_verified(
                 email=(result.get("email") or payload.get("email") or "").strip(),
                 phone=(destination or payload.get("phone") or "").strip(),
+            )
+        elif verified_flow == constants.FLOW_BUREAU_REGISTRATION:
+            payload = pending.get("payload") or {}
+            mark_bureau_user_phone_verified(
+                email=(result.get("email") or payload.get("email") or "").strip(),
+                phone=(destination or payload.get("phone_number") or "").strip(),
             )
         finalize_registration_session(
             request,

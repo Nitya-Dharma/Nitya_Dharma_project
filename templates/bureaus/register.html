@@ -82,7 +82,16 @@
       <label class="form-label">WhatsApp Number (optional)</label>
       <input type="text" name="whatsapp_number" class="form-control" value="{{ form_data.whatsapp_number|default:'' }}">
     </div>
-    <button type="submit" class="btn btn-primary mt-2">Register</button>
+    <div class="d-grid gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">Register</button>
+      {% if bureau_otp_required %}
+      <button type="button"
+              class="btn btn-outline-secondary"
+              id="bureau-skip-phone-verify">
+        Continue without phone verification
+      </button>
+      {% endif %}
+    </div>
   </form>
         </div>
       </div>
@@ -105,6 +114,28 @@
     password.addEventListener("input", syncPasswordHint);
     confirmPassword.addEventListener("input", syncPasswordHint);
     form.addEventListener("submit", syncPasswordHint);
+  })();
+
+  (function () {
+    var skipBtn = document.getElementById("bureau-skip-phone-verify");
+    if (!skipBtn) {
+      return;
+    }
+    skipBtn.addEventListener("click", function () {
+      var form = skipBtn.closest("form");
+      if (!form) {
+        return;
+      }
+      var existing = form.querySelector('input[name="skip_phone_verification"]');
+      if (!existing) {
+        existing = document.createElement("input");
+        existing.type = "hidden";
+        existing.name = "skip_phone_verification";
+        form.appendChild(existing);
+      }
+      existing.value = "1";
+      form.submit();
+    });
   })();
 </script>
 {% endblock %}

@@ -13,6 +13,11 @@ app_name = "bureaus"
 
 urlpatterns = [
     path("", bureau_list_view, name="bureau_list"),
+    path(
+        "register/skip-phone-otp/",
+        views.bureau_register_skip_phone_otp,
+        name="bureau_register_skip_phone_otp",
+    ),
     path("register/", bureau_register_view, name="bureau_register"),
     path(
         "resend-verification/",

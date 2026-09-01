@@ -701,13 +701,28 @@ def bureau_profile_edit_view(request):
     if bureau_profile is None:
         return _deny_bureau_access(request)
 
-    def _bureau_profile_edit_context(bureau, form_data):
+    def _bureau_profile_edit_context(bureau, form_data, *, user=None):
+        from otp_verification import constants as otp_constants
+        from otp_verification.registration.completions import _sync_expert_user_phone
+        from otp_verification.registration.factory import is_registration_otp_required
         from whatsapp_verification.constants import SUBJECT_BUREAU_PROFILE
         from whatsapp_verification.integration.widget_helpers import widget_context_for_subject
+
+        owner = user
+        profile_phone = (bureau.phone_number or "").strip()
+        if owner and profile_phone and hasattr(owner, "phone_number"):
+            if owner.phone_number != profile_phone:
+                _sync_expert_user_phone(owner, profile_phone)
 
         ctx = {
             "bureau_profile": bureau,
             "form_data": form_data,
+            "phone_is_verified": bool(getattr(owner, "is_phone_verified", False))
+            if owner
+            else False,
+            "bureau_otp_required": is_registration_otp_required(
+                otp_constants.FLOW_BUREAU_REGISTRATION
+            ),
         }
         if bureau.pk:
             ctx.update(
@@ -733,6 +748,7 @@ def bureau_profile_edit_view(request):
                     "city": bureau_profile.city or "",
                     "caste_data": json.dumps(bureau_profile.caste_data or {}, indent=2),
                 },
+                user=request.user,
             ),
         )
 
@@ -741,6 +757,7 @@ def bureau_profile_edit_view(request):
     from whatsapp_verification.integration.profile_sync import sync_profile_whatsapp_number_change
 
     old_whatsapp_number = get_bureau_whatsapp_number_raw(bureau_profile)
+    old_phone_number = (bureau_profile.phone_number or "").strip()
 
     description = _sanitize_description(request.POST.get("description"))
     phone_number = _normalize_phone(request.POST.get("phone_number"))
@@ -797,7 +814,7 @@ def bureau_profile_edit_view(request):
         return render(
             request,
             "bureaus/profile_edit.html",
-            _bureau_profile_edit_context(bureau_profile, form_data),
+            _bureau_profile_edit_context(bureau_profile, form_data, user=request.user),
             status=400,
         )
 
@@ -836,9 +853,16 @@ def bureau_profile_edit_view(request):
         return render(
             request,
             "bureaus/profile_edit.html",
-            _bureau_profile_edit_context(bureau_profile, form_data),
+            _bureau_profile_edit_context(bureau_profile, form_data, user=request.user),
             status=500,
         )
+
+    from otp_verification.registration.completions import _sync_expert_user_phone
+
+    _sync_expert_user_phone(request.user, phone_number)
+    if phone_number != old_phone_number and getattr(request.user, "is_phone_verified", False):
+        request.user.is_phone_verified = False
+        request.user.save(update_fields=["is_phone_verified", "updated_at"])
 
     sync_profile_whatsapp_number_change(
         SUBJECT_BUREAU_PROFILE,
@@ -881,7 +905,7 @@ def bureau_profile_edit_view(request):
         return render(
             request,
             "bureaus/profile_edit.html",
-            _bureau_profile_edit_context(bureau_profile, form_data),
+            _bureau_profile_edit_context(bureau_profile, form_data, user=request.user),
             status=400,
         )
 
@@ -964,10 +988,60 @@ def bureau_owner_status_view(request):
     )
 
 
+@require_http_methods(["POST"])
+def bureau_register_skip_phone_otp(request):
+    """Complete Bureau registration without OTP verification (bureau flow only)."""
+
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.completions import (
+        AlreadyCompletedError,
+        CompletionError,
+        complete_pending_registration,
+    )
+    from otp_verification.registration.session import (
+        clear_pending_registration,
+        get_pending_registration,
+    )
+
+    pending = get_pending_registration(request)
+    if (
+        not pending
+        or pending.get("flow_type") != otp_constants.FLOW_BUREAU_REGISTRATION
+    ):
+        messages.error(
+            request,
+            "No pending bureau registration found. Please register again.",
+        )
+        return redirect("bureaus:bureau_register")
+
+    try:
+        complete_pending_registration(pending=pending)
+    except AlreadyCompletedError:
+        pass
+    except CompletionError as exc:
+        messages.error(request, str(exc))
+        return redirect("bureaus:bureau_register")
+
+    clear_pending_registration(request)
+    messages.success(request, "Registration successful. Awaiting admin approval.")
+    return redirect("bureaus:bureau_register")
+
+
 @require_http_methods(["GET", "POST"])
 def bureau_register_view(request):
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.factory import is_registration_otp_required
+
+    bureau_otp_required = is_registration_otp_required(
+        otp_constants.FLOW_BUREAU_REGISTRATION
+    )
+
     if request.method == "GET":
-        return render(request, "bureaus/register.html")
+        return render(
+            request,
+            "bureaus/register.html",
+            {"bureau_otp_required": bureau_otp_required},
+        )
 
     bureau_name = (request.POST.get("bureau_name") or "").strip()
     email = _normalize_email(request.POST.get("email"))
@@ -1044,11 +1118,10 @@ def bureau_register_view(request):
         messages.error(request, "Unable to process your request.")
         return render(request, "bureaus/register.html", status=429)
 
-    from otp_verification import constants as otp_constants
-    from otp_verification.registration.factory import is_registration_otp_required
     from otp_verification.registration.gate import begin_otp_or_continue
 
-    if is_registration_otp_required(otp_constants.FLOW_BUREAU_REGISTRATION):
+    skip_phone_verification = request.POST.get("skip_phone_verification") == "1"
+    if bureau_otp_required and not skip_phone_verification:
         otp_response = begin_otp_or_continue(
             request,
             flow_type=otp_constants.FLOW_BUREAU_REGISTRATION,
@@ -1120,6 +1193,12 @@ def bureau_register_view(request):
                 is_approved=False,
                 is_email_verified=False,
             )
+            from otp_verification.registration.completions import (
+                _sync_expert_user_phone,
+                mark_bureau_user_phone_verified,
+            )
+
+            _sync_expert_user_phone(user, phone_number)
     except (ValidationError, IntegrityError):
         messages.error(request, "Registration failed. Please try again.")
         return render(
@@ -1147,7 +1226,18 @@ def bureau_register_view(request):
         )
 
     messages.success(request, "Registration successful. Awaiting admin approval.")
-    from otp_verification.registration.session import consume_phone_verified_session
+    from otp_verification.registration.completions import mark_bureau_user_phone_verified
+    from otp_verification.registration.session import (
+        consume_phone_verified_session,
+        phone_verified_matches_registration,
+    )
+
+    if phone_verified_matches_registration(
+        request,
+        flow_type=otp_constants.FLOW_BUREAU_REGISTRATION,
+        destination=phone_number,
+    ):
+        mark_bureau_user_phone_verified(email=email, phone=phone_number)
     consume_phone_verified_session(request)
     return render(request, "bureaus/register.html", status=201)
 

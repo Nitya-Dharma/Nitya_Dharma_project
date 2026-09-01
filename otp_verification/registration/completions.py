@@ -88,6 +88,33 @@ def mark_expert_user_phone_verified(*, email: str, phone: str) -> None:
     )
 
 
+def mark_bureau_user_phone_verified(*, email: str, phone: str) -> None:
+    """Persist phone verification on the Bureau owner's User row (no activation)."""
+
+    email = (email or "").strip()
+    phone = (phone or "").strip()
+    if not email or not phone:
+        return
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        return
+    _sync_expert_user_phone(user, phone)
+    if getattr(user, "is_phone_verified", False):
+        return
+    from django.utils import timezone
+
+    user.is_phone_verified = True
+    user.phone_verified_at = timezone.now()
+    user.save(
+        update_fields=[
+            "phone_number",
+            "is_phone_verified",
+            "phone_verified_at",
+            "updated_at",
+        ]
+    )
+
+
 def _complete_user(payload: dict[str, Any]) -> dict[str, Any]:
     email = (payload.get("email") or "").strip()
     if not email:
@@ -185,10 +212,11 @@ def _complete_bureau(payload: dict[str, Any]) -> dict[str, Any]:
                     "email": email,
                 },
             )
+        phone_number = (payload.get("phone_number") or "").strip()
         BureauProfile.objects.create(
             user=user,
             bureau_name=payload.get("bureau_name") or "",
-            phone_number=payload.get("phone_number") or "",
+            phone_number=phone_number,
             address=payload.get("address") or "",
             city=payload.get("city") or "",
             whatsapp_number=payload.get("whatsapp_number") or "",
@@ -196,6 +224,7 @@ def _complete_bureau(payload: dict[str, Any]) -> dict[str, Any]:
             is_approved=False,
             is_email_verified=False,
         )
+        _sync_expert_user_phone(user, phone_number)
         try:
             from accounts.email_verification import create_email_verification
 

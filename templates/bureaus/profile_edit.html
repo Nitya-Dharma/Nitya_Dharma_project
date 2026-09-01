@@ -58,6 +58,15 @@
               <div class="col-md-6 mb-3">
                 <label class="form-label">Phone Number</label>
                 <input type="text" name="phone_number" class="form-control" value="{{ form_data.phone_number|default:bureau_profile.phone_number|default:"" }}" required>
+                {% if phone_is_verified %}
+                  <div class="text-success small mt-1">
+                    <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>
+                    Verified
+                  </div>
+                {% elif bureau_otp_required %}
+                  <div class="text-warning small mt-1">Not verified</div>
+                  {% include "otp_verification/partials/mobile_verification.html" with id_prefix="bureau_profile_mv" phone_input_name="phone_number" flow_type="bureau_registration" post_register_mode="1" lock_register="0" hide_change_number="1" action_btn_class="btn btn-outline-primary btn-sm" verify_otp_btn_class="btn btn-primary btn-sm" %}
+                {% endif %}
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">WhatsApp Number <span class="text-muted small">(optional)</span></label>
