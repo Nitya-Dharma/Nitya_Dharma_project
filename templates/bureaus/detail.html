@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load whatsapp_public_tags %}
 
 {% block title %}
 {{ bureau.name }} | Hindu Marriage Bureau | Nitya Dharma
@@ -54,11 +55,9 @@ View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
                 Call
               </a>
             {% endif %}
-            {% if bureau.whatsapp %}
-              <a href="https://wa.me/{{ bureau.whatsapp }}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm">
-                WhatsApp
-              </a>
-            {% endif %}
+            {% with contact_info=bureau_profile|bureau_contact_info %}
+              {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
+            {% endwith %}
           </div>
         </div>
       </div>

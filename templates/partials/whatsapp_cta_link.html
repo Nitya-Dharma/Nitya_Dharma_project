@@ -1,0 +1,12 @@
+{# WhatsApp contact CTA only — requires whatsapp_url; no verification logic. #}
+{% if whatsapp_url %}
+<a href="{{ whatsapp_url }}"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="{{ btn_class|default:'btn w-100' }}"
+   style="background-color: #25D366; border-color: #25D366; color: #fff; font-weight: 500;"
+   title="{{ title|default:'Open WhatsApp chat' }}"
+   aria-label="{{ aria_label|default:'WhatsApp' }}">
+  <i class="bi bi-whatsapp me-1" aria-hidden="true"></i>{{ label|default:'WhatsApp' }}
+</a>
+{% endif %}

@@ -47,12 +47,7 @@
             {% if contact_info.has_call %}
               <a href="{{ contact_info.call_url }}" class="btn btn-success w-100">Call</a>
             {% endif %}
-            {% if contact_info.has_whatsapp %}
-              <a href="{{ contact_info.whatsapp_url }}"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="btn btn-success w-100">WhatsApp</a>
-            {% endif %}
+            {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn w-100" %}
           {% endwith %}
         </div>
       </div>
