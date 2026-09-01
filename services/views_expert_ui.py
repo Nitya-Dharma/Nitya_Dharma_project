@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import F
 from django.db import transaction
+from django.views.decorators.http import require_http_methods
 from core.models import ExpertProfile, ExpertReview, ExpertInquiry, ExpertService
 
 from .expert_service_selection import (
@@ -79,8 +80,14 @@ def expert_type_page(request, expert_type):
 
 
 def expert_register_page(request):
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.factory import is_registration_otp_required
+
     expert_type = request.GET.get("type")
     error = None
+    expert_otp_required = is_registration_otp_required(
+        otp_constants.FLOW_EXPERT_REGISTRATION
+    )
     available_services = list(
         ExpertService.objects.filter(is_active=True).order_by("display_order", "name")
     )
@@ -195,11 +202,15 @@ def expert_register_page(request):
                         return _redirect_expert_register(request)
 
             if not error and not existing and not existing_email:
-                from otp_verification import constants as otp_constants
-                from otp_verification.registration.factory import is_registration_otp_required
                 from otp_verification.registration.gate import begin_otp_or_continue
 
-                if is_registration_otp_required(otp_constants.FLOW_EXPERT_REGISTRATION):
+                skip_phone_verification = (
+                    request.POST.get("skip_phone_verification") == "1"
+                )
+                if (
+                    is_registration_otp_required(otp_constants.FLOW_EXPERT_REGISTRATION)
+                    and not skip_phone_verification
+                ):
                     otp_response = begin_otp_or_continue(
                         request,
                         flow_type=otp_constants.FLOW_EXPERT_REGISTRATION,
@@ -279,7 +290,20 @@ def expert_register_page(request):
                 except Exception:
                     pass
 
-                from otp_verification.registration.session import consume_phone_verified_session
+                from otp_verification.registration.completions import (
+                    mark_expert_user_phone_verified,
+                )
+                from otp_verification.registration.session import (
+                    consume_phone_verified_session,
+                    phone_verified_matches_registration,
+                )
+
+                if phone_verified_matches_registration(
+                    request,
+                    flow_type=otp_constants.FLOW_EXPERT_REGISTRATION,
+                    destination=phone,
+                ):
+                    mark_expert_user_phone_verified(email=email, phone=phone)
                 consume_phone_verified_session(request)
                 return render(
                     request,
@@ -290,6 +314,7 @@ def expert_register_page(request):
                         "selected_service_ids": selected_service_ids,
                         "success": True,
                         "error": None,
+                        "expert_otp_required": expert_otp_required,
                     },
                 )
 
@@ -304,8 +329,52 @@ def expert_register_page(request):
             "error": error,
             "available_services": available_services,
             "selected_service_ids": selected_service_ids,
+            "expert_otp_required": expert_otp_required,
         },
     )
+
+
+@require_http_methods(["POST"])
+def expert_register_skip_phone_otp(request):
+    """Complete Expert registration without OTP verification (expert flow only)."""
+
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.completions import (
+        AlreadyCompletedError,
+        CompletionError,
+        complete_pending_registration,
+    )
+    from otp_verification.registration.session import (
+        clear_pending_registration,
+        get_pending_registration,
+    )
+
+    pending = get_pending_registration(request)
+    if (
+        not pending
+        or pending.get("flow_type") != otp_constants.FLOW_EXPERT_REGISTRATION
+    ):
+        messages.error(
+            request,
+            "No pending expert registration found. Please register again.",
+        )
+        return redirect("expert_register")
+
+    try:
+        complete_pending_registration(pending=pending)
+    except AlreadyCompletedError:
+        pass
+    except CompletionError as exc:
+        messages.error(request, str(exc))
+        return redirect("expert_register")
+
+    clear_pending_registration(request)
+    messages.success(
+        request,
+        "Registration successful. Your profile is pending approval.",
+    )
+    return redirect("expert_pending")
+
 
 def expert_pending_page(request):
     return render(request, "expert/pending.html")

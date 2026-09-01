@@ -11,6 +11,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from otp_verification.enums import AuditEvent, ChallengeStatus
+from otp_verification import constants
 from otp_verification.registration.exceptions import (
     RegistrationOTPError,
     RegistrationOTPGenerationLimitReached,
@@ -215,6 +216,11 @@ def begin_otp_or_continue(
         "resume_path": resume_path,
         "verify_url": verify_url,
     }
+    if flow_type == constants.FLOW_EXPERT_REGISTRATION:
+        context["allow_skip_phone_verification"] = True
+        context["skip_phone_verification_url"] = reverse(
+            "expert_register_skip_phone_otp"
+        )
     if wants_json:
         return JsonResponse(
             {

@@ -15,6 +15,7 @@ from otp_verification.registration.completions import (
     AlreadyCompletedError,
     CompletionError,
     complete_pending_registration,
+    mark_expert_user_phone_verified,
 )
 from otp_verification.registration.exceptions import (
     RegistrationOTPCooldownActive,
@@ -227,6 +228,20 @@ def _verify_template_context(pending: dict) -> dict:
         "remaining_attempts": remaining_attempts,
         "resend_enabled": remaining_seconds <= 0 and remaining_attempts > 0,
         "max_resends": max_resends,
+        **_expert_skip_phone_verification_context(pending),
+    }
+
+
+def _expert_skip_phone_verification_context(pending: dict) -> dict:
+    flow_type = str(pending.get("flow_type") or "")
+    if flow_type != constants.FLOW_EXPERT_REGISTRATION:
+        return {}
+    return {
+        "allow_skip_phone_verification": True,
+        "skip_phone_verification_url": _safe_reverse(
+            "expert_register_skip_phone_otp",
+            "/services/expert/register/skip-phone-otp/",
+        ),
     }
 
 
@@ -483,6 +498,12 @@ def verify_registration_otp(request):
 
         # Registration resume → transactional create (inside completer) → finalize session.
         result = complete_pending_registration(pending=pending)
+        if verified_flow == constants.FLOW_EXPERT_REGISTRATION:
+            payload = pending.get("payload") or {}
+            mark_expert_user_phone_verified(
+                email=(result.get("email") or payload.get("email") or "").strip(),
+                phone=(destination or payload.get("phone") or "").strip(),
+            )
         finalize_registration_session(
             request,
             challenge_id=verified_challenge,

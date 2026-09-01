@@ -138,6 +138,19 @@ def expert_dashboard_view(request):
 
     profile_views = getattr(expert, "profile_views", 0)
 
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.factory import is_registration_otp_required
+
+    expert_owner = request.user
+    if expert.phone and hasattr(expert_owner, "phone_number"):
+        if expert_owner.phone_number != expert.phone:
+            expert_owner.phone_number = expert.phone
+            expert_owner.save(update_fields=["phone_number", "updated_at"])
+    phone_is_verified = bool(getattr(expert_owner, "is_phone_verified", False))
+    expert_otp_required = is_registration_otp_required(
+        otp_constants.FLOW_EXPERT_REGISTRATION
+    )
+
     return render(
         request,
         "experts/dashboard.html",
@@ -159,6 +172,8 @@ def expert_dashboard_view(request):
             "profile_views": profile_views,
             "has_active_intent": has_active_intent,
             "unread_requests_count": unread_requests_count,
+            "phone_is_verified": phone_is_verified,
+            "expert_otp_required": expert_otp_required,
         },
     )
 

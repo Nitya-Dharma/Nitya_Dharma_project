@@ -135,10 +135,17 @@
                 </div>
               </div>
 
-              <div class="mt-4 d-grid">
+              <div class="mt-4 d-grid gap-2">
                 <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
                   Create Expert Account
                 </button>
+                {% if expert_otp_required %}
+                <button type="button"
+                        class="btn btn-outline-secondary btn-lg rounded-pill"
+                        id="expert-skip-phone-verify">
+                  Continue without phone verification
+                </button>
+                {% endif %}
               </div>
 
               <div class="text-center mt-3">
@@ -164,5 +171,27 @@ function addSocialLink() {
   input.placeholder = "Another social link";
   container.appendChild(input);
 }
+
+(function () {
+  var skipBtn = document.getElementById("expert-skip-phone-verify");
+  if (!skipBtn) {
+    return;
+  }
+  skipBtn.addEventListener("click", function () {
+    var form = skipBtn.closest("form");
+    if (!form) {
+      return;
+    }
+    var existing = form.querySelector('input[name="skip_phone_verification"]');
+    if (!existing) {
+      existing = document.createElement("input");
+      existing.type = "hidden";
+      existing.name = "skip_phone_verification";
+      form.appendChild(existing);
+    }
+    existing.value = "1";
+    form.submit();
+  });
+})();
 </script>
 {% endblock %}

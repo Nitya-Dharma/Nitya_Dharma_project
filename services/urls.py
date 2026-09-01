@@ -8,7 +8,7 @@ from .views import (
     palmistry_city_view,
 )
 from .views_astrology import astrology_service_view
-from .views_expert_ui import become_expert_home, expert_type_page, expert_pending_page, expert_profile_page, expert_register_page
+from .views_expert_ui import become_expert_home, expert_type_page, expert_pending_page, expert_profile_page, expert_register_page, expert_register_skip_phone_otp
 from .views_numerology import numerology_service_view
 from .views_palmistry import palmistry_service_view
 
@@ -22,6 +22,11 @@ urlpatterns = [
     path("become-expert/", become_expert_home, name="become_expert"),
     path("become-expert/<str:expert_type>/", expert_type_page, name="expert_type_page"),
     path("expert/register/", expert_register_page, name="expert_register"),
+    path(
+        "expert/register/skip-phone-otp/",
+        expert_register_skip_phone_otp,
+        name="expert_register_skip_phone_otp",
+    ),
     path("expert/pending/", expert_pending_page, name="expert_pending"),
     path(
         "expert/intent/<int:intent_id>/mark-viewed/",

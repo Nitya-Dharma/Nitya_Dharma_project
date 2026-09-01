@@ -52,6 +52,42 @@ def _apply_password_hash(user, password_hash: str | None) -> None:
         user.save(update_fields=["password"])
 
 
+def _sync_expert_user_phone(user, phone: str) -> None:
+    phone = (phone or "").strip()
+    if not user or not phone or not hasattr(user, "phone_number"):
+        return
+    if user.phone_number != phone:
+        user.phone_number = phone
+        user.save(update_fields=["phone_number", "updated_at"])
+
+
+def mark_expert_user_phone_verified(*, email: str, phone: str) -> None:
+    """Persist phone verification on the Expert owner's User row (no activation)."""
+
+    email = (email or "").strip()
+    phone = (phone or "").strip()
+    if not email or not phone:
+        return
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        return
+    _sync_expert_user_phone(user, phone)
+    if getattr(user, "is_phone_verified", False):
+        return
+    from django.utils import timezone
+
+    user.is_phone_verified = True
+    user.phone_verified_at = timezone.now()
+    user.save(
+        update_fields=[
+            "phone_number",
+            "is_phone_verified",
+            "phone_verified_at",
+            "updated_at",
+        ]
+    )
+
+
 def _complete_user(payload: dict[str, Any]) -> dict[str, Any]:
     email = (payload.get("email") or "").strip()
     if not email:
@@ -220,6 +256,7 @@ def _complete_expert(payload: dict[str, Any]) -> dict[str, Any]:
                     password="!",
                 )
                 _apply_password_hash(user, password_hash)
+            _sync_expert_user_phone(user, phone)
 
         expert = ExpertProfile.objects.create(
             name=name,
