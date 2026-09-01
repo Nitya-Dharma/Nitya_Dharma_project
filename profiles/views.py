@@ -17,6 +17,31 @@ from core.public_id import resolve_public_id, reject_bigint_id
 from seo.schema_builders import build_pandit_schema
 
 
+def _pandit_profile_phone_verification_context(request, profile):
+    """Sync profile phone to User.phone_number and expose OTP verification UI context."""
+
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.completions import _sync_expert_user_phone
+    from otp_verification.registration.factory import is_registration_otp_required
+
+    profile_phone = (
+        (profile.call_mobile_number or "")
+        or (profile.primary_mobile_number or "")
+        or (profile.phone_number or "")
+    ).strip()
+    user = request.user
+    if profile_phone and hasattr(user, "phone_number"):
+        if user.phone_number != profile_phone:
+            _sync_expert_user_phone(user, profile_phone)
+
+    return {
+        "phone_is_verified": bool(getattr(user, "is_phone_verified", False)),
+        "pandit_otp_required": is_registration_otp_required(
+            otp_constants.FLOW_PANDIT_REGISTRATION
+        ),
+    }
+
+
 def profile_public(request, identifier=None, public_id=None):
     """
     Public view of a Pandit profile.
@@ -208,6 +233,8 @@ def profile_edit(request, public_id=None):
     if request.method == 'POST':
         # Handle form submission
         try:
+            old_call_mobile = (profile.call_mobile_number or "").strip()
+
             # Update basic fields
             if 'about_description' in request.POST:
                 profile.about_description = request.POST.get('about_description', '').strip()
@@ -558,6 +585,18 @@ def profile_edit(request, public_id=None):
             # Save the profile
             profile.save()
 
+            from otp_verification.registration.completions import _sync_expert_user_phone
+
+            call_phone = (profile.call_mobile_number or "").strip()
+            if call_phone:
+                _sync_expert_user_phone(request.user, call_phone)
+            if (
+                call_phone != old_call_mobile
+                and getattr(request.user, "is_phone_verified", False)
+            ):
+                request.user.is_phone_verified = False
+                request.user.save(update_fields=["is_phone_verified", "updated_at"])
+
             # Enqueue admin-review entries for user-submitted "Others" locations.
             # Additive governance feature: does not modify master tables directly.
             try:
@@ -703,6 +742,7 @@ def profile_edit(request, public_id=None):
         'is_profile_approved': is_profile_approved,
         'show_complete_profile_message': not is_complete or not is_profile_approved,  # Show message if incomplete or not approved
     }
+    context.update(_pandit_profile_phone_verification_context(request, profile))
     
     return render(request, 'module4_profile/profile_edit.html', context)
 

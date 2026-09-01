@@ -200,6 +200,17 @@
                                     <small class="muted d-block mt-1">
                                         Used for direct contact by users via phone calls.
                                     </small>
+                                    {% if phone_is_verified %}
+                                    <div class="text-success small mt-1">
+                                        <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>
+                                        Verified
+                                    </div>
+                                    {% elif pandit_otp_required %}
+                                    {% if current_profile.call_mobile_number or current_profile.primary_mobile_number or current_profile.phone_number %}
+                                    <div class="text-warning small mt-1">Not verified</div>
+                                    {% include "otp_verification/partials/mobile_verification.html" with id_prefix="pandit_profile_mv" phone_input_name="call_mobile_number" phone_input_id="call_mobile_number" flow_type="pandit_registration" post_register_mode="1" lock_register="0" hide_change_number="1" action_btn_class="btn btn-outline-primary btn-sm" verify_otp_btn_class="btn btn-primary btn-sm" %}
+                                    {% endif %}
+                                    {% endif %}
                                 </div>
                             </div>
                             
