@@ -90,6 +90,7 @@ def expert_dashboard_view(request):
                 active_tab = "profile"
 
             if not profile_error and name and phone:
+                old_phone = (expert.phone or "").strip()
                 with transaction.atomic():
                     expert.name = name
                     expert.phone = phone
@@ -109,6 +110,17 @@ def expert_dashboard_view(request):
 
                     expert.save()
                     expert.services.set(selected_services)
+                from otp_verification.registration.completions import _sync_expert_user_phone
+
+                new_phone = (phone or "").strip()
+                if new_phone:
+                    _sync_expert_user_phone(request.user, new_phone)
+                if (
+                    new_phone != old_phone
+                    and getattr(request.user, "is_phone_verified", False)
+                ):
+                    request.user.is_phone_verified = False
+                    request.user.save(update_fields=["is_phone_verified", "updated_at"])
                 selected_service_ids = [
                     service.id for service in selected_services
                 ]

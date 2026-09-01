@@ -321,3 +321,79 @@ class ExpertRegistrationOTPFallbackTests(TestCase):
         ):
             response = expert_dashboard_view(dashboard_request)
         self.assertContains(response, "Verified")
+
+    def test_changing_profile_phone_resets_verification(self):
+        user = User.objects.create_user(
+            email="phone-change-reset@example.com",
+            username="phone-change-reset@example.com",
+            password="Password123!",
+            phone_number="9876543210",
+            is_phone_verified=True,
+        )
+        expert = ExpertProfile.objects.create(
+            name="Phone Change Expert",
+            email=user.email,
+            phone="9876543210",
+            experience_years=3,
+            description="Verified phone will change",
+            expert_type="ASTROLOGER",
+            is_active=True,
+        )
+        expert.services.set([self.astrology])
+
+        request = _prepare_request(
+            self.factory,
+            path=f"{reverse('module5_dashboards:expert_dashboard')}?tab=profile",
+            data={
+                "name": expert.name,
+                "phone": "9876543211",
+                "experience_years": str(expert.experience_years),
+                "description": expert.description,
+                "services": [str(self.astrology.id)],
+            },
+            user=user,
+        )
+        response = expert_dashboard_view(request)
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        expert.refresh_from_db()
+        self.assertFalse(user.is_phone_verified)
+        self.assertEqual(user.phone_number, "9876543211")
+        self.assertEqual(expert.phone, "9876543211")
+
+    def test_saving_same_phone_does_not_reset_verification(self):
+        user = User.objects.create_user(
+            email="same-phone@example.com",
+            username="same-phone@example.com",
+            password="Password123!",
+            phone_number="9876543212",
+            is_phone_verified=True,
+        )
+        expert = ExpertProfile.objects.create(
+            name="Same Phone Expert",
+            email=user.email,
+            phone="9876543212",
+            experience_years=3,
+            description="Same phone save",
+            expert_type="ASTROLOGER",
+            is_active=True,
+        )
+        expert.services.set([self.astrology])
+
+        request = _prepare_request(
+            self.factory,
+            path=f"{reverse('module5_dashboards:expert_dashboard')}?tab=profile",
+            data={
+                "name": expert.name,
+                "phone": expert.phone,
+                "experience_years": str(expert.experience_years),
+                "description": expert.description,
+                "services": [str(self.astrology.id)],
+            },
+            user=user,
+        )
+        response = expert_dashboard_view(request)
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertTrue(user.is_phone_verified)
+        self.assertEqual(user.phone_number, "9876543212")
