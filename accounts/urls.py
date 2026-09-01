@@ -32,6 +32,11 @@ urlpatterns = [
     
     # Pandit registration endpoint (referral-based)
     # URL format: /accounts/pandit/register/<referral_token>/
+    path(
+        'pandit/register/skip-phone-otp/',
+        views.pandit_register_skip_phone_otp,
+        name='pandit_register_skip_phone_otp',
+    ),
     path('pandit/register/<str:referral_token>/', views.pandit_register, name='pandit_register'),
     
     # Pandit approval workflow (Admin & Super Admin only)

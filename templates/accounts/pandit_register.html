@@ -182,10 +182,17 @@
                                 </div>
                                 
                                 <!-- Register Button -->
-                                <div class="d-grid">
+                                <div class="d-grid gap-2">
                                     <button type="submit" class="pandit-btn-register btn-lg" id="registerBtn">
                                         <i class="bi bi-person-plus me-2"></i>Register as Pandit
                                     </button>
+                                    {% if pandit_otp_required %}
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-lg"
+                                            id="pandit-skip-phone-verify">
+                                        Continue without phone verification
+                                    </button>
+                                    {% endif %}
                                 </div>
                                 
                             </form>
@@ -217,6 +224,27 @@
 
 <script src="{% static 'js/password_toggle.js' %}" defer></script>
 <script>
+(function () {
+    var skipBtn = document.getElementById("pandit-skip-phone-verify");
+    if (!skipBtn) {
+        return;
+    }
+    skipBtn.addEventListener("click", function () {
+        var form = skipBtn.closest("form");
+        if (!form) {
+            return;
+        }
+        var existing = form.querySelector('input[name="skip_phone_verification"]');
+        if (!existing) {
+            existing = document.createElement("input");
+            existing.type = "hidden";
+            existing.name = "skip_phone_verification";
+            form.appendChild(existing);
+        }
+        existing.value = "1";
+        form.submit();
+    });
+})();
 // Form submission handler
 var panditRegisterForm = document.getElementById('panditRegisterForm');
 if (panditRegisterForm) {

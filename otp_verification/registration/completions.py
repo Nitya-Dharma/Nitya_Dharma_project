@@ -115,6 +115,33 @@ def mark_bureau_user_phone_verified(*, email: str, phone: str) -> None:
     )
 
 
+def mark_pandit_user_phone_verified(*, email: str, phone: str) -> None:
+    """Persist phone verification on the Pandit User row (no activation/approval)."""
+
+    email = (email or "").strip()
+    phone = (phone or "").strip()
+    if not email or not phone:
+        return
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        return
+    _sync_expert_user_phone(user, phone)
+    if getattr(user, "is_phone_verified", False):
+        return
+    from django.utils import timezone
+
+    user.is_phone_verified = True
+    user.phone_verified_at = timezone.now()
+    user.save(
+        update_fields=[
+            "phone_number",
+            "is_phone_verified",
+            "phone_verified_at",
+            "updated_at",
+        ]
+    )
+
+
 def _complete_user(payload: dict[str, Any]) -> dict[str, Any]:
     email = (payload.get("email") or "").strip()
     if not email:

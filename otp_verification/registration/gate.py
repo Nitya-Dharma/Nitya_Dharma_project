@@ -226,6 +226,11 @@ def begin_otp_or_continue(
         context["skip_phone_verification_url"] = reverse(
             "bureaus:bureau_register_skip_phone_otp"
         )
+    elif flow_type == constants.FLOW_PANDIT_REGISTRATION:
+        context["allow_skip_phone_verification"] = True
+        context["skip_phone_verification_url"] = reverse(
+            "accounts:pandit_register_skip_phone_otp"
+        )
     if wants_json:
         return JsonResponse(
             {

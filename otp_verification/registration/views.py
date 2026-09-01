@@ -17,6 +17,7 @@ from otp_verification.registration.completions import (
     complete_pending_registration,
     mark_bureau_user_phone_verified,
     mark_expert_user_phone_verified,
+    mark_pandit_user_phone_verified,
 )
 from otp_verification.registration.exceptions import (
     RegistrationOTPCooldownActive,
@@ -249,6 +250,14 @@ def _expert_skip_phone_verification_context(pending: dict) -> dict:
             "skip_phone_verification_url": _safe_reverse(
                 "bureaus:bureau_register_skip_phone_otp",
                 "/bureaus/register/skip-phone-otp/",
+            ),
+        }
+    if flow_type == constants.FLOW_PANDIT_REGISTRATION:
+        return {
+            "allow_skip_phone_verification": True,
+            "skip_phone_verification_url": _safe_reverse(
+                "accounts:pandit_register_skip_phone_otp",
+                "/accounts/pandit/register/skip-phone-otp/",
             ),
         }
     return {}
@@ -518,6 +527,17 @@ def verify_registration_otp(request):
             mark_bureau_user_phone_verified(
                 email=(result.get("email") or payload.get("email") or "").strip(),
                 phone=(destination or payload.get("phone_number") or "").strip(),
+            )
+        elif verified_flow == constants.FLOW_PANDIT_REGISTRATION:
+            payload = pending.get("payload") or {}
+            mark_pandit_user_phone_verified(
+                email=(result.get("email") or payload.get("email") or "").strip(),
+                phone=(
+                    destination
+                    or payload.get("phone_number")
+                    or payload.get("phone")
+                    or ""
+                ).strip(),
             )
         finalize_registration_session(
             request,

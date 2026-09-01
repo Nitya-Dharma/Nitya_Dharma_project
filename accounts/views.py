@@ -123,12 +123,18 @@ def pandit_register(request, referral_token):
     
     # GET request: Display registration form
     if request.method == 'GET':
+        from otp_verification import constants as otp_constants
+        from otp_verification.registration.factory import is_registration_otp_required
+
         return render(request, 'accounts/pandit_register.html', {
             'referral_token': referral_token,
             'referral_code': referral_link.referral_code if referral_link else None,
             'referral_valid': referral_valid,
             'referral_error': referral_error,
             'referral_link': referral_link,
+            'pandit_otp_required': is_registration_otp_required(
+                otp_constants.FLOW_PANDIT_REGISTRATION
+            ),
         })
     
     # POST request: Process registration
@@ -344,7 +350,20 @@ def pandit_register(request, referral_token):
     from otp_verification.registration.gate import begin_otp_or_continue
 
     wants_json = request.content_type == 'application/json'
-    if is_registration_otp_required(otp_constants.FLOW_PANDIT_REGISTRATION):
+    skip_phone_verification = False
+    if wants_json:
+        skip_phone_verification = str(data.get("skip_phone_verification") or "").strip() in (
+            "1",
+            "true",
+            "True",
+        )
+    else:
+        skip_phone_verification = request.POST.get("skip_phone_verification") == "1"
+
+    pandit_otp_required = is_registration_otp_required(
+        otp_constants.FLOW_PANDIT_REGISTRATION
+    )
+    if pandit_otp_required and not skip_phone_verification:
         if not phone_number:
             error_msg = 'Phone number is required for SMS verification.'
             if wants_json:
@@ -411,6 +430,11 @@ def pandit_register(request, referral_token):
                 is_active=False,  # CRITICAL: Pending Pandits cannot authenticate until approved
                 email_verified=False,  # TASK 5: Email verification required
             )
+
+            if phone_number:
+                from otp_verification.registration.completions import _sync_expert_user_phone
+
+                _sync_expert_user_phone(user, phone_number)
             
             # Create PanditProfile automatically for new Pandit users (fallback)
             # NOTE: A signal in profiles/signals.py should handle this automatically,
@@ -625,6 +649,51 @@ def pandit_register(request, referral_token):
                     'last_name': last_name,
                 }
             })
+
+
+@require_http_methods(["POST"])
+def pandit_register_skip_phone_otp(request):
+    """Complete Pandit registration without OTP verification (pandit flow only)."""
+
+    from otp_verification import constants as otp_constants
+    from otp_verification.registration.completions import (
+        AlreadyCompletedError,
+        CompletionError,
+        complete_pending_registration,
+    )
+    from otp_verification.registration.session import (
+        clear_pending_registration,
+        get_pending_registration,
+    )
+
+    pending = get_pending_registration(request)
+    if (
+        not pending
+        or pending.get("flow_type") != otp_constants.FLOW_PANDIT_REGISTRATION
+    ):
+        messages.error(
+            request,
+            "No pending pandit registration found. Please use your referral link to register again.",
+        )
+        return redirect("accounts:login")
+
+    resume_path = pending.get("resume_path") or reverse("accounts:login")
+
+    try:
+        complete_pending_registration(pending=pending)
+    except AlreadyCompletedError:
+        pass
+    except CompletionError as exc:
+        messages.error(request, str(exc))
+        return redirect(resume_path)
+
+    clear_pending_registration(request)
+    messages.success(
+        request,
+        "Pandit registration successful. Please check your email to verify your address. "
+        "Your account is pending admin approval.",
+    )
+    return redirect(resume_path)
 
 
 # CSRF enforced for same-origin browser; frontend must send X-CSRFToken header or csrfmiddlewaretoken in form
