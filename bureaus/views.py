@@ -445,6 +445,14 @@ def bureau_booking_intent_view(request, public_id):
         messages.error(request, "Unable to process your request.")
         return redirect(f"/bureaus/{public_id}/")
 
+    try:
+        from ads_analytics.services.attribution_bridge import (
+            record_booking_conversion_from_session,
+        )
+        record_booking_conversion_from_session(request, user_id=request.user.pk)
+    except Exception:
+        pass
+
     # Shared Notification for Bureau owner (reuse Pandit-style create_notification).
     # Must not fail the successful booking-intent submission.
     if bureau_owner is not None:

@@ -590,13 +590,15 @@
                                     {% endif %}
                                     {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
                                         {% with whatsapp_number=mobile_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                        <a href="https://wa.me/{{ whatsapp_number }}" 
+                                        {% with wa_redirect="https://wa.me/"|add:whatsapp_number %}
+                                        <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ wa_redirect|urlencode }}&amp;pandit_id={{ pandit.user_id }}" 
                                            target="_blank"
                                            class="btn btn-success btn-lg whatsapp-btn-hero"
                                            style="background-color: #25D366; border-color: #25D366; color: white;"
                                            title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
                                             <i class="bi bi-whatsapp me-1"></i>WhatsApp
                                         </a>
+                                        {% endwith %}
                                         {% endwith %}
                                     {% endif %}
                                 {% endwith %}
@@ -704,13 +706,15 @@
                                     {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
                                         {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
                                             {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                            <a href="https://wa.me/{{ whatsapp_num }}"
+                                            {% with wa_redirect="https://wa.me/"|add:whatsapp_num %}
+                                            <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ wa_redirect|urlencode }}&amp;pandit_id={{ pandit.user_id }}"
                                                target="_blank"
                                                class="btn w-100 mb-3 whatsapp-btn"
                                                style="background-color: #22C55E; border-color: #22C55E; color: white;"
                                                title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
                                                 <i class="bi bi-whatsapp me-1"></i>WhatsApp
                                             </a>
+                                            {% endwith %}
                                             {% endwith %}
                                         {% endif %}
                                     {% endwith %}

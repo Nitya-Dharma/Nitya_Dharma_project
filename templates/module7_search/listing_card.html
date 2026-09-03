@@ -170,7 +170,7 @@
                 </div>
                 <div class="flex-fill">
                     {% if contact_info.has_whatsapp %}
-                        <a href="{{ contact_info.whatsapp_url }}" 
+                        <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ contact_info.whatsapp_url|urlencode }}&amp;pandit_id={{ pandit.user_id }}" 
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="btn w-100" 

@@ -141,7 +141,8 @@ def create_intent(request):
             pandit_id=pandit_id,
             optional_requested_date=optional_requested_date,
             optional_requested_time=optional_requested_time,
-            message=message
+            message=message,
+            request=request,
         )
         # Phase 14: Behavior analytics (conversion signal; passive)
         try:

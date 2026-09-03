@@ -1,6 +1,6 @@
 {# WhatsApp contact CTA only — requires whatsapp_url; no verification logic. #}
 {% if whatsapp_url %}
-<a href="{{ whatsapp_url }}"
+<a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ whatsapp_url|urlencode }}{% if pandit_id %}&amp;pandit_id={{ pandit_id }}{% endif %}"
    target="_blank"
    rel="noopener noreferrer"
    class="{{ btn_class|default:'btn w-100' }}"

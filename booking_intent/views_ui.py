@@ -234,7 +234,8 @@ def create_booking_intent_form(request, pandit_public_id):
                 optional_requested_date=date_str,
                 optional_requested_time=time_str,
                 message=combined_message,
-                user_mobile_number=user_mobile_number
+                user_mobile_number=user_mobile_number,
+                request=request,
             )
             # Notify the pandit about the new booking intent
             try:

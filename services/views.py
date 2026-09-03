@@ -225,6 +225,14 @@ def expert_booking_intent_view(request, expert_id):
         messages.error(request, "Unable to process your request.")
         return _expert_booking_redirect(expert_id)
 
+    try:
+        from ads_analytics.services.attribution_bridge import (
+            record_booking_conversion_from_session,
+        )
+        record_booking_conversion_from_session(request, user_id=request.user.pk)
+    except Exception:
+        pass
+
     # Shared Notification for Expert owner (Bureau-style create_notification).
     # Must not fail the successful booking-intent submission.
     if expert_owner is not None:

@@ -13,7 +13,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 
 from ads.models import Advertisement
 from .protection import should_skip_tracking
-from .services import record_ad_click, record_ad_impression
+from .services import record_ad_click, record_ad_impression, store_last_click_attribution
 from .services.dashboard_service import (
     get_advertiser_campaign_metrics,
     get_pandit_ad_analytics,
@@ -65,6 +65,58 @@ def track_click(request, ad_id: int):
             pandit_id=int(request.GET["pandit_id"]) if request.GET.get("pandit_id", "").isdigit() else None,
             request=request,
         )
+        store_last_click_attribution(request, ad_id)
+    return redirect(target)
+
+
+_ALLOWED_WHATSAPP_HOSTS = frozenset({"wa.me", "api.whatsapp.com"})
+
+
+def _is_allowed_whatsapp_redirect(url: str) -> bool:
+    """Strict allowlist: https only, wa.me or api.whatsapp.com, no userinfo."""
+    from urllib.parse import urlparse
+
+    if not url or not isinstance(url, str):
+        return False
+    try:
+        parsed = urlparse(url.strip())
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    if parsed.username or parsed.password:
+        return False
+    hostname = (parsed.hostname or "").lower()
+    return hostname in _ALLOWED_WHATSAPP_HOSTS
+
+
+@require_GET
+@csrf_exempt
+@xframe_options_exempt
+def track_whatsapp_redirect(request):
+    """
+    Record WhatsApp CTA contact intent (CONVERSION_OTHER) when ad attribution exists,
+    then redirect to the validated original wa.me / api.whatsapp.com URL unchanged.
+    """
+    target = (request.GET.get("redirect") or "").strip()
+    if not _is_allowed_whatsapp_redirect(target):
+        return redirect("/")
+
+    pandit_id = None
+    if request.GET.get("pandit_id", "").isdigit():
+        pandit_id = int(request.GET["pandit_id"])
+
+    try:
+        from .services.attribution_bridge import record_whatsapp_contact_from_session
+
+        record_whatsapp_contact_from_session(
+            request,
+            user_id=request.user.pk if request.user.is_authenticated else None,
+            pandit_id=pandit_id,
+        )
+    except Exception:
+        pass
+
     return redirect(target)
 
 

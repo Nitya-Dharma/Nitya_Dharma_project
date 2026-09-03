@@ -9,11 +9,14 @@ Read-only queries and controlled mutations only.
 """
 
 import logging
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import BookingIntent
+
+if TYPE_CHECKING:
+    from django.http import HttpRequest
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -35,7 +38,8 @@ class BookingIntentService:
         optional_requested_date: Optional[str] = None,
         optional_requested_time: Optional[str] = None,
         message: Optional[str] = None,
-        user_mobile_number: Optional[str] = None
+        user_mobile_number: Optional[str] = None,
+        request: Optional["HttpRequest"] = None,
     ) -> BookingIntent:
         """
         Create a new booking intent.
@@ -99,7 +103,20 @@ class BookingIntentService:
         intent.save(update_fields=['requester_status_at_creation', 'pandit_status_at_creation'])
         
         logger.info(f"Booking intent {intent.id} created by {requester.email} for Pandit {pandit.email}")
-        
+
+        if request is not None:
+            try:
+                from ads_analytics.services.attribution_bridge import (
+                    record_booking_conversion_from_session,
+                )
+                record_booking_conversion_from_session(
+                    request,
+                    user_id=requester.pk,
+                    pandit_id=pandit.pk,
+                )
+            except Exception:
+                pass
+
         return intent
     
     @staticmethod
