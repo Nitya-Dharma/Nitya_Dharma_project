@@ -45,6 +45,46 @@ def _get_max_image_bytes():
 MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB default; overridden by settings
 
 
+class Campaign(models.Model):
+    """Legacy Campaign entity for superuser CRUD (feature-flagged)."""
+
+    STATUS_ACTIVE = "ACTIVE"
+    STATUS_PAUSED = "PAUSED"
+    STATUS_ENDED = "ENDED"
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_PAUSED, "Paused"),
+        (STATUS_ENDED, "Ended"),
+    ]
+
+    name = models.CharField(max_length=120)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=STATUS_PAUSED, db_index=True
+    )
+    priority = models.PositiveIntegerField(default=1)
+    start_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    end_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    daily_budget = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    total_budget = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    spent_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    target_roles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional campaign-level role targeting. Example: ['user', 'pandit']",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.status})"
+
+
 class Advertisement(models.Model):
     PLACEMENT_CHOICES = [
         ('top', 'Top Banner'),
@@ -62,6 +102,13 @@ class Advertisement(models.Model):
     ]
 
     name = models.CharField(max_length=100)
+    campaign = models.ForeignKey(
+        "ads.Campaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="advertisements",
+    )
     placement = models.CharField(max_length=50, choices=PLACEMENT_CHOICES)
     slots = models.JSONField(
         default=list,

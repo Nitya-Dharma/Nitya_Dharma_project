@@ -347,6 +347,10 @@ OTP_REGISTRATION_COMPLETED_TTL_SECONDS = max(
 OTP_MOCK_SIMULATION_MODE = os.environ.get("OTP_MOCK_SIMULATION_MODE", "success").strip() or "success"
 OTP_MOCK_EXECUTION_DELAY_MS = max(0, _env_int("OTP_MOCK_EXECUTION_DELAY_MS", 0))
 OTP_MOCK_ALLOW_RANDOM = _env_bool("OTP_MOCK_ALLOW_RANDOM", False)
+
+# Legacy Campaign CRUD (superuser). Default OFF — do not enable via this setting alone.
+ENABLE_CAMPAIGNS = _env_bool("ENABLE_CAMPAIGNS", False)
+
 MSG91_AUTH_KEY = os.environ.get("MSG91_AUTH_KEY", "").strip()
 MSG91_BASE_URL = (
     os.environ.get("MSG91_BASE_URL", "https://control.msg91.com/api/v5/flow/").strip()

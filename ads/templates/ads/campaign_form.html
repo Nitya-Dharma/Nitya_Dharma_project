@@ -1,0 +1,48 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+
+{% block dashboard_title %}{{ title }}{% endblock %}
+{% block dashboard_heading %}{{ title }}{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:advertisement_list' %}">
+            <i class="bi bi-megaphone me-2"></i>Advertisements
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:campaign_list' %}">
+            <i class="bi bi-bullseye me-2"></i>Campaigns
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="#">{{ title }}</a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Campaign</button>
+                <a href="{% url 'ads:campaign_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

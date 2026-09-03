@@ -1,0 +1,99 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+
+{% block dashboard_title %}Campaigns{% endblock %}
+{% block dashboard_heading %}Campaigns{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:advertisement_list' %}">
+            <i class="bi bi-megaphone me-2"></i>Advertisements
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="{% url 'ads:campaign_list' %}">
+            <i class="bi bi-bullseye me-2"></i>Campaigns
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-3 small">
+            <li class="breadcrumb-item"><a href="{% url 'module5_dashboards:dashboard_super_admin' %}">Super Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Campaigns</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Campaigns</h2>
+        <a href="{% url 'ads:campaign_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Create Campaign
+        </a>
+    </div>
+    {% if campaigns %}
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Schedule</th>
+                    <th>Budgets</th>
+                    <th>Target Roles</th>
+                    <th>Ads</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campaign in campaigns %}
+                <tr>
+                    <td>{{ campaign.name }}</td>
+                    <td>
+                        {% if campaign.status == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif campaign.status == 'PAUSED' %}
+                        <span class="badge bg-warning text-dark">Paused</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Ended</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ campaign.priority }}</td>
+                    <td>
+                        {% if campaign.start_date %}{{ campaign.start_date|date:"Y-m-d H:i" }}{% else %}—{% endif %}<br>
+                        {% if campaign.end_date %}{{ campaign.end_date|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        Daily: {{ campaign.daily_budget|default:"—" }}<br>
+                        Total: {{ campaign.total_budget|default:"—" }}
+                    </td>
+                    <td>
+                        {% if campaign.target_roles %}
+                            {% for role in campaign.target_roles %}<span class="badge bg-light text-dark border me-1">{{ role }}</span>{% endfor %}
+                        {% else %}
+                            <span class="text-muted">All roles</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ campaign.ad_count }}</td>
+                    <td>
+                        <a href="{% url 'ads:campaign_edit' campaign.id %}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                        <form method="post" action="{% url 'ads:campaign_toggle' campaign.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-warning">Toggle</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-light border">No campaigns created yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

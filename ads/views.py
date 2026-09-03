@@ -4,15 +4,17 @@ Super Admin–only views for managing advertisement banners.
 No API; standard Django forms with CSRF protection.
 """
 
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 from django.core.paginator import Paginator
+from django.db.models import Count
 
-from .models import Advertisement
-from .forms import AdvertisementForm
+from .models import Advertisement, Campaign
+from .forms import AdvertisementForm, CampaignForm
 from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS, get_recommended_size_text
 
 
@@ -123,3 +125,100 @@ def advertisement_delete(request, pk):
         'ad': ad,
         'dashboard_has_data': True,
     })
+
+
+@_super_admin_required
+@require_http_methods(["GET"])
+def campaign_list(request):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    queryset = Campaign.objects.annotate(ad_count=Count("advertisements")).order_by(
+        "-priority", "-created_at"
+    )
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+    return render(
+        request,
+        "ads/campaign_list.html",
+        {
+            "campaigns": page_obj.object_list,
+            "page_obj": page_obj,
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def campaign_create(request):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    if request.method == "POST":
+        form = CampaignForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Campaign created successfully.")
+            return redirect("ads:campaign_list")
+    else:
+        form = CampaignForm()
+    return render(
+        request,
+        "ads/campaign_form.html",
+        {
+            "form": form,
+            "title": "Create Campaign",
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def campaign_edit(request, pk):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    campaign = get_object_or_404(Campaign, pk=pk)
+    if request.method == "POST":
+        form = CampaignForm(request.POST, instance=campaign)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Campaign updated successfully.")
+            return redirect("ads:campaign_list")
+    else:
+        form = CampaignForm(instance=campaign)
+    return render(
+        request,
+        "ads/campaign_form.html",
+        {
+            "form": form,
+            "campaign": campaign,
+            "title": "Edit Campaign",
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["POST"])
+def campaign_toggle(request, pk):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    campaign = get_object_or_404(Campaign, pk=pk)
+    current = str(campaign.status or "").upper()
+    if current == Campaign.STATUS_ACTIVE:
+        campaign.status = Campaign.STATUS_PAUSED
+    else:
+        campaign.status = Campaign.STATUS_ACTIVE
+    campaign.save(update_fields=["status"])
+    messages.success(request, f"Campaign is now {campaign.status.lower()}.")
+    return redirect("ads:campaign_list")

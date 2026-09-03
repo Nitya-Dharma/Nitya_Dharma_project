@@ -4,7 +4,7 @@ Includes URL exclusion, dashboard visibility, role targeting, and per-slot image
 """
 
 from django import forms
-from .models import Advertisement
+from .models import Advertisement, Campaign
 from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS
 
 SCRIPT_CODE_MAX_LENGTH = 20_000
@@ -151,3 +151,87 @@ class AdvertisementForm(forms.ModelForm):
             except (OSError, TypeError, AttributeError):
                 pass
         return cleaned
+
+
+class CampaignForm(forms.ModelForm):
+    ROLE_CHOICES = [
+        ("anonymous", "Anonymous (Not Logged In)"),
+        ("user", "User"),
+        ("pandit", "Pandit"),
+        ("admin", "Admin"),
+    ]
+
+    target_roles = forms.MultipleChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
+    class Meta:
+        model = Campaign
+        fields = [
+            "name",
+            "status",
+            "priority",
+            "start_date",
+            "end_date",
+            "daily_budget",
+            "total_budget",
+            "spent_amount",
+            "target_roles",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "maxlength": 120}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "priority": forms.NumberInput(attrs={"class": "form-control", "min": "1", "step": "1"}),
+            "start_date": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"},
+                format="%Y-%m-%dT%H:%M",
+            ),
+            "end_date": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"},
+                format="%Y-%m-%dT%H:%M",
+            ),
+            "daily_budget": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0"}),
+            "total_budget": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0"}),
+            "spent_amount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["start_date"].input_formats = [
+            "%Y-%m-%dT%H:%M",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%d",
+            "%d/%m/%Y %H:%M",
+            "%d/%m/%Y",
+        ]
+        self.fields["end_date"].input_formats = [
+            "%Y-%m-%dT%H:%M",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%d",
+            "%d/%m/%Y %H:%M",
+            "%d/%m/%Y",
+        ]
+        if self.instance and self.instance.target_roles:
+            self.initial["target_roles"] = self.instance.target_roles
+
+    def clean_target_roles(self):
+        roles = self.cleaned_data.get("target_roles", [])
+        return list(roles)
+
+    def clean(self):
+        cleaned = super().clean()
+        start_date = cleaned.get("start_date")
+        end_date = cleaned.get("end_date")
+        if start_date and end_date and start_date > end_date:
+            raise forms.ValidationError("Campaign end date must be after start date.")
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.target_roles:
+            instance.target_roles = ["anonymous", "user"]
+        if commit:
+            instance.save()
+        return instance
