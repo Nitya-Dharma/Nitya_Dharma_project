@@ -25,6 +25,18 @@
             <i class="bi bi-megaphone me-2"></i>Advertisements
         </a>
     </li>
+    {% if campaigns_enabled %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:campaign_list' %}">
+            <i class="bi bi-bullseye me-2"></i>Campaigns
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:adset_list' %}">
+            <i class="bi bi-collection me-2"></i>Ad Sets
+        </a>
+    </li>
+    {% endif %}
 {% endblock %}
 
 {% block dashboard_content %}
@@ -39,12 +51,44 @@
         </div>
     </div>
 
+    {% if campaigns_enabled %}
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+            <label class="form-label small mb-1" for="filter_campaign_id">Campaign</label>
+            <select class="form-select" name="campaign_id" id="filter_campaign_id">
+                <option value="">All Campaigns</option>
+                {% for campaign in campaign_filter_choices %}
+                <option value="{{ campaign.id }}" {% if filter_campaign_id == campaign.id|stringformat:"s" %}selected{% endif %}>{{ campaign.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small mb-1" for="filter_ad_set_id">Ad Set</label>
+            <select class="form-select" name="ad_set_id" id="filter_ad_set_id">
+                <option value="">All Ad Sets</option>
+                {% for adset in adset_filter_choices %}
+                <option value="{{ adset.id }}" {% if filter_ad_set_id == adset.id|stringformat:"s" %}selected{% endif %}>{{ adset.name }} ({{ adset.campaign.name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+            <a href="{% url 'ads:advertisement_list' %}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </form>
+    <p class="text-muted small mb-3">Hierarchy: Campaign → AdSet → Advertisement. Campaign and AdSet remain optional.</p>
+    {% endif %}
+
     {% if advertisements %}
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Name</th>
+                    {% if campaigns_enabled %}
+                    <th>Campaign</th>
+                    <th>Ad Set</th>
+                    {% endif %}
                     <th>Positions</th>
                     <th>Show on dashboard</th>
                     <th>Status</th>
@@ -57,6 +101,10 @@
                 {% for ad in advertisements %}
                 <tr>
                     <td>{{ ad.name }}</td>
+                    {% if campaigns_enabled %}
+                    <td>{% if ad.campaign %}{{ ad.campaign.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if ad.ad_set %}{{ ad.ad_set.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    {% endif %}
                     <td>{% for label in ad.get_slots_display %}{{ label }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                     <td>
                         {% if ad.show_on_dashboard %}

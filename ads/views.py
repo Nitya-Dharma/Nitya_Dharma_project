@@ -27,77 +27,129 @@ def _super_admin_required(view_func):
     return _wrapped
 
 
+def _safe_int_param(raw):
+    try:
+        return int(raw) if raw not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
 @_super_admin_required
 @require_http_methods(["GET"])
 def advertisement_list(request):
-    queryset = Advertisement.objects.all().order_by('-created_at')
+    campaigns_enabled = bool(getattr(settings, "ENABLE_CAMPAIGNS", False))
+    queryset = Advertisement.objects.select_related("campaign", "ad_set").order_by(
+        "-created_at"
+    )
+    filter_campaign = None
+    filter_ad_set = None
+    campaign_id = _safe_int_param(request.GET.get("campaign_id"))
+    ad_set_id = _safe_int_param(request.GET.get("ad_set_id"))
+    if campaigns_enabled and campaign_id is not None:
+        queryset = queryset.filter(campaign_id=campaign_id)
+        filter_campaign = Campaign.objects.filter(pk=campaign_id).first()
+    if campaigns_enabled and ad_set_id is not None:
+        queryset = queryset.filter(ad_set_id=ad_set_id)
+        filter_ad_set = AdSet.objects.select_related("campaign").filter(pk=ad_set_id).first()
     paginator = Paginator(queryset, 20)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
-    return render(request, 'ads/advertisement_list.html', {
-        'advertisements': page_obj.object_list,
-        'page_obj': page_obj,
-        'dashboard_has_data': True,  # Always show our content (we render our own empty state)
-    })
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+    context = {
+        "advertisements": page_obj.object_list,
+        "page_obj": page_obj,
+        "dashboard_has_data": True,
+        "campaigns_enabled": campaigns_enabled,
+        "filter_campaign": filter_campaign,
+        "filter_ad_set": filter_ad_set,
+        "filter_campaign_id": str(campaign_id) if campaign_id is not None else "",
+        "filter_ad_set_id": str(ad_set_id) if ad_set_id is not None else "",
+    }
+    if campaigns_enabled:
+        context["campaign_filter_choices"] = Campaign.objects.order_by("-created_at")
+        adset_qs = AdSet.objects.select_related("campaign").order_by("-created_at")
+        if campaign_id is not None:
+            adset_qs = adset_qs.filter(campaign_id=campaign_id)
+        context["adset_filter_choices"] = adset_qs
+    return render(request, "ads/advertisement_list.html", context)
 
 
 @_super_admin_required
 @csrf_protect
 @require_http_methods(["GET", "POST"])
 def advertisement_create(request):
-    if request.method == 'POST':
+    campaigns_enabled = bool(getattr(settings, "ENABLE_CAMPAIGNS", False))
+    initial = {}
+    if campaigns_enabled:
+        cid = _safe_int_param(request.GET.get("campaign_id"))
+        aid = _safe_int_param(request.GET.get("ad_set_id"))
+        if cid is not None:
+            initial["campaign"] = cid
+        if aid is not None:
+            initial["ad_set"] = aid
+    if request.method == "POST":
         form = AdvertisementForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Advertisement created successfully.')
-            return redirect('ads:advertisement_list')
+            messages.success(request, "Advertisement created successfully.")
+            return redirect("ads:advertisement_list")
     else:
-        form = AdvertisementForm()
+        form = AdvertisementForm(initial=initial)
     placement_upload_choices = [
         (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
         for slot, label in Advertisement.PLACEMENT_CHOICES
     ]
-    return render(request, 'ads/advertisement_form.html', {
-        'form': form,
-        'title': 'Create Advertisement',
-        'dashboard_has_data': True,
-        'position_sizes': AD_POSITION_IMAGE_SIZES,
-        'position_labels': AD_POSITION_LABELS,
-        'placement_choices': Advertisement.PLACEMENT_CHOICES,
-        'placement_upload_choices': placement_upload_choices,
-        'get_recommended_size_text': get_recommended_size_text,
-        'slot_image_field_names': list(Advertisement.SLOT_IMAGE_FIELDS.values()),
-    })
+    return render(
+        request,
+        "ads/advertisement_form.html",
+        {
+            "form": form,
+            "title": "Create Advertisement",
+            "dashboard_has_data": True,
+            "campaigns_enabled": campaigns_enabled,
+            "position_sizes": AD_POSITION_IMAGE_SIZES,
+            "position_labels": AD_POSITION_LABELS,
+            "placement_choices": Advertisement.PLACEMENT_CHOICES,
+            "placement_upload_choices": placement_upload_choices,
+            "get_recommended_size_text": get_recommended_size_text,
+            "slot_image_field_names": list(Advertisement.SLOT_IMAGE_FIELDS.values()),
+        },
+    )
 
 
 @_super_admin_required
 @csrf_protect
 @require_http_methods(["GET", "POST"])
 def advertisement_edit(request, pk):
-    ad = get_object_or_404(Advertisement, pk=pk)
-    if request.method == 'POST':
+    campaigns_enabled = bool(getattr(settings, "ENABLE_CAMPAIGNS", False))
+    ad = get_object_or_404(Advertisement.objects.select_related("campaign", "ad_set"), pk=pk)
+    if request.method == "POST":
         form = AdvertisementForm(request.POST, request.FILES, instance=ad)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Advertisement updated successfully.')
-            return redirect('ads:advertisement_list')
+            messages.success(request, "Advertisement updated successfully.")
+            return redirect("ads:advertisement_list")
     else:
         form = AdvertisementForm(instance=ad)
     placement_upload_choices = [
         (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
         for slot, label in Advertisement.PLACEMENT_CHOICES
     ]
-    return render(request, 'ads/advertisement_form.html', {
-        'form': form,
-        'ad': ad,
-        'title': 'Edit Advertisement',
-        'dashboard_has_data': True,
-        'position_sizes': AD_POSITION_IMAGE_SIZES,
-        'position_labels': AD_POSITION_LABELS,
-        'placement_choices': Advertisement.PLACEMENT_CHOICES,
-        'placement_upload_choices': placement_upload_choices,
-        'get_recommended_size_text': get_recommended_size_text,
-        'slot_image_field_names': list(Advertisement.SLOT_IMAGE_FIELDS.values()),
-    })
+    return render(
+        request,
+        "ads/advertisement_form.html",
+        {
+            "form": form,
+            "ad": ad,
+            "title": "Edit Advertisement",
+            "dashboard_has_data": True,
+            "campaigns_enabled": campaigns_enabled,
+            "position_sizes": AD_POSITION_IMAGE_SIZES,
+            "position_labels": AD_POSITION_LABELS,
+            "placement_choices": Advertisement.PLACEMENT_CHOICES,
+            "placement_upload_choices": placement_upload_choices,
+            "get_recommended_size_text": get_recommended_size_text,
+            "slot_image_field_names": list(Advertisement.SLOT_IMAGE_FIELDS.values()),
+        },
+    )
 
 
 @_super_admin_required
@@ -222,13 +274,6 @@ def campaign_toggle(request, pk):
     campaign.save(update_fields=["status"])
     messages.success(request, f"Campaign is now {campaign.status.lower()}.")
     return redirect("ads:campaign_list")
-
-
-def _safe_int_param(raw):
-    try:
-        return int(raw) if raw not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
 
 
 @_super_admin_required

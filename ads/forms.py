@@ -62,6 +62,8 @@ class AdvertisementForm(forms.ModelForm):
             'image_in_content': forms.FileInput(attrs={'class': 'form-control ad-slot-upload', 'data-slot': 'in_content', 'accept': 'image/*'}),
             'image_dashboard_top': forms.FileInput(attrs={'class': 'form-control ad-slot-upload', 'data-slot': 'dashboard_top', 'accept': 'image/*'}),
             'image_dashboard_sidebar': forms.FileInput(attrs={'class': 'form-control ad-slot-upload', 'data-slot': 'dashboard_sidebar', 'accept': 'image/*'}),
+            'campaign': forms.Select(attrs={'class': 'form-select'}),
+            'ad_set': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -82,6 +84,38 @@ class AdvertisementForm(forms.ModelForm):
             )
         self.fields['start_date'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M', '%Y-%m-%d']
         self.fields['end_date'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M', '%Y-%m-%d']
+
+        # Optional Campaign → AdSet hierarchy (both remain optional).
+        if 'campaign' in self.fields:
+            self.fields['campaign'].required = False
+            self.fields['campaign'].queryset = Campaign.objects.all().order_by('-created_at')
+            self.fields['campaign'].empty_label = 'No campaign'
+            self.fields['campaign'].help_text = 'Optional. Campaign → AdSet → Advertisement.'
+        if 'ad_set' in self.fields:
+            self.fields['ad_set'].required = False
+            self.fields['ad_set'].queryset = AdSet.objects.select_related('campaign').order_by(
+                '-created_at'
+            )
+            self.fields['ad_set'].empty_label = 'No ad set'
+            self.fields['ad_set'].help_text = (
+                'Optional. If set, must belong to the selected Campaign '
+                '(or Campaign is filled from the AdSet).'
+            )
+            # When a campaign is posted/initial, constrain AdSet choices for operators.
+            campaign_id = None
+            if self.data.get('campaign'):
+                try:
+                    campaign_id = int(self.data.get('campaign'))
+                except (TypeError, ValueError):
+                    campaign_id = None
+            elif self.initial.get('campaign'):
+                campaign_id = getattr(self.initial.get('campaign'), 'pk', self.initial.get('campaign'))
+            elif self.instance and getattr(self.instance, 'campaign_id', None):
+                campaign_id = self.instance.campaign_id
+            if campaign_id:
+                self.fields['ad_set'].queryset = self.fields['ad_set'].queryset.filter(
+                    campaign_id=campaign_id
+                )
 
     def clean_target_roles(self):
         value = self.cleaned_data.get('target_roles')
@@ -110,6 +144,17 @@ class AdvertisementForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        campaign = cleaned.get('campaign')
+        ad_set = cleaned.get('ad_set')
+        if ad_set is not None:
+            if campaign is None:
+                # Align optional Advertisement.campaign with the AdSet's required Campaign.
+                cleaned['campaign'] = ad_set.campaign
+            elif ad_set.campaign_id != campaign.pk:
+                raise forms.ValidationError(
+                    'Selected Ad Set does not belong to the selected Campaign.'
+                )
+
         ad_type = cleaned.get('ad_type')
         slots = list(cleaned.get('slots') or [])
         if ad_type != Advertisement.AD_TYPE_IMAGE or not slots:
