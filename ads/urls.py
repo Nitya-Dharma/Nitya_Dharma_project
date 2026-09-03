@@ -19,4 +19,8 @@ urlpatterns = [
     path('campaigns/create/', views.campaign_create, name='campaign_create'),
     path('campaigns/<int:pk>/edit/', views.campaign_edit, name='campaign_edit'),
     path('campaigns/<int:pk>/toggle/', views.campaign_toggle, name='campaign_toggle'),
+    path('adsets/', views.adset_list, name='adset_list'),
+    path('adsets/create/', views.adset_create, name='adset_create'),
+    path('adsets/<int:pk>/edit/', views.adset_edit, name='adset_edit'),
+    path('adsets/<int:pk>/toggle/', views.adset_toggle, name='adset_toggle'),
 ]

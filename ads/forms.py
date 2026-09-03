@@ -4,7 +4,7 @@ Includes URL exclusion, dashboard visibility, role targeting, and per-slot image
 """
 
 from django import forms
-from .models import Advertisement, Campaign
+from .models import Advertisement, Campaign, AdSet
 from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS
 
 SCRIPT_CODE_MAX_LENGTH = 20_000
@@ -235,3 +235,113 @@ class CampaignForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class AdSetForm(forms.ModelForm):
+    """Super Admin form for AdSet (Campaign → AdSet). Configuration fields only."""
+
+    class Meta:
+        model = AdSet
+        fields = [
+            "name",
+            "campaign",
+            "is_active",
+            "placements",
+            "target_urls",
+            "target_roles",
+            "target_locations",
+            "pricing_model",
+            "cpm_rate",
+            "max_impressions",
+            "frequency_cap",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "maxlength": 255}),
+            "campaign": forms.Select(attrs={"class": "form-select"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "placements": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace",
+                    "rows": 3,
+                    "placeholder": 'JSON array, e.g. ["top", "sidebar"]',
+                }
+            ),
+            "target_urls": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace",
+                    "rows": 3,
+                    "placeholder": '["/home", "/search*"]',
+                }
+            ),
+            "target_roles": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace",
+                    "rows": 2,
+                    "placeholder": '["user", "pandit"]',
+                }
+            ),
+            "target_locations": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace",
+                    "rows": 2,
+                    "placeholder": '["hyderabad", "mumbai"]',
+                }
+            ),
+            "pricing_model": forms.Select(attrs={"class": "form-select"}),
+            "cpm_rate": forms.NumberInput(attrs={"class": "form-control", "step": "any", "min": "0"}),
+            "max_impressions": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "1"}),
+            "frequency_cap": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "1"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].required = True
+        self.fields["campaign"].required = True
+        campaign_qs = Campaign.objects.all().order_by("-created_at")
+        self.fields["campaign"].queryset = campaign_qs
+        self.fields["campaign"].empty_label = (
+            "Select campaign" if campaign_qs.exists() else "No campaigns — create one first"
+        )
+        for fname in (
+            "placements",
+            "target_urls",
+            "target_roles",
+            "target_locations",
+            "cpm_rate",
+            "max_impressions",
+            "frequency_cap",
+        ):
+            self.fields[fname].required = False
+
+    def _clean_json_list_field(self, value, field_label):
+        if value is None or value == "":
+            return []
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str):
+            if not value.strip():
+                return []
+            import json
+
+            try:
+                parsed = json.loads(value)
+            except (TypeError, ValueError):
+                raise forms.ValidationError(f"{field_label}: enter valid JSON array or leave empty.")
+            if not isinstance(parsed, list):
+                raise forms.ValidationError(f"{field_label}: must be a JSON array.")
+            return parsed
+        return []
+
+    def clean_placements(self):
+        return self._clean_json_list_field(self.cleaned_data.get("placements"), "Placements")
+
+    def clean_target_urls(self):
+        return self._clean_json_list_field(self.cleaned_data.get("target_urls"), "Target URLs")
+
+    def clean_target_roles(self):
+        return self._clean_json_list_field(self.cleaned_data.get("target_roles"), "Target roles")
+
+    def clean_target_locations(self):
+        return self._clean_json_list_field(
+            self.cleaned_data.get("target_locations"), "Target locations"
+        )

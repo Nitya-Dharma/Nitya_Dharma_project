@@ -85,6 +85,67 @@ class Campaign(models.Model):
         return f"{self.name} ({self.status})"
 
 
+class AdSet(models.Model):
+    """Legacy AdSet under Campaign (CRUD only; no delivery/pricing enforcement)."""
+
+    PRICING_CPM = "CPM"
+    PRICING_IMPRESSION = "IMPRESSION"
+    PRICING_CHOICES = [
+        (PRICING_CPM, "CPM"),
+        (PRICING_IMPRESSION, "IMPRESSION"),
+    ]
+
+    name = models.CharField(max_length=255)
+    campaign = models.ForeignKey(
+        "ads.Campaign",
+        on_delete=models.CASCADE,
+        related_name="ad_sets",
+    )
+    is_active = models.BooleanField(default=True)
+
+    # Configuration storage only — not consumed by delivery in this slice.
+    target_urls = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional URL path list (configuration only).",
+    )
+    target_roles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional role list (configuration only).",
+    )
+    target_locations = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional city names (configuration only).",
+    )
+    placements = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional placement list (configuration only).",
+    )
+    pricing_model = models.CharField(
+        max_length=20,
+        choices=PRICING_CHOICES,
+        default=PRICING_IMPRESSION,
+    )
+    cpm_rate = models.FloatField(null=True, blank=True)
+    max_impressions = models.BigIntegerField(null=True, blank=True)
+    frequency_cap = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["campaign"], name="ads_adset_campaig_65133e_idx"),
+            models.Index(fields=["is_active"], name="ads_adset_is_acti_0ea7ba_idx"),
+            models.Index(fields=["campaign", "is_active"], name="ads_adset_campaig_0b9c20_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.campaign_id})"
+
+
 class Advertisement(models.Model):
     PLACEMENT_CHOICES = [
         ('top', 'Top Banner'),
@@ -108,6 +169,13 @@ class Advertisement(models.Model):
         null=True,
         blank=True,
         related_name="advertisements",
+    )
+    ad_set = models.ForeignKey(
+        "ads.AdSet",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ads",
     )
     placement = models.CharField(max_length=50, choices=PLACEMENT_CHOICES)
     slots = models.JSONField(

@@ -13,8 +13,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.core.paginator import Paginator
 from django.db.models import Count
 
-from .models import Advertisement, Campaign
-from .forms import AdvertisementForm, CampaignForm
+from .models import Advertisement, Campaign, AdSet
+from .forms import AdvertisementForm, CampaignForm, AdSetForm
 from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS, get_recommended_size_text
 
 
@@ -222,3 +222,113 @@ def campaign_toggle(request, pk):
     campaign.save(update_fields=["status"])
     messages.success(request, f"Campaign is now {campaign.status.lower()}.")
     return redirect("ads:campaign_list")
+
+
+def _safe_int_param(raw):
+    try:
+        return int(raw) if raw not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+@_super_admin_required
+@require_http_methods(["GET"])
+def adset_list(request):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    campaign_id = _safe_int_param(request.GET.get("campaign_id"))
+    qs = AdSet.objects.select_related("campaign").order_by("-created_at")
+    filter_campaign = None
+    if campaign_id is not None:
+        qs = qs.filter(campaign_id=campaign_id)
+        filter_campaign = Campaign.objects.filter(pk=campaign_id).first()
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+    return render(
+        request,
+        "ads/adset_list.html",
+        {
+            "adsets": page_obj.object_list,
+            "page_obj": page_obj,
+            "filter_campaign": filter_campaign,
+            "filter_campaign_id": str(campaign_id) if campaign_id is not None else "",
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def adset_create(request):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    initial = {}
+    cid = _safe_int_param(request.GET.get("campaign_id"))
+    if cid is not None:
+        initial["campaign"] = cid
+    if request.method == "POST":
+        form = AdSetForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Ad set created successfully.")
+            return redirect("ads:adset_list")
+    else:
+        form = AdSetForm(initial=initial)
+    return render(
+        request,
+        "ads/adset_form.html",
+        {
+            "form": form,
+            "title": "Create Ad Set",
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def adset_edit(request, pk):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    adset = get_object_or_404(AdSet.objects.select_related("campaign"), pk=pk)
+    if request.method == "POST":
+        form = AdSetForm(request.POST, instance=adset)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Ad set updated successfully.")
+            return redirect("ads:adset_list")
+    else:
+        form = AdSetForm(instance=adset)
+    return render(
+        request,
+        "ads/adset_form.html",
+        {
+            "form": form,
+            "adset": adset,
+            "title": "Edit Ad Set",
+            "dashboard_has_data": True,
+            "campaigns_enabled": True,
+        },
+    )
+
+
+@_super_admin_required
+@csrf_protect
+@require_http_methods(["POST"])
+def adset_toggle(request, pk):
+    if not bool(getattr(settings, "ENABLE_CAMPAIGNS", False)):
+        messages.info(request, "Campaign feature is disabled.")
+        return redirect("ads:advertisement_list")
+    adset = get_object_or_404(AdSet, pk=pk)
+    adset.is_active = not adset.is_active
+    adset.save(update_fields=["is_active"])
+    status = "active" if adset.is_active else "inactive"
+    messages.success(request, f"Ad set is now {status}.")
+    return redirect("ads:adset_list")
