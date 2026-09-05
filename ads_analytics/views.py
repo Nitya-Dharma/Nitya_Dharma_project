@@ -66,7 +66,11 @@ def track_click(request, ad_id: int):
             pandit_id=int(request.GET["pandit_id"]) if request.GET.get("pandit_id", "").isdigit() else None,
             request=request,
         )
-        store_last_click_attribution(request, ad_id)
+        store_last_click_attribution(
+            request,
+            ad_id,
+            campaign_id=str(ad.campaign_id) if ad.campaign_id is not None else None,
+        )
     return redirect(target)
 
 

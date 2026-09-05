@@ -17,12 +17,19 @@ logger = logging.getLogger(__name__)
 SESSION_KEY = "ads_last_click_attribution"
 
 
-def store_last_click_attribution(request: Optional[HttpRequest], ad_id: int) -> None:
+def store_last_click_attribution(
+    request: Optional[HttpRequest],
+    ad_id: int,
+    campaign_id: Optional[str] = None,
+) -> None:
     """Persist last-click ad identity in session (survives login cycle_key)."""
     if not request or not hasattr(request, "session") or ad_id is None:
         return
     try:
-        request.session[SESSION_KEY] = {"ad_id": int(ad_id)}
+        payload = {"ad_id": int(ad_id)}
+        if campaign_id is not None:
+            payload["campaign_id"] = campaign_id
+        request.session[SESSION_KEY] = payload
         request.session.modified = True
     except Exception as exc:
         logger.warning("store_last_click_attribution failed: ad_id=%s %s", ad_id, exc)
