@@ -168,105 +168,105 @@ def create_booking_intent_form(request, pandit_public_id):
         from .services import BookingIntentService
         from .permissions import can_create_intent
         
-        # Check permission
+        # Check permission — fail closed: never create when denied
         if not can_create_intent(request.user):
             from django.contrib import messages
             messages.error(request, 'You do not have permission to create a booking intent.')
-            # Fall through to render form again with error
-        
-        # Get form data (support both field names for compatibility)
-        optional_requested_date = request.POST.get('optional_requested_date') or request.POST.get('preferred_date')
-        optional_requested_time = request.POST.get('optional_requested_time') or request.POST.get('preferred_time')
-        message = request.POST.get('message', '').strip()
-        pooja_id = request.POST.get('pooja_id', '').strip()
-        location = request.POST.get('location', '').strip()
-        user_mobile_number = request.POST.get('user_mobile_number', '').strip()
-        
-        # Build message with pooja and location if provided (since model doesn't have these fields yet)
-        full_message_parts = []
-        if message:
-            full_message_parts.append(message)
-        if pooja_id:
-            try:
-                from masterdata.models import Pooja
-                pooja = Pooja.objects.get(id=int(pooja_id), status=Pooja.STATUS_ACTIVE)
-                full_message_parts.append(f"\n\nPreferred Pooja: {pooja.name}")
-            except (ValueError, Pooja.DoesNotExist):
-                pass  # Ignore invalid pooja
-        if location:
-            full_message_parts.append(f"\n\nLocation: {location}")
-        
-        # Combine message parts (truncate to 500 chars)
-        combined_message = ''.join(full_message_parts)[:500] if full_message_parts else None
-        
-        # Parse dates/times
-        parsed_date = None
-        parsed_time = None
-        if optional_requested_date:
-            from django.utils.dateparse import parse_date
-            parsed_date = parse_date(optional_requested_date)
-        if optional_requested_time:
-            from django.utils.dateparse import parse_time
-            parsed_time = parse_time(optional_requested_time)
-        
-        # Create booking intent
-        try:
-            # Convert date/time objects to strings if they exist
-            date_str = None
+            # Fall through to render form again with error (do not call create_intent)
+        else:
+            # Get form data (support both field names for compatibility)
+            optional_requested_date = request.POST.get('optional_requested_date') or request.POST.get('preferred_date')
+            optional_requested_time = request.POST.get('optional_requested_time') or request.POST.get('preferred_time')
+            message = request.POST.get('message', '').strip()
+            pooja_id = request.POST.get('pooja_id', '').strip()
+            location = request.POST.get('location', '').strip()
+            user_mobile_number = request.POST.get('user_mobile_number', '').strip()
+
+            # Build message with pooja and location if provided (since model doesn't have these fields yet)
+            full_message_parts = []
+            if message:
+                full_message_parts.append(message)
+            if pooja_id:
+                try:
+                    from masterdata.models import Pooja
+                    pooja = Pooja.objects.get(id=int(pooja_id), status=Pooja.STATUS_ACTIVE)
+                    full_message_parts.append(f"\n\nPreferred Pooja: {pooja.name}")
+                except (ValueError, Pooja.DoesNotExist):
+                    pass  # Ignore invalid pooja
+            if location:
+                full_message_parts.append(f"\n\nLocation: {location}")
+
+            # Combine message parts (truncate to 500 chars)
+            combined_message = ''.join(full_message_parts)[:500] if full_message_parts else None
+
+            # Parse dates/times
+            parsed_date = None
+            parsed_time = None
             if optional_requested_date:
-                # If already parsed, format it; otherwise use as-is
-                if parsed_date:
-                    date_str = parsed_date.strftime('%Y-%m-%d')
-                else:
-                    date_str = optional_requested_date
-            
-            time_str = None
+                from django.utils.dateparse import parse_date
+                parsed_date = parse_date(optional_requested_date)
             if optional_requested_time:
-                # If already parsed, format it; otherwise use as-is
-                if parsed_time:
-                    time_str = parsed_time.strftime('%H:%M:%S')
-                else:
-                    time_str = optional_requested_time
-            
-            intent = BookingIntentService.create_intent(
-                requester=request.user,
-                pandit_id=pandit.id,
-                optional_requested_date=date_str,
-                optional_requested_time=time_str,
-                message=combined_message,
-                user_mobile_number=user_mobile_number,
-                request=request,
-            )
-            # Notify the pandit about the new booking intent
+                from django.utils.dateparse import parse_time
+                parsed_time = parse_time(optional_requested_time)
+
+            # Create booking intent
             try:
-                from notifications.services import NotificationService
-                from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
-                requester_name = (getattr(intent.requester, 'get_full_name', None) and intent.requester.get_full_name()) or getattr(intent.requester, 'email', 'A user')
-                NotificationService.create_notification(
-                    recipient=intent.pandit,
-                    notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
-                    source_module='booking_intent',
-                    payload={
-                        'title': 'New booking intent',
-                        'message': f'{requester_name} sent you a booking enquiry.',
-                        'booking_intent_public_id': getattr(intent, 'public_id', None) or str(intent.id),
-                    },
+                # Convert date/time objects to strings if they exist
+                date_str = None
+                if optional_requested_date:
+                    # If already parsed, format it; otherwise use as-is
+                    if parsed_date:
+                        date_str = parsed_date.strftime('%Y-%m-%d')
+                    else:
+                        date_str = optional_requested_date
+
+                time_str = None
+                if optional_requested_time:
+                    # If already parsed, format it; otherwise use as-is
+                    if parsed_time:
+                        time_str = parsed_time.strftime('%H:%M:%S')
+                    else:
+                        time_str = optional_requested_time
+
+                intent = BookingIntentService.create_intent(
+                    requester=request.user,
+                    pandit_id=pandit.id,
+                    optional_requested_date=date_str,
+                    optional_requested_time=time_str,
+                    message=combined_message,
+                    user_mobile_number=user_mobile_number,
+                    request=request,
                 )
-            except Exception:
-                pass
-            # Redirect to success page or back to profile (use profile_public_by_id; profile_public expects identifier)
-            from django.shortcuts import redirect
-            from django.contrib import messages
-            messages.success(request, 'Your booking enquiry has been sent successfully to the Pandit!')
-            return redirect('profiles:profile_public_by_id', public_id=pandit.pandit_profile.public_id)
-        except ValueError as e:
-            from django.contrib import messages
-            messages.error(request, f'Validation error: {str(e)}')
-            # Fall through to render form again with error
-        except Exception as e:
-            from django.contrib import messages
-            messages.error(request, f'Error creating booking intent: {str(e)}')
-            # Fall through to render form again with error
+                # Notify the pandit about the new booking intent
+                try:
+                    from notifications.services import NotificationService
+                    from notifications.constants import NOTIFICATION_TYPE_BOOKING_INTENT
+                    requester_name = (getattr(intent.requester, 'get_full_name', None) and intent.requester.get_full_name()) or getattr(intent.requester, 'email', 'A user')
+                    NotificationService.create_notification(
+                        recipient=intent.pandit,
+                        notification_type=NOTIFICATION_TYPE_BOOKING_INTENT,
+                        source_module='booking_intent',
+                        payload={
+                            'title': 'New booking intent',
+                            'message': f'{requester_name} sent you a booking enquiry.',
+                            'booking_intent_public_id': getattr(intent, 'public_id', None) or str(intent.id),
+                        },
+                    )
+                except Exception:
+                    pass
+                # Redirect to success page or back to profile (use profile_public_by_id; profile_public expects identifier)
+                from django.shortcuts import redirect
+                from django.contrib import messages
+                messages.success(request, 'Your booking enquiry has been sent successfully to the Pandit!')
+                return redirect('profiles:profile_public_by_id', public_id=pandit.pandit_profile.public_id)
+            except ValueError as e:
+                from django.contrib import messages
+                messages.error(request, f'Validation error: {str(e)}')
+                # Fall through to render form again with error
+            except Exception as e:
+                from django.contrib import messages
+                messages.error(request, f'Error creating booking intent: {str(e)}')
+                # Fall through to render form again with error
     
     # Handle GET request (show form)
     # Get poojas for the form dropdown
