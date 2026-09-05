@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load image_responsive %}
+{% load contact_tags %}
 
 {% block title %}{% if pandit.seo_title %}{{ pandit.seo_title }}{% else %}{{ pandit.display_name|default:pandit.user.get_full_name|default:pandit.user.email }} - Pandit Profile{% endif %}{% endblock %}
 
@@ -579,6 +580,7 @@
                             {% endif %}
                             
                             <!-- Call and WhatsApp Buttons (canonical fields + legacy fallbacks) -->
+                            {% ad_aware_pandit_contact_info pandit as contact_info %}
                             {% if pandit.call_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
                                 {% with mobile_number=pandit.call_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
                                     {% if pandit.enable_call or pandit.allow_call %}
@@ -591,21 +593,17 @@
                                 {% endwith %}
                             {% endif %}
                             {% if pandit.whatsapp_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
-                                {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
-                                    {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
-                                        {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                        {% with wa_redirect="https://wa.me/"|add:whatsapp_num %}
-                                        <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ wa_redirect|urlencode }}&amp;pandit_id={{ pandit.user_id }}" 
+                                {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
+                                    {% if contact_info.has_whatsapp %}
+                                        <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ contact_info.whatsapp_url|urlencode }}&amp;pandit_id={{ pandit.user_id }}"
                                            target="_blank"
                                            class="btn btn-success btn-lg whatsapp-btn-hero"
                                            style="background-color: #25D366; border-color: #25D366; color: white;"
                                            title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
                                             <i class="bi bi-whatsapp me-1"></i>WhatsApp
                                         </a>
-                                        {% endwith %}
-                                        {% endwith %}
                                     {% endif %}
-                                {% endwith %}
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -705,23 +703,19 @@
                                     {% endwith %}
                                 {% endif %}
                                 
-                                <!-- WhatsApp Button -->
+                                <!-- WhatsApp Button (request-aware prefill; same visibility gates as before) -->
                                 {% if pandit.whatsapp_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
-                                    {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
-                                        {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
-                                            {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                            {% with wa_redirect="https://wa.me/"|add:whatsapp_num %}
-                                            <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ wa_redirect|urlencode }}&amp;pandit_id={{ pandit.user_id }}"
+                                    {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
+                                        {% if contact_info.has_whatsapp %}
+                                            <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ contact_info.whatsapp_url|urlencode }}&amp;pandit_id={{ pandit.user_id }}"
                                                target="_blank"
                                                class="btn w-100 mb-3 whatsapp-btn"
                                                style="background-color: #22C55E; border-color: #22C55E; color: white;"
                                                title="WhatsApp {{ pandit.display_name|default:pandit.user.get_full_name }}">
                                                 <i class="bi bi-whatsapp me-1"></i>WhatsApp
                                             </a>
-                                            {% endwith %}
-                                            {% endwith %}
                                         {% endif %}
-                                    {% endwith %}
+                                    {% endif %}
                                 {% endif %}
                                 
                                 {% if trust_signals %}
