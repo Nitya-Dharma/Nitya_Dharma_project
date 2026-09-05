@@ -6,14 +6,22 @@ Slot-based, URL-aware, dashboard-aware, role-aware. Exposes:
 - ads_top, ads_sidebar, ads_footer, ads_in_content: backward compatibility for base template.
 """
 
+from django.conf import settings
+
+from .hierarchy_eligibility import is_ad_hierarchy_eligible
 from .models import Advertisement
 
 
 def active_ads(request):
     ads_qs = Advertisement.objects.filter(is_active=True)
+    campaigns_enabled = bool(getattr(settings, "ENABLE_CAMPAIGNS", False))
+    if campaigns_enabled:
+        ads_qs = ads_qs.select_related("campaign", "ad_set")
     slots = {}
 
     for ad in ads_qs:
+        if campaigns_enabled and not is_ad_hierarchy_eligible(ad):
+            continue
         if hasattr(ad, "is_currently_active") and not ad.is_currently_active():
             continue
         if not ad.is_allowed_on_url(request.path):
