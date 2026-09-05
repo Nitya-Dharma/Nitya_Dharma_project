@@ -578,9 +578,9 @@
                                 </a>
                             {% endif %}
                             
-                            <!-- Call and WhatsApp Buttons -->
-                            {% if pandit.primary_mobile_number or pandit.phone_number %}
-                                {% with mobile_number=pandit.primary_mobile_number|default:pandit.phone_number %}
+                            <!-- Call and WhatsApp Buttons (canonical fields + legacy fallbacks) -->
+                            {% if pandit.call_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
+                                {% with mobile_number=pandit.call_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
                                     {% if pandit.enable_call or pandit.allow_call %}
                                         <a href="tel:{{ mobile_number|striptags }}" 
                                            class="btn btn-success btn-lg"
@@ -588,9 +588,13 @@
                                             <i class="bi bi-telephone-fill me-1"></i>Call
                                         </a>
                                     {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            {% if pandit.whatsapp_mobile_number or pandit.primary_mobile_number or pandit.phone_number %}
+                                {% with whatsapp_number=pandit.whatsapp_mobile_number|default:pandit.primary_mobile_number|default:pandit.phone_number %}
                                     {% if pandit.enable_whatsapp or pandit.allow_whatsapp %}
-                                        {% with whatsapp_number=mobile_number|striptags|cut:'+'|cut:' '|cut:'-' %}
-                                        {% with wa_redirect="https://wa.me/"|add:whatsapp_number %}
+                                        {% with whatsapp_num=whatsapp_number|striptags|cut:'+'|cut:' '|cut:'-' %}
+                                        {% with wa_redirect="https://wa.me/"|add:whatsapp_num %}
                                         <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ wa_redirect|urlencode }}&amp;pandit_id={{ pandit.user_id }}" 
                                            target="_blank"
                                            class="btn btn-success btn-lg whatsapp-btn-hero"
