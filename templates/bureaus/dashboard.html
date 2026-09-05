@@ -39,6 +39,11 @@
                 <div class="col-12 col-lg-2 dashboard-sidebar admin-sidebar">
                     <div class="admin-card">
                         <div class="p-3">
+                            {% if ads.dashboard_sidebar %}
+                            <div class="dashboard-ad-sidebar mb-3">
+                                {% include 'partials/ad_unit.html' with ad=ads.dashboard_sidebar slot='dashboard_sidebar' %}
+                            </div>
+                            {% endif %}
                             <nav class="dashboard-nav" aria-label="Bureau dashboard navigation">
                                 <ul class="nav flex-column" role="list">
 
@@ -80,6 +85,12 @@
 
                 <!-- MAIN CONTENT -->
                 <div class="col-12 col-lg-10 dashboard-main" role="main" aria-label="Bureau dashboard main content">
+
+                    {% if ads.dashboard_top %}
+                    <div class="dashboard-ad-top text-center my-3">
+                        {% include 'partials/ad_unit.html' with ad=ads.dashboard_top slot='dashboard_top' %}
+                    </div>
+                    {% endif %}
 
                     {% with tab=request.GET.tab|default:"overview" %}
 
