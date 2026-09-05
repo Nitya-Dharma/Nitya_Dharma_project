@@ -47,6 +47,7 @@
                     <th>Budgets</th>
                     <th>Target Roles</th>
                     <th>Ads</th>
+                    <th>Attributed conversions</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -80,6 +81,13 @@
                         {% endif %}
                     </td>
                     <td>{{ campaign.ad_count }}</td>
+                    <td class="small">
+                        {% with m=campaign.conversion_metrics %}
+                        Total: {{ m.conversion_count|default:0 }}<br>
+                        Booking: {{ m.booking_intent_count|default:0 }}<br>
+                        Other: {{ m.other_count|default:0 }}
+                        {% endwith %}
+                    </td>
                     <td>
                         <a href="{% url 'ads:campaign_edit' campaign.id %}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
                         <form method="post" action="{% url 'ads:campaign_toggle' campaign.id %}" class="d-inline">

@@ -190,11 +190,31 @@ def campaign_list(request):
     )
     paginator = Paginator(queryset, 20)
     page_obj = paginator.get_page(request.GET.get("page", 1))
+    campaigns = list(page_obj.object_list)
+    days = max(1, min(365, int(request.GET.get("days", 30))))
+    try:
+        from ads_analytics.services.dashboard_service import (
+            get_campaign_conversion_metrics,
+        )
+
+        for campaign in campaigns:
+            campaign.conversion_metrics = get_campaign_conversion_metrics(
+                str(campaign.pk),
+                days=days,
+            )
+    except Exception:
+        for campaign in campaigns:
+            campaign.conversion_metrics = {
+                "conversion_count": 0,
+                "booking_intent_count": 0,
+                "other_count": 0,
+                "profile_view_count": 0,
+            }
     return render(
         request,
         "ads/campaign_list.html",
         {
-            "campaigns": page_obj.object_list,
+            "campaigns": campaigns,
             "page_obj": page_obj,
             "dashboard_has_data": True,
             "campaigns_enabled": True,

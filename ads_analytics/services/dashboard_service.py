@@ -685,6 +685,60 @@ def get_funnel_chart_data(ad_id: int, days: int = 30) -> Dict[str, Any]:
     }
 
 
+def get_campaign_conversion_metrics(
+    campaign_id: Optional[str],
+    days: int = 30,
+) -> Dict[str, Any]:
+    """
+    Historical Campaign conversion counts via AdConversionIntent.campaign_id.
+
+    Filters by the persisted event campaign_id string (same convention as
+    get_creative_performance). Does not use Advertisement.campaign.
+    NULL / blank campaign_id rows are never attributed to a Campaign.
+    """
+    start_ts, end_ts, start, end = _daterange_ts(days)
+    empty = {
+        "campaign_id": campaign_id,
+        "days": days,
+        "start": start,
+        "end": end,
+        "conversion_count": 0,
+        "booking_intent_count": 0,
+        "other_count": 0,
+        "profile_view_count": 0,
+    }
+    if campaign_id is None:
+        return empty
+    cid = str(campaign_id).strip()
+    if not cid:
+        return empty
+
+    qs = AdConversionIntent.objects.filter(
+        campaign_id=cid,
+        timestamp__gte=start_ts,
+        timestamp__lte=end_ts,
+    )
+    booking_intent_count = qs.filter(
+        conversion_type=AdConversionIntent.CONVERSION_BOOKING_INTENT
+    ).count()
+    other_count = qs.filter(
+        conversion_type=AdConversionIntent.CONVERSION_OTHER
+    ).count()
+    profile_view_count = qs.filter(
+        conversion_type=AdConversionIntent.CONVERSION_PROFILE_VIEW
+    ).count()
+    return {
+        "campaign_id": cid,
+        "days": days,
+        "start": start,
+        "end": end,
+        "conversion_count": qs.count(),
+        "booking_intent_count": booking_intent_count,
+        "other_count": other_count,
+        "profile_view_count": profile_view_count,
+    }
+
+
 # --- Phase 7: Device and user type ---
 
 
