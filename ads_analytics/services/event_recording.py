@@ -226,6 +226,7 @@ def record_ad_conversion_intent(
     *,
     user_id: Optional[int] = None,
     pandit_id: Optional[int] = None,
+    campaign_id: Optional[str] = None,
 ) -> bool:
     """Record a conversion intent (e.g. booking_intent) for attribution."""
     from ads_analytics.models import AdConversionIntent
@@ -239,6 +240,7 @@ def record_ad_conversion_intent(
             user_id=user_id,
             pandit_id=pandit_id,
             conversion_type=conversion_type,
+            campaign_id=_truncate(campaign_id, 100) if campaign_id else None,
         )
         return True
     except Exception as e:

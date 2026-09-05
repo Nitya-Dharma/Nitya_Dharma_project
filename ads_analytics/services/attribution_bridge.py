@@ -61,11 +61,17 @@ def record_booking_conversion_from_session(
     from ads_analytics.models import AdConversionIntent
     from ads_analytics.services.event_recording import record_ad_conversion_intent
 
+    raw_campaign_id = payload.get("campaign_id")
+    session_campaign_id = (
+        str(raw_campaign_id) if raw_campaign_id is not None else None
+    )
+
     ok = record_ad_conversion_intent(
         ad_id=ad_id,
         conversion_type=AdConversionIntent.CONVERSION_BOOKING_INTENT,
         user_id=user_id,
         pandit_id=pandit_id,
+        campaign_id=session_campaign_id,
     )
     if ok:
         try:
@@ -112,9 +118,15 @@ def record_whatsapp_contact_from_session(
         except Exception:
             safe_pandit_id = None
 
+    raw_campaign_id = payload.get("campaign_id")
+    session_campaign_id = (
+        str(raw_campaign_id) if raw_campaign_id is not None else None
+    )
+
     return record_ad_conversion_intent(
         ad_id=ad_id,
         conversion_type=AdConversionIntent.CONVERSION_OTHER,
         user_id=user_id,
         pandit_id=safe_pandit_id,
+        campaign_id=session_campaign_id,
     )

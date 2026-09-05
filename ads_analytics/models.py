@@ -123,6 +123,7 @@ class AdConversionIntent(models.Model):
         db_index=True,
         related_name="analytics_conversions",
     )
+    campaign_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

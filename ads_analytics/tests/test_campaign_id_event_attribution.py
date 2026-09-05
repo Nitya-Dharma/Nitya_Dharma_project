@@ -122,7 +122,7 @@ class CampaignIdEventAttributionTests(TestCase):
         )
 
     def test_booking_reader_tolerates_extra_campaign_id_in_session(self):
-        """Existing booking reader uses payload.get('ad_id') only; extra keys OK."""
+        """Booking bridge persists session campaign_id when present; session cleared."""
         ad = _script_ad(name="Reader compat ad", campaign=None)
         user = get_user_model().objects.create_user(
             email="session-reader@example.com",
@@ -146,4 +146,5 @@ class CampaignIdEventAttributionTests(TestCase):
             intent.conversion_type,
             AdConversionIntent.CONVERSION_BOOKING_INTENT,
         )
+        self.assertEqual(intent.campaign_id, "456")
         self.assertNotIn(SESSION_KEY, request.session)
