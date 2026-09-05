@@ -47,6 +47,7 @@
                     <th>Budgets</th>
                     <th>Target Roles</th>
                     <th>Ads</th>
+                    <th>Delivery</th>
                     <th>Attributed conversions</th>
                     <th>Actions</th>
                 </tr>
@@ -81,6 +82,13 @@
                         {% endif %}
                     </td>
                     <td>{{ campaign.ad_count }}</td>
+                    <td class="small">
+                        {% with d=campaign.delivery_metrics %}
+                        Impressions: {{ d.impressions|default:0 }}<br>
+                        Clicks: {{ d.clicks|default:0 }}<br>
+                        CTR: {{ d.ctr|default:0 }}%
+                        {% endwith %}
+                    </td>
                     <td class="small">
                         {% with m=campaign.conversion_metrics %}
                         Total: {{ m.conversion_count|default:0 }}<br>

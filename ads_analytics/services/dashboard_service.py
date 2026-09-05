@@ -739,6 +739,55 @@ def get_campaign_conversion_metrics(
     }
 
 
+def get_campaign_delivery_metrics(
+    campaign_id: Optional[str],
+    days: int = 30,
+) -> Dict[str, Any]:
+    """
+    Historical Campaign delivery counts via AdImpression/AdClick.campaign_id.
+
+    Filters by the persisted event campaign_id string (same convention as
+    get_campaign_conversion_metrics / get_creative_performance). Does not use
+    Advertisement.campaign. NULL / blank campaign_id rows are never attributed.
+    """
+    start_ts, end_ts, start, end = _daterange_ts(days)
+    empty = {
+        "campaign_id": campaign_id,
+        "days": days,
+        "start": start,
+        "end": end,
+        "impressions": 0,
+        "clicks": 0,
+        "ctr": 0.0,
+    }
+    if campaign_id is None:
+        return empty
+    cid = str(campaign_id).strip()
+    if not cid:
+        return empty
+
+    impressions = AdImpression.objects.filter(
+        campaign_id=cid,
+        timestamp__gte=start_ts,
+        timestamp__lte=end_ts,
+    ).count()
+    clicks = AdClick.objects.filter(
+        campaign_id=cid,
+        timestamp__gte=start_ts,
+        timestamp__lte=end_ts,
+    ).count()
+    ctr = round(100.0 * clicks / impressions, 2) if impressions else 0.0
+    return {
+        "campaign_id": cid,
+        "days": days,
+        "start": start,
+        "end": end,
+        "impressions": impressions,
+        "clicks": clicks,
+        "ctr": ctr,
+    }
+
+
 # --- Phase 7: Device and user type ---
 
 

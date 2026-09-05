@@ -195,11 +195,17 @@ def campaign_list(request):
     try:
         from ads_analytics.services.dashboard_service import (
             get_campaign_conversion_metrics,
+            get_campaign_delivery_metrics,
         )
 
         for campaign in campaigns:
+            cid = str(campaign.pk)
             campaign.conversion_metrics = get_campaign_conversion_metrics(
-                str(campaign.pk),
+                cid,
+                days=days,
+            )
+            campaign.delivery_metrics = get_campaign_delivery_metrics(
+                cid,
                 days=days,
             )
     except Exception:
@@ -209,6 +215,11 @@ def campaign_list(request):
                 "booking_intent_count": 0,
                 "other_count": 0,
                 "profile_view_count": 0,
+            }
+            campaign.delivery_metrics = {
+                "impressions": 0,
+                "clicks": 0,
+                "ctr": 0.0,
             }
     return render(
         request,
