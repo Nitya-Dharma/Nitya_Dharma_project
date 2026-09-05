@@ -9,7 +9,6 @@ SECURITY RULES:
 """
 
 import logging
-from urllib.parse import quote
 from django.conf import settings
 from .models import PanditProfile
 
@@ -100,7 +99,11 @@ def get_call_url(pandit_profile: PanditProfile) -> str | None:
     return None
 
 
-def get_whatsapp_url(pandit_profile: PanditProfile, message: str = None) -> str | None:
+def get_whatsapp_url(
+    pandit_profile: PanditProfile,
+    message: str = None,
+    request=None,
+) -> str | None:
     """
     Generate secure WhatsApp URL for contacting a Pandit.
     
@@ -112,10 +115,14 @@ def get_whatsapp_url(pandit_profile: PanditProfile, message: str = None) -> str 
     5. phone_number (legacy field)
     
     SECURITY: Phone number is never exposed in HTML, only in WhatsApp link.
+
+    When ``message`` is omitted and ``request`` has last-click ad attribution,
+    an ad-contextual prefill is used. Explicit ``message`` always wins.
     
     Args:
         pandit_profile: PanditProfile instance
-        message: Optional pre-filled message (default: generic greeting)
+        message: Optional pre-filled message (default: ad-attributed or generic)
+        request: Optional HTTP request for read-only ad attribution context
     
     Returns:
         WhatsApp URL string or None if not allowed/available
@@ -177,18 +184,28 @@ def get_whatsapp_url(pandit_profile: PanditProfile, message: str = None) -> str 
     if not whatsapp_number:
         return None
     
-    # Default message if not provided
+    # Message selection: explicit > ad-attributed > generic greeting
+    if message is None and request is not None:
+        try:
+            from profiles.whatsapp_ad_prefill import build_ad_attributed_whatsapp_message
+
+            attributed = build_ad_attributed_whatsapp_message(request)
+            if attributed:
+                message = attributed
+        except Exception:
+            pass
+
     if message is None:
         pandit_name = pandit_profile.get_display_name()
         message = f"Hello Pandit {pandit_name}, I found your profile on Nitya Dharma"
     
-    # URL encode the message
-    encoded_message = quote(message)
-    
-    return f"https://wa.me/{whatsapp_number}?text={encoded_message}"
+    # URL encode the message (single encode; apply_whatsapp_text_param also encodes once)
+    from profiles.whatsapp_ad_prefill import apply_whatsapp_text_param
+
+    return apply_whatsapp_text_param(f"https://wa.me/{whatsapp_number}", message)
 
 
-def get_contact_info(pandit_profile: PanditProfile) -> dict:
+def get_contact_info(pandit_profile: PanditProfile, request=None) -> dict:
     """
     Get contact information for a Pandit (URLs only, no raw numbers).
     
@@ -196,6 +213,7 @@ def get_contact_info(pandit_profile: PanditProfile) -> dict:
     
     Args:
         pandit_profile: PanditProfile instance (can be None)
+        request: Optional HTTP request for ad-attributed WhatsApp prefill
     
     Returns:
         dict with keys:
@@ -213,7 +231,7 @@ def get_contact_info(pandit_profile: PanditProfile) -> dict:
         }
     
     call_url = get_call_url(pandit_profile)
-    whatsapp_url = get_whatsapp_url(pandit_profile)
+    whatsapp_url = get_whatsapp_url(pandit_profile, request=request)
     
     return {
         'call_url': call_url,

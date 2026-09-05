@@ -17,6 +17,36 @@ logger = logging.getLogger(__name__)
 SESSION_KEY = "ads_last_click_attribution"
 
 
+def get_last_click_attribution(
+    request: Optional[HttpRequest],
+) -> Optional[dict]:
+    """
+    Read-only view of the last-click attribution session payload.
+
+    Returns a shallow copy of {"ad_id": int, "campaign_id": str?} or None.
+    Does not write, clear, refresh, or mark the session modified.
+    """
+    if not request or not hasattr(request, "session"):
+        return None
+    try:
+        payload = request.session.get(SESSION_KEY)
+    except Exception:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    raw_ad_id = payload.get("ad_id")
+    if raw_ad_id is None:
+        return None
+    try:
+        ad_id = int(raw_ad_id)
+    except (TypeError, ValueError):
+        return None
+    result: dict = {"ad_id": ad_id}
+    if "campaign_id" in payload and payload.get("campaign_id") is not None:
+        result["campaign_id"] = str(payload.get("campaign_id"))
+    return result
+
+
 def store_last_click_attribution(
     request: Optional[HttpRequest],
     ad_id: int,

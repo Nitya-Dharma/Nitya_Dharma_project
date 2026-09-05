@@ -147,7 +147,7 @@
             {% endif %}
             
             <!-- Secondary CTAs: Call and WhatsApp buttons side by side -->
-            {% with contact_info=pandit|pandit_contact_info %}
+            {% ad_aware_pandit_contact_info pandit as contact_info %}
             <div class="d-flex gap-2">
                 <div class="flex-fill">
                     {% if contact_info.has_call %}
@@ -191,7 +191,6 @@
                     {% endif %}
                 </div>
             </div>
-            {% endwith %}
         </div>
     </div>
 </div>

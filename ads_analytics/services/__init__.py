@@ -6,6 +6,7 @@ from .event_recording import (
     record_ad_revenue_event,
 )
 from .attribution_bridge import (
+    get_last_click_attribution,
     store_last_click_attribution,
     record_booking_conversion_from_session,
     record_whatsapp_contact_from_session,
