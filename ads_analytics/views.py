@@ -7,6 +7,7 @@ Dashboard views are read-only and use dashboard_service for all metrics.
 
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse, Http404
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -39,6 +40,38 @@ def _superuser_required(view_func):
     return _wrapped
 
 
+def _trusted_ad_redirect_fallback(ad) -> str:
+    """Super Admin-stored advertiser URL, or site root when unset."""
+    stored = (getattr(ad, "redirect_url", None) or "").strip()
+    return stored or "/"
+
+
+def _click_redirect_target(request, ad) -> str:
+    """
+    Resolve the click redirect destination.
+
+    Query-string ``redirect=`` is attacker-controlled: only same-origin /
+    relative URLs are accepted via Django's url_has_allowed_host_and_scheme.
+    Unsafe query values fall back to Advertisement.redirect_url (trusted
+    Super Admin destination, which may be external) or "/".
+    """
+    fallback = _trusted_ad_redirect_fallback(ad)
+    raw = request.GET.get("redirect")
+    if raw is None:
+        return fallback
+    candidate = str(raw).strip()
+    if not candidate:
+        return fallback
+    allowed_hosts = {request.get_host()}
+    if url_has_allowed_host_and_scheme(
+        url=candidate,
+        allowed_hosts=allowed_hosts,
+        require_https=False,
+    ):
+        return candidate
+    return fallback
+
+
 @require_GET
 @csrf_exempt
 @xframe_options_exempt
@@ -51,7 +84,7 @@ def track_click(request, ad_id: int):
     """
     ad = get_object_or_404(Advertisement, pk=ad_id)
     placement = (request.GET.get("placement") or "").strip()
-    target = request.GET.get("redirect") or getattr(ad, "redirect_url", None) or "/"
+    target = _click_redirect_target(request, ad)
 
     skip, _reason = should_skip_tracking(request, ad_id, placement, is_impression=False)
     if not skip:
