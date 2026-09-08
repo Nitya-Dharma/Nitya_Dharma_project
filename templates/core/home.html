@@ -121,6 +121,10 @@
         </div>
     </section>
 
+    {% if ads_in_content %}
+        {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+    {% endif %}
+
     {% if sample_listings %}
     <section class="sample-listings-section py-5">
         <div class="container animate-fade-up">

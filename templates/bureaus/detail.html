@@ -19,6 +19,10 @@ View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
     {% endfor %}
   {% endif %}
 
+  {% if ads_in_content %}
+    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+  {% endif %}
+
   {% if bureau.cover_image %}
     <div class="mb-4">
       <img src="{{ bureau.cover_image }}" class="img-fluid w-100 rounded nd-img-cover-max-h-300" alt="{{ bureau.name }}" loading="lazy" decoding="async">

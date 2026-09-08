@@ -31,6 +31,10 @@ Find trusted palm readers and palmists in {{ city }} for consultation and guidan
     Showing experts related to {{ city }}.
   </p>
 
+  {% if ads_in_content %}
+    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+  {% endif %}
+
   <div class="row g-4 mt-1">
     {% for expert in experts %}
       {% include "services/_card.html" with expert=expert %}

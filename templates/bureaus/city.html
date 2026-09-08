@@ -27,6 +27,10 @@ marriage bureau {{ city }}, matrimonial {{ city }}, Hindu matchmaking {{ city }}
     Reach out to screened matchmaking teams for prudent introductions and culturally aligned matrimonial support in your area.
   </p>
 
+  {% if ads_in_content %}
+    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+  {% endif %}
+
   <div class="row g-4 mt-1">
     {% for bureau in bureaus %}
       <div class="col-12 col-md-6 col-lg-4">

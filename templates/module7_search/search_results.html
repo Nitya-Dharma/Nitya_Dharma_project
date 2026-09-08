@@ -226,6 +226,9 @@
             </div>
 
             <div class="col-12 col-lg-9">
+                {% if ads_in_content %}
+                    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+                {% endif %}
                 {% if debug_location %}
                 <div class="alert alert-warning mb-3" role="status">
                     Debug location active: {{ debug_lat }}, {{ debug_lon }}

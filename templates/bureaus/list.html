@@ -54,6 +54,10 @@ hindu marriage bureau, matrimonial services india, matchmaking bureau, marriage 
     </div>
   </form>
 
+  {% if ads_in_content %}
+    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+  {% endif %}
+
   {% if is_capped %}
     <div class="alert alert-warning mt-3" role="alert">
       Showing top results. Refine filters for better accuracy.

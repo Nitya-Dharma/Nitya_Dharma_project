@@ -27,6 +27,10 @@ astrologer near me, online astrology consultation, kundli matching, horoscope re
   </p>
 </div>
 
+{% if ads_in_content %}
+    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+{% endif %}
+
 {% if featured_experts %}
 <div class="container mt-4">
   <h3 class="mb-3">Featured Experts</h3>
