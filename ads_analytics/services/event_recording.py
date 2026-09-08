@@ -220,6 +220,38 @@ def record_ad_revenue_event(
         return False
 
 
+def create_ad_conversion_intent(
+    ad_id: int,
+    conversion_type: str,
+    *,
+    user_id: Optional[int] = None,
+    pandit_id: Optional[int] = None,
+    campaign_id: Optional[str] = None,
+):
+    """
+    Create one AdConversionIntent. Returns the instance, or None on failure.
+
+    Same validation and insert as record_ad_conversion_intent; callers that
+    only need success/failure should keep using the bool wrapper.
+    """
+    from ads_analytics.models import AdConversionIntent
+    from ads.models import Advertisement
+
+    try:
+        if not Advertisement.objects.filter(pk=ad_id).exists():
+            return None
+        return AdConversionIntent.objects.create(
+            ad_id=ad_id,
+            user_id=user_id,
+            pandit_id=pandit_id,
+            conversion_type=conversion_type,
+            campaign_id=_truncate(campaign_id, 100) if campaign_id else None,
+        )
+    except Exception as e:
+        logger.warning("create_ad_conversion_intent failed: ad_id=%s %s", ad_id, e)
+        return None
+
+
 def record_ad_conversion_intent(
     ad_id: int,
     conversion_type: str,
@@ -229,20 +261,13 @@ def record_ad_conversion_intent(
     campaign_id: Optional[str] = None,
 ) -> bool:
     """Record a conversion intent (e.g. booking_intent) for attribution."""
-    from ads_analytics.models import AdConversionIntent
-    from ads.models import Advertisement
-
-    try:
-        if not Advertisement.objects.filter(pk=ad_id).exists():
-            return False
-        AdConversionIntent.objects.create(
-            ad_id=ad_id,
+    return (
+        create_ad_conversion_intent(
+            ad_id,
+            conversion_type,
             user_id=user_id,
             pandit_id=pandit_id,
-            conversion_type=conversion_type,
-            campaign_id=_truncate(campaign_id, 100) if campaign_id else None,
+            campaign_id=campaign_id,
         )
-        return True
-    except Exception as e:
-        logger.warning("record_ad_conversion_intent failed: ad_id=%s %s", ad_id, e)
-        return False
+        is not None
+    )

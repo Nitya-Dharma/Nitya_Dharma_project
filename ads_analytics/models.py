@@ -141,6 +141,74 @@ class AdConversionIntent(models.Model):
         ordering = ["-timestamp"]
 
 
+class AdLead(models.Model):
+    """
+    Business workflow object for an ad-attributed lead.
+
+    Distinct from append-only analytics events (AdImpression, AdClick,
+    AdConversionIntent). One Lead per conversion; no CRM, PII, or events.
+    """
+
+    SOURCE_WHATSAPP_CTA = "whatsapp_cta"
+    SOURCE_BOOKING_INTENT = "booking_intent"
+    SOURCE_CHOICES = [
+        (SOURCE_WHATSAPP_CTA, "WhatsApp CTA"),
+        (SOURCE_BOOKING_INTENT, "Booking Intent"),
+    ]
+
+    STATUS_NEW = "new"
+    STATUS_CONTACTED = "contacted"
+    STATUS_FOLLOW_UP = "follow_up"
+    STATUS_CONVERTED = "converted"
+    STATUS_LOST = "lost"
+    STATUS_CHOICES = [
+        (STATUS_NEW, "New"),
+        (STATUS_CONTACTED, "Contacted"),
+        (STATUS_FOLLOW_UP, "Follow up"),
+        (STATUS_CONVERTED, "Converted"),
+        (STATUS_LOST, "Lost"),
+    ]
+
+    source_conversion = models.OneToOneField(
+        AdConversionIntent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ad_lead",
+    )
+    advertisement = models.ForeignKey(
+        "ads.Advertisement",
+        on_delete=models.CASCADE,
+        related_name="ad_leads",
+    )
+    campaign_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ad_leads",
+    )
+    source = models.CharField(max_length=32, choices=SOURCE_CHOICES)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_NEW,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "ads_analytics"
+        indexes = [
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["advertisement", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"AdLead {self.pk} ({self.source})"
+
+
 # --- Aggregated models (Phase 3) ---
 
 

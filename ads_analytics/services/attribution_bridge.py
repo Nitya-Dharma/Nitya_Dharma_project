@@ -88,28 +88,40 @@ def record_booking_conversion_from_session(
     except (TypeError, ValueError):
         return False
 
-    from ads_analytics.models import AdConversionIntent
-    from ads_analytics.services.event_recording import record_ad_conversion_intent
+    from ads_analytics.models import AdConversionIntent, AdLead
+    from ads_analytics.services.event_recording import create_ad_conversion_intent
+    from ads_analytics.services.lead_service import create_ad_lead_from_conversion
 
     raw_campaign_id = payload.get("campaign_id")
     session_campaign_id = (
         str(raw_campaign_id) if raw_campaign_id is not None else None
     )
 
-    ok = record_ad_conversion_intent(
+    conversion = create_ad_conversion_intent(
         ad_id=ad_id,
         conversion_type=AdConversionIntent.CONVERSION_BOOKING_INTENT,
         user_id=user_id,
         pandit_id=pandit_id,
         campaign_id=session_campaign_id,
     )
-    if ok:
-        try:
-            del request.session[SESSION_KEY]
-            request.session.modified = True
-        except Exception:
-            pass
-    return ok
+    if conversion is None:
+        return False
+
+    try:
+        create_ad_lead_from_conversion(conversion, AdLead.SOURCE_BOOKING_INTENT)
+    except Exception as exc:
+        logger.warning(
+            "Booking AdLead creation failed: conversion_id=%s %s",
+            conversion.pk,
+            exc,
+        )
+
+    try:
+        del request.session[SESSION_KEY]
+        request.session.modified = True
+    except Exception:
+        pass
+    return True
 
 
 def record_whatsapp_contact_from_session(
@@ -135,8 +147,9 @@ def record_whatsapp_contact_from_session(
     except (TypeError, ValueError):
         return False
 
-    from ads_analytics.models import AdConversionIntent
-    from ads_analytics.services.event_recording import record_ad_conversion_intent
+    from ads_analytics.models import AdConversionIntent, AdLead
+    from ads_analytics.services.event_recording import create_ad_conversion_intent
+    from ads_analytics.services.lead_service import create_ad_lead_from_conversion
 
     safe_pandit_id = pandit_id
     if safe_pandit_id is not None:
@@ -153,10 +166,22 @@ def record_whatsapp_contact_from_session(
         str(raw_campaign_id) if raw_campaign_id is not None else None
     )
 
-    return record_ad_conversion_intent(
+    conversion = create_ad_conversion_intent(
         ad_id=ad_id,
         conversion_type=AdConversionIntent.CONVERSION_OTHER,
         user_id=user_id,
         pandit_id=safe_pandit_id,
         campaign_id=session_campaign_id,
     )
+    if conversion is None:
+        return False
+
+    try:
+        create_ad_lead_from_conversion(conversion, AdLead.SOURCE_WHATSAPP_CTA)
+    except Exception as exc:
+        logger.warning(
+            "WhatsApp AdLead creation failed: conversion_id=%s %s",
+            conversion.pk,
+            exc,
+        )
+    return True

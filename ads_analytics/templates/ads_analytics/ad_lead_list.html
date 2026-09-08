@@ -1,0 +1,99 @@
+{% extends "module5_dashboards/dashboard_base.html" %}
+
+{% block dashboard_title %}Ads Leads{% endblock %}
+{% block dashboard_heading %}Ads Leads{% endblock %}
+{% block dashboard_subtitle %}
+    <p class="text-muted mb-0">Ad-attributed leads. Super Admin only. Status can be updated from this list.</p>
+{% endblock %}
+
+{% block dashboard_nav_links %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:dashboard_super_admin' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'ads:advertisement_list' %}">
+            <i class="bi bi-megaphone me-2"></i>Advertisements
+        </a>
+    </li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-3 small">
+            <li class="breadcrumb-item"><a href="{% url 'module5_dashboards:dashboard_super_admin' %}">Super Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'ads:advertisement_list' %}">Advertisements</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Ads Leads</li>
+        </ol>
+    </nav>
+    <h2 class="h4 mb-3">Ads Leads</h2>
+
+    {% if leads %}
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Lead ID</th>
+                    <th>Created</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Advertisement</th>
+                    <th>Campaign ID</th>
+                    <th>Customer</th>
+                    <th>Conversion ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr>
+                    <td>{{ lead.pk }}</td>
+                    <td>{{ lead.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ lead.get_source_display }}</td>
+                    <td>
+                        <form method="post" action="{% url 'ads_leads:update_ad_lead_status' lead.pk %}" class="d-flex align-items-center gap-2">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" aria-label="Lead {{ lead.pk }} status">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                        </form>
+                    </td>
+                    <td>{{ lead.advertisement.name }}</td>
+                    <td>{% if lead.campaign_id %}{{ lead.campaign_id }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if lead.user %}{{ lead.user.email }}{% else %}Anonymous{% endif %}</td>
+                    <td>{% if lead.source_conversion_id %}{{ lead.source_conversion_id }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Ads Leads pagination" class="mt-3">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-5">
+        <p class="text-muted mb-0 fs-5">No Ads Leads yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
