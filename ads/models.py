@@ -154,6 +154,7 @@ class Advertisement(models.Model):
         ('in_content', 'In Content'),
         ('dashboard_top', 'Dashboard Top'),
         ('dashboard_sidebar', 'Dashboard Sidebar'),
+        ('floating', 'Floating'),
     ]
     AD_TYPE_SCRIPT = 'script'
     AD_TYPE_IMAGE = 'image'

@@ -4,12 +4,34 @@ Context processor for global ad injection into templates.
 Slot-based, URL-aware, dashboard-aware, role-aware. Exposes:
 - ads: dict of placement/slot -> ad (for dashboard_top, dashboard_sidebar, etc.)
 - ads_top, ads_sidebar, ads_footer, ads_in_content: backward compatibility for base template.
+- ads_floating / show_floating_ad: optional Floating chrome (presentation-only).
 """
 
 from django.conf import settings
 
 from .hierarchy_eligibility import is_ad_hierarchy_eligible
 from .models import Advertisement
+
+# Presentation-only: do not mount Floating chrome on action-critical paths.
+# dashboard_base.html extends base.html, so /dashboard/ must be excluded here.
+_FLOATING_EXCLUDED_PREFIXES = (
+    "/dashboard/",
+    "/accounts/",
+    "/booking-intent/",
+    "/api/booking-intent/",
+    "/otp/",
+    "/services/become-expert/",
+    "/services/expert/register",
+)
+
+
+def _floating_placement_allowed(path: str) -> bool:
+    path = path or "/"
+    if any(path.startswith(prefix) for prefix in _FLOATING_EXCLUDED_PREFIXES):
+        return False
+    if path.startswith("/services/expert/") and "/intent/" in path:
+        return False
+    return True
 
 
 def active_ads(request):
@@ -35,6 +57,8 @@ def active_ads(request):
         for slot in effective_slots:
             slots[slot] = ad
 
+    floating = slots.get("floating")
+    enable_floating_ads = bool(getattr(settings, "ENABLE_FLOATING_ADS", False))
     # Backward compatibility: expose legacy keys for base template
     return {
         "ads": slots,
@@ -42,4 +66,11 @@ def active_ads(request):
         "ads_sidebar": slots.get("sidebar"),
         "ads_footer": slots.get("footer"),
         "ads_in_content": slots.get("in_content"),
+        "ads_floating": floating,
+        "enable_floating_ads": enable_floating_ads,
+        "show_floating_ad": bool(
+            enable_floating_ads
+            and floating is not None
+            and _floating_placement_allowed(request.path)
+        ),
     }

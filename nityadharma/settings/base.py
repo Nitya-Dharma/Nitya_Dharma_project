@@ -351,6 +351,9 @@ OTP_MOCK_ALLOW_RANDOM = _env_bool("OTP_MOCK_ALLOW_RANDOM", False)
 # Legacy Campaign CRUD (superuser). Default OFF — do not enable via this setting alone.
 ENABLE_CAMPAIGNS = _env_bool("ENABLE_CAMPAIGNS", False)
 
+# Floating Advertisement chrome in base.html. Presentation-only. Default OFF.
+ENABLE_FLOATING_ADS = _env_bool("ENABLE_FLOATING_ADS", False)
+
 MSG91_AUTH_KEY = os.environ.get("MSG91_AUTH_KEY", "").strip()
 MSG91_BASE_URL = (
     os.environ.get("MSG91_BASE_URL", "https://control.msg91.com/api/v5/flow/").strip()

@@ -505,6 +505,61 @@
     {% include 'partials/ad_unit.html' with ad=ads_footer slot='footer' %}
     {% endif %}
 
+    {% if show_floating_ad %}
+    <aside id="nd-floating-ad" class="nd-floating-ad" data-ad-id="{{ ads_floating.pk }}" hidden>
+        <button type="button" class="nd-floating-ad-close" aria-label="Close advertisement">Close</button>
+        {% include 'partials/ad_unit.html' with ad=ads_floating slot='floating' %}
+    </aside>
+    <style>
+        .nd-floating-ad {
+            position: fixed;
+            left: 12px;
+            bottom: 88px;
+            z-index: 1030;
+            width: min(280px, calc(100vw - 24px));
+            max-height: 40vh;
+            overflow: auto;
+            background: var(--card-bg-theme, #fff);
+            border: 1px solid var(--border-color-theme, rgba(0,0,0,.15));
+            border-radius: 0.5rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.12);
+            padding: 0.5rem 0.5rem 0.25rem;
+            pointer-events: auto;
+        }
+        .nd-floating-ad .ad-container { margin: 0 !important; }
+        .nd-floating-ad-close {
+            display: block;
+            margin: 0 0 0.25rem auto;
+            background: transparent;
+            border: 0;
+            color: inherit;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            padding: 0.15rem 0.35rem;
+            cursor: pointer;
+        }
+        .nd-floating-ad-close:focus { outline: 2px solid currentColor; outline-offset: 2px; }
+        @media (min-width: 768px) {
+            .nd-floating-ad { bottom: 24px; left: 16px; }
+        }
+    </style>
+    <script>
+    (function(){
+      var el = document.getElementById('nd-floating-ad');
+      if (!el) return;
+      var key = 'nd_floating_ad_dismissed_' + el.getAttribute('data-ad-id');
+      try { if (window.localStorage && localStorage.getItem(key)) return; } catch (e) {}
+      el.removeAttribute('hidden');
+      var btn = el.querySelector('.nd-floating-ad-close');
+      if (!btn) return;
+      btn.addEventListener('click', function(){
+        el.setAttribute('hidden', '');
+        try { if (window.localStorage) localStorage.setItem(key, '1'); } catch (e) {}
+      });
+    })();
+    </script>
+    {% endif %}
+
     {# Premium Multi-level Poojas Dropdown JavaScript #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
