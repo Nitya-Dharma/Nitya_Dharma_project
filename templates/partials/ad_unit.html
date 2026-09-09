@@ -10,7 +10,14 @@ clicks via track_click redirect. Works on desktop, mobile, tablet; same script a
 <div class="ad-unit-track" data-ad-id="{{ ad.pk }}" data-placement="{{ slot|default:'' }}" data-impression-url="{% url 'ads_analytics:track_impression' ad.pk %}?placement={{ slot|default:''|urlencode }}">
 <div class="ad-container text-center my-3 {% if slot == 'sidebar' %}sidebar-ad{% endif %}">
     <a href="{% url 'ads_analytics:track_click' ad.pk %}?redirect={{ ad.redirect_url|default:'#'|urlencode }}&placement={{ slot }}" target="_blank" rel="noopener noreferrer">
+        {% if ad.mobile_image %}
+        <picture>
+            <source media="(max-width: 768px)" srcset="{{ ad.mobile_image.url }}">
+            <img src="{{ slot_image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
+        </picture>
+        {% else %}
         <img src="{{ slot_image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
+        {% endif %}
     </a>
 </div>
 </div>
@@ -18,7 +25,14 @@ clicks via track_click redirect. Works on desktop, mobile, tablet; same script a
 <div class="ad-unit-track" data-ad-id="{{ ad.pk }}" data-placement="{{ slot|default:'' }}" data-impression-url="{% url 'ads_analytics:track_impression' ad.pk %}?placement={{ slot|default:''|urlencode }}">
 <div class="ad-container text-center my-3 {% if slot == 'sidebar' %}sidebar-ad{% endif %}">
     <a href="{% url 'ads_analytics:track_click' ad.pk %}?redirect={{ ad.redirect_url|default:'#'|urlencode }}&placement={{ slot }}" target="_blank" rel="noopener noreferrer">
+        {% if ad.mobile_image %}
+        <picture>
+            <source media="(max-width: 768px)" srcset="{{ ad.mobile_image.url }}">
+            <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
+        </picture>
+        {% else %}
         <img src="{{ ad.image.url }}" alt="Advertisement" class="img-fluid ad-container-img w-100" style="max-width: 100%; height: auto; object-fit: contain;" loading="lazy" decoding="async">
+        {% endif %}
     </a>
 </div>
 </div>
