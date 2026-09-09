@@ -34,6 +34,23 @@ def _safe_int_param(raw):
         return None
 
 
+def _placement_upload_choices(form):
+    """Per-slot image uploads for placements that have a dedicated image field.
+
+    Floating is a valid placement but has no image_floating field; it uses
+    Advertisement.image. Skip those slots instead of indexing SLOT_IMAGE_FIELDS.
+    """
+    choices = []
+    for slot, label in Advertisement.PLACEMENT_CHOICES:
+        field_name = Advertisement.SLOT_IMAGE_FIELDS.get(slot)
+        if not field_name:
+            continue
+        choices.append(
+            (slot, label, form[field_name], get_recommended_size_text(slot))
+        )
+    return choices
+
+
 @_super_admin_required
 @require_http_methods(["GET"])
 def advertisement_list(request):
@@ -93,10 +110,7 @@ def advertisement_create(request):
             return redirect("ads:advertisement_list")
     else:
         form = AdvertisementForm(initial=initial)
-    placement_upload_choices = [
-        (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
-        for slot, label in Advertisement.PLACEMENT_CHOICES
-    ]
+    placement_upload_choices = _placement_upload_choices(form)
     return render(
         request,
         "ads/advertisement_form.html",
@@ -129,10 +143,7 @@ def advertisement_edit(request, pk):
             return redirect("ads:advertisement_list")
     else:
         form = AdvertisementForm(instance=ad)
-    placement_upload_choices = [
-        (slot, label, form[Advertisement.SLOT_IMAGE_FIELDS[slot]], get_recommended_size_text(slot))
-        for slot, label in Advertisement.PLACEMENT_CHOICES
-    ]
+    placement_upload_choices = _placement_upload_choices(form)
     return render(
         request,
         "ads/advertisement_form.html",
