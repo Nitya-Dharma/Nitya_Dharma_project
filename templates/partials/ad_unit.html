@@ -43,6 +43,9 @@ clicks via track_click redirect. Works on desktop, mobile, tablet; same script a
     var url = el.getAttribute('data-impression-url');
     if (!url) return;
     if (el._impressionSent) return;
+    /* Idempotent init: each include runs this IIFE; skip elements already observed. */
+    if (el._impressionInit) return;
+    el._impressionInit = true;
     var sent = false;
     function send(){
       if (sent) return;
