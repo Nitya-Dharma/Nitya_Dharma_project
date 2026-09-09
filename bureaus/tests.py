@@ -583,6 +583,56 @@ class BureauSmokeTests(TestCase):
         )
         self.assertEqual(visible_detail.status_code, 200)
 
+    def test_visible_bureau_detail_restores_direct_whatsapp_cta(self):
+        """Public detail renders 200 with the pre-47aa575 direct wa.me CTA."""
+        with_whatsapp = _make_bureau(
+            email="visible-wa@example.com",
+            bureau_name="Visible WhatsApp Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+        stored_whatsapp = "9123456792"
+        with_whatsapp.whatsapp_number = stored_whatsapp
+        with_whatsapp.save(update_fields=["whatsapp_number"])
+
+        without_whatsapp = _make_bureau(
+            email="visible-no-wa@example.com",
+            bureau_name="Visible No WhatsApp Bureau",
+            is_active=True,
+            is_approved=True,
+            is_email_verified=True,
+        )
+
+        with_response = self.client.get(
+            reverse("bureaus:bureau_detail", kwargs={"public_id": with_whatsapp.public_id})
+        )
+        self.assertEqual(with_response.status_code, 200)
+        with_body = with_response.content.decode("utf-8", errors="ignore")
+        expected_href = f'href="https://wa.me/{stored_whatsapp}"'
+        self.assertIn(expected_href, with_body)
+        self.assertRegex(
+            with_body,
+            rf'{expected_href} target="_blank" rel="noopener noreferrer"[^>]*>\s*WhatsApp\s*<',
+        )
+        self.assertNotIn("whatsapp_cta_link.html", with_body)
+        self.assertNotIn("track_whatsapp", with_body)
+
+        without_response = self.client.get(
+            reverse(
+                "bureaus:bureau_detail",
+                kwargs={"public_id": without_whatsapp.public_id},
+            )
+        )
+        self.assertEqual(without_response.status_code, 200)
+        without_body = without_response.content.decode("utf-8", errors="ignore")
+        self.assertNotIn("https://wa.me/", without_body)
+
+        city_response = self.client.get(
+            reverse("bureaus:bureau_city", kwargs={"city": "hyderabad"})
+        )
+        self.assertEqual(city_response.status_code, 200)
+
     def test_get_visible_bureaus_requires_listing_completeness(self):
         """Public visibility queryset requires flags plus listing completeness."""
         complete = _make_bureau(
