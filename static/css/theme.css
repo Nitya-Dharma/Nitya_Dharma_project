@@ -972,6 +972,21 @@ select:focus {
     margin: 0 auto;
 }
 
+/* Placement caps: sidebar/in_content must not grow with the parent column.
+   width: 100% still lets them shrink on viewports narrower than the cap. */
+.ad-unit-track[data-placement="sidebar"] .ad-container {
+    max-width: 300px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.ad-unit-track[data-placement="in_content"] .ad-container {
+    max-width: 336px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Mobile: prevent overflow and keep ads readable */
 @media (max-width: 768px) {
     .ad-container,
