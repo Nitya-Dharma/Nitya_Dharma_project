@@ -73,9 +73,6 @@
                 <input type="text" name="whatsapp_number" class="form-control" value="{{ form_data.whatsapp_number|default:bureau_profile.whatsapp_number|default:"" }}">
               </div>
             </div>
-            {% if wa_subject_type %}
-            {% include "whatsapp_verification/_widget.html" %}
-            {% endif %}
           </div>
 
           <!-- Location -->

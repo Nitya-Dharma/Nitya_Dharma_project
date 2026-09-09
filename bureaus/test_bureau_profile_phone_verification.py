@@ -116,11 +116,7 @@ class BureauProfilePhoneVerificationTests(TestCase):
     def test_unverified_profile_shows_verify_mobile_ui(self):
         user, _profile = _make_bureau_owner(is_phone_verified=False)
         self.client.force_login(user)
-        with patch(
-            "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-            return_value={},
-        ):
-            response = self.client.get(reverse("bureaus:bureau_profile_edit"))
+        response = self.client.get(reverse("bureaus:bureau_profile_edit"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Not verified")
         self.assertContains(response, "bureau_profile_mv-root")
@@ -130,11 +126,7 @@ class BureauProfilePhoneVerificationTests(TestCase):
         user.phone_number = "9123456801"
         user.save(update_fields=["phone_number"])
         self.client.force_login(user)
-        with patch(
-            "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-            return_value={},
-        ):
-            response = self.client.get(reverse("bureaus:bureau_profile_edit"))
+        response = self.client.get(reverse("bureaus:bureau_profile_edit"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Verified")
         self.assertNotContains(response, "bureau_profile_mv-root")
@@ -147,11 +139,7 @@ class BureauProfilePhoneVerificationTests(TestCase):
         )
         self.assertFalse(user.phone_number)
         self.client.force_login(user)
-        with patch(
-            "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-            return_value={},
-        ):
-            self.client.get(reverse("bureaus:bureau_profile_edit"))
+        self.client.get(reverse("bureaus:bureau_profile_edit"))
         user.refresh_from_db()
         self.assertEqual(user.phone_number, profile.phone_number)
 
@@ -284,21 +272,17 @@ class BureauProfilePhoneVerificationTests(TestCase):
         user.phone_number = profile.phone_number
         user.save(update_fields=["phone_number"])
         self.client.force_login(user)
-        with patch(
-            "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-            return_value={},
-        ):
-            response = self.client.post(
-                reverse("bureaus:bureau_profile_edit"),
-                {
-                    "description": profile.description,
-                    "phone_number": "9123456811",
-                    "whatsapp_number": "",
-                    "address": profile.address,
-                    "city": profile.city,
-                    "caste_data": '{"OC": ["Brahmin"]}',
-                },
-            )
+        response = self.client.post(
+            reverse("bureaus:bureau_profile_edit"),
+            {
+                "description": profile.description,
+                "phone_number": "9123456811",
+                "whatsapp_number": "",
+                "address": profile.address,
+                "city": profile.city,
+                "caste_data": '{"OC": ["Brahmin"]}',
+            },
+        )
         self.assertEqual(response.status_code, 302)
         user.refresh_from_db()
         profile.refresh_from_db()

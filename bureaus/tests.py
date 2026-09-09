@@ -1079,11 +1079,7 @@ class BureauOwnerProfileEditAuthTests(TestCase):
         payload.update(overrides)
         return self.client.post(self.edit_url, payload)
 
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_verified_owner_unapproved_inactive_can_open_edit(self, _widget):
+    def test_verified_owner_unapproved_inactive_can_open_edit(self):
         bureau = _make_bureau(
             email="owner-edit-ok@example.com",
             is_active=False,
@@ -1095,12 +1091,13 @@ class BureauOwnerProfileEditAuthTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("bureau_profile", response.context)
         self.assertEqual(response.context["bureau_profile"].id, bureau.id)
+        self.assertContains(response, 'name="phone_number"')
+        self.assertContains(response, 'name="whatsapp_number"')
+        self.assertContains(response, bureau.phone_number)
+        self.assertNotContains(response, "whatsapp_verification/_widget.html")
+        self.assertNotContains(response, "wa_subject_type")
 
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_verified_owner_incomplete_can_open_edit(self, _widget):
+    def test_verified_owner_incomplete_can_open_edit(self):
         bureau = _make_bureau(
             email="owner-edit-incomplete@example.com",
             description="",
@@ -1142,20 +1139,7 @@ class BureauOwnerProfileEditAuthTests(TestCase):
         self.assertEqual(denied.status_code, 302)
         self.assertNotIn("/bureaus/profile/edit/", denied["Location"])
 
-    @patch(
-        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
-    )
-    @patch(
-        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
-        return_value="",
-    )
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_owner_edit_preserves_lifecycle_flags_and_ownership(
-        self, _widget, _raw, _sync
-    ):
+    def test_owner_edit_preserves_lifecycle_flags_and_ownership(self):
         bureau = _make_bureau(
             email="owner-edit-flags@example.com",
             description="",
@@ -1168,6 +1152,7 @@ class BureauOwnerProfileEditAuthTests(TestCase):
         self.client.force_login(bureau.user)
 
         response = self._post_profile(
+            whatsapp_number="9123456799",
             is_approved="true",
             is_active="true",
             is_email_verified="false",
@@ -1186,7 +1171,22 @@ class BureauOwnerProfileEditAuthTests(TestCase):
         self.assertEqual(bureau.address, "99 Owner Edit Road")
         self.assertEqual(bureau.city, "Hyderabad")
         self.assertEqual(bureau.caste_data, {"OC": ["brahmin"]})
+        self.assertEqual(bureau.whatsapp_number, "9123456799")
         self.assertNotIn(bureau.id, get_visible_bureaus().values_list("id", flat=True))
+
+    def test_owner_edit_invalid_phone_returns_validation_response(self):
+        bureau = _make_bureau(
+            email="owner-edit-invalid@example.com",
+            is_active=False,
+            is_approved=False,
+            is_email_verified=True,
+        )
+        self.client.force_login(bureau.user)
+        response = self._post_profile(phone_number="abc")
+        self.assertEqual(response.status_code, 400)
+        self.assertNotEqual(response.status_code, 500)
+        bureau.refresh_from_db()
+        self.assertEqual(bureau.phone_number, "9876543210")
 
     def test_get_bureau_for_user_unchanged_for_pre_approval_owner(self):
         bureau = _make_bureau(
@@ -1232,20 +1232,7 @@ class BureauOwnerProfileEditRedirectTests(TestCase):
         payload.update(overrides)
         return self.client.post(self.edit_url, payload)
 
-    @patch(
-        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
-    )
-    @patch(
-        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
-        return_value="",
-    )
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_eligible_owner_success_redirects_to_dashboard(
-        self, _widget, _raw, _sync
-    ):
+    def test_eligible_owner_success_redirects_to_dashboard(self):
         bureau = _make_bureau(
             email="edit-redirect-eligible@example.com",
             is_active=True,
@@ -1257,20 +1244,7 @@ class BureauOwnerProfileEditRedirectTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.dashboard_url)
 
-    @patch(
-        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
-    )
-    @patch(
-        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
-        return_value="",
-    )
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_non_eligible_owner_success_redirects_to_status(
-        self, _widget, _raw, _sync
-    ):
+    def test_non_eligible_owner_success_redirects_to_status(self):
         bureau = _make_bureau(
             email="edit-redirect-pending@example.com",
             description="",
@@ -1284,20 +1258,7 @@ class BureauOwnerProfileEditRedirectTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.status_url)
 
-    @patch(
-        "whatsapp_verification.integration.profile_sync.sync_profile_whatsapp_number_change"
-    )
-    @patch(
-        "whatsapp_verification.integration.canonical_number.get_bureau_whatsapp_number_raw",
-        return_value="",
-    )
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_successful_edit_does_not_mutate_lifecycle_for_pending_owner(
-        self, _widget, _raw, _sync
-    ):
+    def test_successful_edit_does_not_mutate_lifecycle_for_pending_owner(self):
         bureau = _make_bureau(
             email="edit-redirect-immutable@example.com",
             description="",
@@ -1322,11 +1283,7 @@ class BureauOwnerProfileEditRedirectTests(TestCase):
         self.assertEqual(bureau.is_active, before["is_active"])
         self.assertEqual(bureau.user_id, before["user_id"])
 
-    @patch(
-        "whatsapp_verification.integration.widget_helpers.widget_context_for_subject",
-        return_value={},
-    )
-    def test_unverified_owner_still_denied(self, _widget):
+    def test_unverified_owner_still_denied(self):
         bureau = _make_bureau(
             email="edit-redirect-unverified@example.com",
             is_active=False,

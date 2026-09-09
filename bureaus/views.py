@@ -713,8 +713,6 @@ def bureau_profile_edit_view(request):
         from otp_verification import constants as otp_constants
         from otp_verification.registration.completions import _sync_expert_user_phone
         from otp_verification.registration.factory import is_registration_otp_required
-        from whatsapp_verification.constants import SUBJECT_BUREAU_PROFILE
-        from whatsapp_verification.integration.widget_helpers import widget_context_for_subject
 
         owner = user
         profile_phone = (bureau.phone_number or "").strip()
@@ -732,14 +730,6 @@ def bureau_profile_edit_view(request):
                 otp_constants.FLOW_BUREAU_REGISTRATION
             ),
         }
-        if bureau.pk:
-            ctx.update(
-                widget_context_for_subject(
-                    SUBJECT_BUREAU_PROFILE,
-                    bureau.pk,
-                    phone_mode="bureau",
-                )
-            )
         return ctx
 
     if request.method == "GET":
@@ -760,11 +750,6 @@ def bureau_profile_edit_view(request):
             ),
         )
 
-    from whatsapp_verification.constants import SUBJECT_BUREAU_PROFILE
-    from whatsapp_verification.integration.canonical_number import get_bureau_whatsapp_number_raw
-    from whatsapp_verification.integration.profile_sync import sync_profile_whatsapp_number_change
-
-    old_whatsapp_number = get_bureau_whatsapp_number_raw(bureau_profile)
     old_phone_number = (bureau_profile.phone_number or "").strip()
 
     description = _sanitize_description(request.POST.get("description"))
@@ -871,15 +856,6 @@ def bureau_profile_edit_view(request):
     if phone_number != old_phone_number and getattr(request.user, "is_phone_verified", False):
         request.user.is_phone_verified = False
         request.user.save(update_fields=["is_phone_verified", "updated_at"])
-
-    sync_profile_whatsapp_number_change(
-        SUBJECT_BUREAU_PROFILE,
-        bureau_profile.pk,
-        old_number=old_whatsapp_number,
-        new_number=get_bureau_whatsapp_number_raw(bureau_profile),
-        actor=request.user,
-        ip_address=request.META.get("REMOTE_ADDR"),
-    )
 
     # Delete old files only after successful save.
     if old_profile_image:
