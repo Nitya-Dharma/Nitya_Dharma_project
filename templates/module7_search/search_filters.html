@@ -54,7 +54,7 @@
             <select class="form-select" 
                     id="pooja_category" 
                     name="pooja_category" 
-                    aria-label="Select pooja category">
+                    aria-label="Use category to narrow the Pooja choices">
                 <option value="">All Categories</option>
                 {% if pooja_categories %}
                     {% for cat in pooja_categories %}
@@ -65,6 +65,7 @@
                     {% endfor %}
                 {% endif %}
             </select>
+            <small class="form-text text-muted">Use category to narrow the Pooja choices</small>
         </div>
 
         <div class="col-12 col-md-6">
@@ -192,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('search_last_city');
             }
             
-            // Filter areas based on selected city
+            // Filter areas based on selected city (presentation only; backend remains authoritative)
             if (areaSelect) {
                 const areaOptions = areaSelect.querySelectorAll('option');
                 
@@ -207,8 +208,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     areaSelect.value = '';
                 }
+
+                // Show/hide areas based on selected city (aligned with hero presentation)
+                areaOptions.forEach(function(option) {
+                    if (!selectedCityId || option.value === '' || option.getAttribute('data-city') === selectedCityId) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
             }
         });
+
+        // Apply area visibility when city is already selected (e.g. from GET)
+        if (areaSelect) {
+            const selectedCityId = citySelect.value;
+            areaSelect.querySelectorAll('option').forEach(function(option) {
+                if (!selectedCityId || option.value === '' || option.getAttribute('data-city') === selectedCityId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
     }
     
     // Save area selection to localStorage
