@@ -6,6 +6,7 @@ Includes URL exclusion, dashboard visibility, role targeting, and per-slot image
 from django import forms
 from .models import Advertisement, Campaign, AdSet
 from .constants import AD_POSITION_IMAGE_SIZES, AD_POSITION_LABELS
+from .script_placement_policy import validate_fixed_script_placement_fit
 
 SCRIPT_CODE_MAX_LENGTH = 20_000
 
@@ -117,6 +118,23 @@ class AdvertisementForm(forms.ModelForm):
                     campaign_id=campaign_id
                 )
 
+        # Minimal guidance for script placement-fit contract (create/edit only).
+        if 'is_responsive' in self.fields:
+            self.fields['is_responsive'].help_text = (
+                'Recommended for all placements. Required for Dashboard Sidebar and '
+                'Floating when using script advertisements. Uncheck only for fixed-size '
+                'script creatives that fit every selected position.'
+            )
+        if 'banner_width' in self.fields:
+            self.fields['banner_width'].help_text = (
+                'Required for fixed (non-responsive) script ads. Must fit every selected '
+                'position (Sidebar max 300px; In Content max 336px).'
+            )
+        if 'banner_height' in self.fields:
+            self.fields['banner_height'].help_text = (
+                'Required for fixed (non-responsive) script ads (positive pixels).'
+            )
+
     def clean_target_roles(self):
         value = self.cleaned_data.get('target_roles')
         if value is None:
@@ -157,6 +175,17 @@ class AdvertisementForm(forms.ModelForm):
 
         ad_type = cleaned.get('ad_type')
         slots = list(cleaned.get('slots') or [])
+
+        # Script placement-fit contract (fixed scripts only). Image ads unchanged.
+        if ad_type == Advertisement.AD_TYPE_SCRIPT and not cleaned.get('is_responsive', True):
+            script_errors = validate_fixed_script_placement_fit(
+                slots,
+                cleaned.get('banner_width'),
+                cleaned.get('banner_height'),
+            )
+            if script_errors:
+                raise forms.ValidationError(script_errors)
+
         if ad_type != Advertisement.AD_TYPE_IMAGE or not slots:
             return cleaned
         # Legacy: one image for all
