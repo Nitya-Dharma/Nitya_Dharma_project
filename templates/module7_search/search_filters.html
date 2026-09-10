@@ -102,6 +102,21 @@
         <div class="col-12">
             <hr class="my-3">
             <h6 class="mb-3">Page Filters</h6>
+
+            {# page_type values match pages.constants.PAGE_TYPE_CHOICES (TEMPLE/BRAND/TRUST/SOCIAL_SERVICE) #}
+            <div class="mb-3">
+                <label for="page_type" class="form-label">Page Type</label>
+                <select class="form-select"
+                        id="page_type"
+                        name="page_type"
+                        aria-label="Select page type">
+                    <option value="">All Page Types</option>
+                    <option value="TEMPLE"{% if request.GET.page_type == 'TEMPLE' %} selected{% endif %}>Temple</option>
+                    <option value="BRAND"{% if request.GET.page_type == 'BRAND' %} selected{% endif %}>Brand</option>
+                    <option value="TRUST"{% if request.GET.page_type == 'TRUST' %} selected{% endif %}>Trust</option>
+                    <option value="SOCIAL_SERVICE"{% if request.GET.page_type == 'SOCIAL_SERVICE' %} selected{% endif %}>Social Service</option>
+                </select>
+            </div>
             
             <div class="form-check mb-2">
                 <input class="form-check-input" 
@@ -144,10 +159,6 @@
         <!-- Preserve result_type in form -->
         {% if request.GET.result_type %}
             <input type="hidden" name="result_type" value="{{ request.GET.result_type }}">
-        {% endif %}
-        
-        {% if request.GET.page_type %}
-            <input type="hidden" name="page_type" value="{{ request.GET.page_type }}">
         {% endif %}
 
         <div class="col-12 d-lg-block d-none">
