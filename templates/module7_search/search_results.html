@@ -179,7 +179,7 @@
             </div>
 
             
-            {% if selected_filters %}
+            {% if selected_filters or result_type == 'pages' and request.GET.page_type or result_type == 'pages' and request.GET.has_announcements == '1' or result_type == 'pages' and request.GET.has_events == '1' or result_type == 'pages' and request.GET.recently_updated == '1' %}
                 <div class="selected-filters mt-3">
                     <span class="text-muted small">Active filters:</span>
                     {% for filter_name, filter_value in selected_filters.items %}
@@ -189,6 +189,27 @@
                             </span>
                         {% endif %}
                     {% endfor %}
+                    {% if result_type == 'pages' %}
+                        {# Labels match pages.constants.PAGE_TYPE_CHOICES / search_filters.html #}
+                        {% if request.GET.page_type == 'TEMPLE' %}
+                            <span class="filter-badge">Page Type: Temple</span>
+                        {% elif request.GET.page_type == 'BRAND' %}
+                            <span class="filter-badge">Page Type: Brand</span>
+                        {% elif request.GET.page_type == 'TRUST' %}
+                            <span class="filter-badge">Page Type: Trust</span>
+                        {% elif request.GET.page_type == 'SOCIAL_SERVICE' %}
+                            <span class="filter-badge">Page Type: Social Service</span>
+                        {% endif %}
+                        {% if request.GET.has_announcements == '1' %}
+                            <span class="filter-badge">Announcements</span>
+                        {% endif %}
+                        {% if request.GET.has_events == '1' %}
+                            <span class="filter-badge">Events</span>
+                        {% endif %}
+                        {% if request.GET.recently_updated == '1' %}
+                            <span class="filter-badge">Recently Updated</span>
+                        {% endif %}
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
