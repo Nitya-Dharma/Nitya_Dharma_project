@@ -284,6 +284,11 @@
                     </section>
 
                     {% if pagination %}
+                        {% if pagination.current_page and pagination.total_pages %}
+                            <p class="text-center text-muted small mb-2" aria-live="polite">
+                                Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+                            </p>
+                        {% endif %}
                         {% include "module7_search/pagination.html" %}
                     {% endif %}
                 {% endif %}
