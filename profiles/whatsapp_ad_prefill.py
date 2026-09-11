@@ -41,28 +41,45 @@ def _safe_campaign_name(campaign_id: Optional[str]) -> Optional[str]:
 
 
 def build_ad_attributed_whatsapp_message(
-    request: Optional[HttpRequest],
+    request: Optional[HttpRequest] = None,
+    *,
+    ad_id: Optional[int] = None,
+    campaign_id: Optional[str] = None,
 ) -> Optional[str]:
     """
-    Build contextual WhatsApp draft text when last-click ad attribution exists.
+    Build contextual WhatsApp draft text for an attributed advertisement.
 
-    Returns None when there is no ad attribution (caller keeps non-ad defaults).
+    Prefer explicit ``ad_id`` / ``campaign_id`` (e.g. banner click path) when
+    provided. Otherwise read last-click attribution from the session via
+    ``request`` (profile WhatsApp CTA path).
+
+    Returns None when there is no ad identity (caller keeps non-ad defaults).
     Omits Campaign/Location/Price lines when values are unavailable.
     Location and Price are intentionally omitted in this slice (no safe public
     fields on released Advertisement/Campaign).
     """
-    if request is None:
-        return None
-    try:
-        from ads_analytics.services.attribution_bridge import (
-            get_last_click_attribution,
-        )
+    resolved_campaign_id = campaign_id
 
-        payload = get_last_click_attribution(request)
-    except Exception:
-        return None
-    if not payload or payload.get("ad_id") is None:
-        return None
+    if ad_id is not None:
+        try:
+            int(ad_id)
+        except (TypeError, ValueError):
+            return None
+    else:
+        if request is None:
+            return None
+        try:
+            from ads_analytics.services.attribution_bridge import (
+                get_last_click_attribution,
+            )
+
+            payload = get_last_click_attribution(request)
+        except Exception:
+            return None
+        if not payload or payload.get("ad_id") is None:
+            return None
+        if resolved_campaign_id is None:
+            resolved_campaign_id = payload.get("campaign_id")
 
     lines = [
         "NityaDharma Ad",
@@ -71,7 +88,7 @@ def build_ad_attributed_whatsapp_message(
         "and would like to know more about it.",
     ]
 
-    campaign_name = _safe_campaign_name(payload.get("campaign_id"))
+    campaign_name = _safe_campaign_name(resolved_campaign_id)
     if campaign_name:
         lines.extend(["", f"Campaign: {campaign_name}"])
 

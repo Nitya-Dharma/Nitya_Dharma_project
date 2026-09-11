@@ -104,6 +104,26 @@ def track_click(request, ad_id: int):
             ad_id,
             campaign_id=str(ad.campaign_id) if ad.campaign_id is not None else None,
         )
+
+    # Batch A: enrich allowlisted WhatsApp destinations only (after safe resolve).
+    if _is_allowed_whatsapp_redirect(target):
+        try:
+            from profiles.whatsapp_ad_prefill import (
+                apply_whatsapp_text_param,
+                build_ad_attributed_whatsapp_message,
+            )
+
+            message = build_ad_attributed_whatsapp_message(
+                ad_id=ad.pk,
+                campaign_id=(
+                    str(ad.campaign_id) if ad.campaign_id is not None else None
+                ),
+            )
+            if message:
+                target = apply_whatsapp_text_param(target, message)
+        except Exception:
+            pass
+
     return redirect(target)
 
 
