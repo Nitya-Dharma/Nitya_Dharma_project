@@ -282,6 +282,15 @@ def _complete_expert(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(raw_service_slugs, list):
         raise CompletionError("Invalid services for expert registration.")
 
+    if phone:
+        from accounts.phone_utils import normalize_phone_number, phone_already_registered
+
+        normalized_phone = normalize_phone_number(phone)
+        if not normalized_phone:
+            raise CompletionError("Phone number format is invalid.")
+        if phone_already_registered(normalized_phone):
+            raise CompletionError("Phone number already registered")
+
     with transaction.atomic():
         try:
             selected_services = resolve_active_services_by_slugs(

@@ -183,6 +183,19 @@ def expert_register_page(request):
                 if existing or existing_email:
                     error = "An account with this phone or email already exists."
 
+            # Canonical User-level uniqueness (one phone = one User account).
+            if not error and phone:
+                from accounts.phone_utils import (
+                    normalize_phone_number,
+                    phone_already_registered,
+                )
+
+                normalized_phone = normalize_phone_number(phone)
+                if not normalized_phone:
+                    error = "Phone number format is invalid."
+                elif phone_already_registered(normalized_phone):
+                    error = "Phone number already registered"
+
             if not error:
                 if not social_links:
                     messages.error(

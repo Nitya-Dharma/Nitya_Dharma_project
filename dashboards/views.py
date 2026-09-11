@@ -90,42 +90,57 @@ def expert_dashboard_view(request):
                 active_tab = "profile"
 
             if not profile_error and name and phone:
-                old_phone = (expert.phone or "").strip()
-                with transaction.atomic():
-                    expert.name = name
-                    expert.phone = phone
-                    try:
-                        expert.experience_years = int(experience)
-                    except Exception:
-                        pass
-                    expert.description = description
-                    expert.expert_type = primary_expert_type(selected_services)
+                from accounts.phone_utils import (
+                    normalize_phone_number,
+                    phone_already_registered,
+                )
 
-                    image = request.FILES.get("profile_image")
-                    if image:
-                        expert.profile_image = image
-                    cover = request.FILES.get("cover_image")
-                    if cover:
-                        expert.cover_image = cover
-
-                    expert.save()
-                    expert.services.set(selected_services)
-                from otp_verification.registration.completions import _sync_expert_user_phone
-
-                new_phone = (phone or "").strip()
-                if new_phone:
-                    _sync_expert_user_phone(request.user, new_phone)
-                if (
-                    new_phone != old_phone
-                    and getattr(request.user, "is_phone_verified", False)
+                normalized_phone = normalize_phone_number(phone)
+                if not normalized_phone:
+                    profile_error = "Phone number format is invalid."
+                    active_tab = "profile"
+                elif phone_already_registered(
+                    normalized_phone, exclude_user_id=request.user.pk
                 ):
-                    request.user.is_phone_verified = False
-                    request.user.save(update_fields=["is_phone_verified", "updated_at"])
-                selected_service_ids = [
-                    service.id for service in selected_services
-                ]
-                success = True
-                active_tab = "profile"
+                    profile_error = "Phone number already registered"
+                    active_tab = "profile"
+                else:
+                    old_phone = (expert.phone or "").strip()
+                    with transaction.atomic():
+                        expert.name = name
+                        expert.phone = phone
+                        try:
+                            expert.experience_years = int(experience)
+                        except Exception:
+                            pass
+                        expert.description = description
+                        expert.expert_type = primary_expert_type(selected_services)
+
+                        image = request.FILES.get("profile_image")
+                        if image:
+                            expert.profile_image = image
+                        cover = request.FILES.get("cover_image")
+                        if cover:
+                            expert.cover_image = cover
+
+                        expert.save()
+                        expert.services.set(selected_services)
+                    from otp_verification.registration.completions import _sync_expert_user_phone
+
+                    new_phone = (phone or "").strip()
+                    if new_phone:
+                        _sync_expert_user_phone(request.user, new_phone)
+                    if (
+                        new_phone != old_phone
+                        and getattr(request.user, "is_phone_verified", False)
+                    ):
+                        request.user.is_phone_verified = False
+                        request.user.save(update_fields=["is_phone_verified", "updated_at"])
+                    selected_service_ids = [
+                        service.id for service in selected_services
+                    ]
+                    success = True
+                    active_tab = "profile"
         except Exception:
             profile_error = "Unable to update profile. Please try again."
             active_tab = "profile"
