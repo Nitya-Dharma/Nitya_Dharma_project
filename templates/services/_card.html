@@ -43,12 +43,11 @@
           </a>
         {% endif %}
         <div class="d-flex gap-2">
-          {% with contact_info=expert|expert_contact_info %}
+          {% ad_aware_expert_contact_info expert as contact_info %}
             {% if contact_info.has_call %}
               <a href="{{ contact_info.call_url }}" class="btn btn-success w-100">Call</a>
             {% endif %}
             {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn w-100" %}
-          {% endwith %}
         </div>
       </div>
     </div>

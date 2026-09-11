@@ -240,14 +240,13 @@
           Send Booking Intent
         </a>
 
-        {% with contact_info=expert|expert_contact_info %}
+        {% ad_aware_expert_contact_info expert as contact_info %}
         {% if contact_info.has_call %}
         <a href="{{ contact_info.call_url }}" class="btn btn-success btn-sm">
           Call
         </a>
         {% endif %}
         {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
-        {% endwith %}
       </div>
     </div>
   </div>
@@ -514,12 +513,11 @@
 
   <div class="sticky-cta d-md-none">
 
-    {% with contact_info=expert|expert_contact_info %}
+    {% ad_aware_expert_contact_info expert as contact_info %}
     {% if contact_info.has_call %}
       <a href="{{ contact_info.call_url }}" class="btn btn-success w-25">📞</a>
     {% endif %}
     {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn w-25" label="💬" %}
-    {% endwith %}
 
     <button onclick="document.getElementById('contact-form').scrollIntoView();"
             class="btn btn-primary w-25">✉️</button>
