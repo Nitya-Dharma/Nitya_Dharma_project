@@ -252,6 +252,56 @@ class ExpertDuplicatePhoneTests(TestCase):
         self.assertTrue(user.is_phone_verified)
         self.assertEqual(self.owner.phone_number, before_owner_phone)
 
+    def test_profile_edit_preserves_verification_for_normalized_equivalent_phone(
+        self,
+    ):
+        """Raw strings may differ; same canonical phone must keep verification."""
+        stored_phone = "9876543204"
+        submitted_phone = "919876543204"
+        self.assertNotEqual(stored_phone, submitted_phone)
+        self.assertEqual(
+            normalize_phone_number(stored_phone),
+            normalize_phone_number(submitted_phone),
+        )
+
+        user = User.objects.create_user(
+            email="expert-equiv-edit@example.com",
+            username="expert-equiv-edit@example.com",
+            password="Password123!",
+            phone_number=stored_phone,
+            is_phone_verified=True,
+        )
+        expert = ExpertProfile.objects.create(
+            name="Equiv Edit",
+            email=user.email,
+            phone=stored_phone,
+            experience_years=3,
+            description="Same canonical phone",
+            expert_type="ASTROLOGER",
+            is_active=True,
+        )
+        expert.services.set([self.astrology])
+
+        request = _prepare_request(
+            self.factory,
+            path=f"{reverse('module5_dashboards:expert_dashboard')}?tab=profile",
+            data={
+                "name": expert.name,
+                "phone": submitted_phone,
+                "experience_years": str(expert.experience_years),
+                "description": expert.description,
+                "services": [str(self.astrology.id)],
+            },
+            user=user,
+        )
+        response = expert_dashboard_view(request)
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        expert.refresh_from_db()
+        self.assertEqual(expert.phone, submitted_phone)
+        self.assertEqual(user.phone_number, submitted_phone)
+        self.assertTrue(user.is_phone_verified)
+
     def test_profile_edit_allows_unique_phone_and_resets_verification(self):
         user = User.objects.create_user(
             email="expert-unique-edit@example.com",

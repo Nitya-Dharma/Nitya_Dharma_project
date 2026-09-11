@@ -130,8 +130,10 @@ def expert_dashboard_view(request):
                     new_phone = (phone or "").strip()
                     if new_phone:
                         _sync_expert_user_phone(request.user, new_phone)
+                    # Reset verification only when the canonical phone actually changes.
+                    old_normalized = normalize_phone_number(old_phone)
                     if (
-                        new_phone != old_phone
+                        old_normalized != normalized_phone
                         and getattr(request.user, "is_phone_verified", False)
                     ):
                         request.user.is_phone_verified = False
