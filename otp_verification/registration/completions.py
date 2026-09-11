@@ -197,6 +197,16 @@ def _complete_bureau(payload: dict[str, Any]) -> dict[str, Any]:
     if not password_hash:
         raise CompletionError("Missing password for bureau registration.")
 
+    phone_number = (payload.get("phone_number") or "").strip()
+    if phone_number:
+        from accounts.phone_utils import normalize_phone_number, phone_already_registered
+
+        normalized_phone = normalize_phone_number(phone_number)
+        if not normalized_phone:
+            raise CompletionError("Phone number format is invalid.")
+        if phone_already_registered(normalized_phone):
+            raise CompletionError("Phone number already registered")
+
     with transaction.atomic():
         if _email_exists_ci(User, email):
             existing = User.objects.filter(email__iexact=email).first()
@@ -239,7 +249,6 @@ def _complete_bureau(payload: dict[str, Any]) -> dict[str, Any]:
                     "email": email,
                 },
             )
-        phone_number = (payload.get("phone_number") or "").strip()
         BureauProfile.objects.create(
             user=user,
             bureau_name=payload.get("bureau_name") or "",

@@ -764,6 +764,20 @@ def bureau_profile_edit_view(request):
         errors.append("Phone number is required.")
     elif not _is_valid_phone(phone_number):
         errors.append("Phone number format is invalid.")
+    else:
+        # Canonical User-level uniqueness (one phone = one User account).
+        from accounts.phone_utils import (
+            normalize_phone_number,
+            phone_already_registered,
+        )
+
+        normalized_phone = normalize_phone_number(phone_number)
+        if not normalized_phone:
+            errors.append("Phone number format is invalid.")
+        elif phone_already_registered(
+            normalized_phone, exclude_user_id=request.user.pk
+        ):
+            errors.append("Phone number already registered")
     if whatsapp_number and not _is_valid_phone(whatsapp_number):
         errors.append("WhatsApp number format is invalid.")
     if not address:
@@ -1061,6 +1075,18 @@ def bureau_register_view(request):
         errors.append("Phone number is required.")
     elif not _is_valid_phone(phone_number):
         errors.append("Phone number format is invalid.")
+    else:
+        # Canonical User-level uniqueness (one phone = one User account).
+        from accounts.phone_utils import (
+            normalize_phone_number,
+            phone_already_registered,
+        )
+
+        normalized_phone = normalize_phone_number(phone_number)
+        if not normalized_phone:
+            errors.append("Phone number format is invalid.")
+        elif phone_already_registered(normalized_phone):
+            errors.append("Phone number already registered")
     if whatsapp_number and not _is_valid_phone(whatsapp_number):
         errors.append("WhatsApp number format is invalid.")
     if not address:
