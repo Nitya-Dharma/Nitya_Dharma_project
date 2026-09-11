@@ -356,6 +356,16 @@ def _complete_pandit(payload: dict[str, Any]) -> dict[str, Any]:
         )
     referral_link = referral_validation.referral_link
 
+    phone = (payload.get("phone") or payload.get("phone_number") or "").strip()
+    if phone:
+        from accounts.phone_utils import normalize_phone_number, phone_already_registered
+
+        normalized_phone = normalize_phone_number(phone)
+        if not normalized_phone:
+            raise CompletionError("Phone number format is invalid.")
+        if phone_already_registered(normalized_phone):
+            raise CompletionError("Phone number already registered")
+
     with transaction.atomic():
         existing = User.objects.filter(email__iexact=email).first()
         if existing is not None:
@@ -379,7 +389,6 @@ def _complete_pandit(payload: dict[str, Any]) -> dict[str, Any]:
             email_verified=False,
         )
         _apply_password_hash(user, password_hash)
-        phone = (payload.get("phone") or payload.get("phone_number") or "").strip()
         if phone and hasattr(user, "phone_number"):
             user.phone_number = phone
             user.save(update_fields=["phone_number"])

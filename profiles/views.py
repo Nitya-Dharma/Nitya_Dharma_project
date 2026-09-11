@@ -279,6 +279,18 @@ def profile_edit(request, public_id=None):
                     elif not call_mobile.isdigit() or len(call_mobile) < 10 or len(call_mobile) > 15:
                         messages.error(request, 'Invalid calling mobile number format. Use digits only with optional + prefix (e.g., +919876543210).')
                         return redirect('profiles:profile_edit')
+                    # One phone number = one User account (exclude self).
+                    from accounts.phone_utils import normalize_phone_number, phone_already_registered
+
+                    normalized_call = normalize_phone_number(call_mobile)
+                    if not normalized_call:
+                        messages.error(request, 'Phone number format is invalid.')
+                        return redirect('profiles:profile_edit')
+                    if phone_already_registered(
+                        normalized_call, exclude_user_id=request.user.pk
+                    ):
+                        messages.error(request, 'Phone number already registered')
+                        return redirect('profiles:profile_edit')
                 profile.call_mobile_number = call_mobile if call_mobile else None
             else:
                 # If not provided, clear it

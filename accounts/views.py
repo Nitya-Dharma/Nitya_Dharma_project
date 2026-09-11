@@ -345,6 +345,54 @@ def pandit_register(request, referral_token):
     else:
         phone_number = request.POST.get('phone_number', '').strip() or request.POST.get('phone', '').strip()
 
+    # Application-level uniqueness: one phone number = one User account.
+    if phone_number:
+        from .phone_utils import normalize_phone_number, phone_already_registered
+
+        normalized_phone = normalize_phone_number(phone_number)
+        if not normalized_phone:
+            error_msg = 'Phone number format is invalid.'
+            if request.content_type == 'application/json':
+                return JsonResponse({
+                    'error': 'invalid_phone',
+                    'message': error_msg,
+                }, status=400)
+            messages.error(request, error_msg)
+            return render(request, 'accounts/pandit_register.html', {
+                'referral_token': referral_token,
+                'referral_code': referral_code,
+                'referral_valid': referral_valid,
+                'referral_error': referral_error,
+                'referral_link': referral_link,
+                'form_data': {
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone_number': phone_number,
+                }
+            })
+        if phone_already_registered(normalized_phone):
+            error_msg = 'Phone number already registered'
+            if request.content_type == 'application/json':
+                return JsonResponse({
+                    'error': 'phone_already_registered',
+                    'message': error_msg,
+                }, status=400)
+            messages.error(request, error_msg)
+            return render(request, 'accounts/pandit_register.html', {
+                'referral_token': referral_token,
+                'referral_code': referral_code,
+                'referral_valid': referral_valid,
+                'referral_error': referral_error,
+                'referral_link': referral_link,
+                'form_data': {
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone_number': phone_number,
+                }
+            })
+
     from otp_verification import constants as otp_constants
     from otp_verification.registration.factory import is_registration_otp_required
     from otp_verification.registration.gate import begin_otp_or_continue

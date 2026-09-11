@@ -6,6 +6,7 @@ import json
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.core.cache import cache
@@ -384,3 +385,105 @@ class PanditProfilePhoneVerificationTests(TestCase):
         response = self.client.get(reverse("profiles:profile_edit"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "pandit_profile_mv-root")
+
+    def test_profile_edit_rejects_another_users_phone(self):
+        user_a, profile_a = _make_pandit(
+            email="dup-edit-a@example.com",
+            phone="9123456820",
+            is_phone_verified=True,
+        )
+        user_a.phone_number = profile_a.call_mobile_number
+        user_a.save(update_fields=["phone_number", "is_phone_verified"])
+
+        user_b, _profile_b = _make_pandit(
+            email="dup-edit-b@example.com",
+            phone="9123456821",
+            is_phone_verified=True,
+        )
+        user_b.phone_number = "9123456821"
+        user_b.save(update_fields=["phone_number"])
+
+        before_a_phone = user_a.phone_number
+        before_a_call = profile_a.call_mobile_number
+        before_a_verified = user_a.is_phone_verified
+        before_b_phone = user_b.phone_number
+        before_b_verified = user_b.is_phone_verified
+
+        self.client.force_login(user_a)
+        response = self.client.post(
+            reverse("profiles:profile_edit"),
+            {
+                "call_mobile_number": "9123456821",
+                "use_same_number_for_call_and_whatsapp": "1",
+                "about_description": "Should not save duplicate phone",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertTrue(
+            any("Phone number already registered" in m for m in messages),
+            messages,
+        )
+
+        user_a.refresh_from_db()
+        profile_a.refresh_from_db()
+        user_b.refresh_from_db()
+        self.assertEqual(user_a.phone_number, before_a_phone)
+        self.assertEqual(profile_a.call_mobile_number, before_a_call)
+        self.assertEqual(user_a.is_phone_verified, before_a_verified)
+        self.assertTrue(user_a.is_phone_verified)
+        self.assertEqual(user_b.phone_number, before_b_phone)
+        self.assertEqual(user_b.is_phone_verified, before_b_verified)
+
+    def test_profile_edit_allows_unique_phone_and_resets_verification(self):
+        user, profile = _make_pandit(
+            email="unique-edit@example.com",
+            phone="9123456830",
+            is_phone_verified=True,
+        )
+        user.phone_number = profile.call_mobile_number
+        user.save(update_fields=["phone_number", "is_phone_verified"])
+
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("profiles:profile_edit"),
+            {
+                "call_mobile_number": "9123456831",
+                "use_same_number_for_call_and_whatsapp": "1",
+                "about_description": "Legitimate unique phone change",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        profile.refresh_from_db()
+        self.assertEqual(user.phone_number, "9123456831")
+        self.assertEqual(profile.call_mobile_number, "9123456831")
+        self.assertFalse(user.is_phone_verified)
+
+        issued = self.runtime.engine.challenge_manager.create_challenge(
+            flow_type=constants.FLOW_PANDIT_REGISTRATION,
+            context={},
+        )
+        request = _prepare_request(
+            self.factory,
+            path=reverse("otp_verification:verify_registration_otp"),
+            data={"challenge_id": issued.challenge.id, "otp": issued.otp_code},
+            user=user,
+        )
+        store_phone_challenge(
+            request,
+            challenge_id=issued.challenge.id,
+            flow_type=constants.FLOW_PANDIT_REGISTRATION,
+            destination="9123456831",
+            resend_count=0,
+        )
+        request.META["HTTP_ACCEPT"] = "application/json"
+        with patch(
+            "otp_verification.registration.views.build_registration_otp_service",
+            return_value=self.service,
+        ):
+            otp_response = verify_registration_otp(request)
+        body = json.loads(otp_response.content.decode("utf-8"))
+        self.assertEqual(body["status"], "success")
+        user.refresh_from_db()
+        self.assertTrue(user.is_phone_verified)
