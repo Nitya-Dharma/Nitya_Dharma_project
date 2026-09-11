@@ -90,13 +90,18 @@ def track_click(request, ad_id: int):
     if not skip:
         page_type = request.GET.get("page_type", "")
         user_id = request.user.pk if request.user.is_authenticated else None
+        pandit_id = (
+            int(request.GET["pandit_id"])
+            if request.GET.get("pandit_id", "").isdigit()
+            else None
+        )
         record_ad_click(
             ad_id=ad_id,
             placement_position=placement or (ad.slots[0] if getattr(ad, "slots", None) else ad.placement),
             page_type=page_type,
             campaign_id=str(ad.campaign_id) if ad.campaign_id is not None else None,
             user_id=user_id,
-            pandit_id=int(request.GET["pandit_id"]) if request.GET.get("pandit_id", "").isdigit() else None,
+            pandit_id=pandit_id,
             request=request,
         )
         store_last_click_attribution(
@@ -104,6 +109,21 @@ def track_click(request, ad_id: int):
             ad_id,
             campaign_id=str(ad.campaign_id) if ad.campaign_id is not None else None,
         )
+        # Batch E: direct allowlisted WhatsApp destination → existing contact-intent/lead.
+        # Uses final resolved target only; requires session attribution just stored above.
+        if _is_allowed_whatsapp_redirect(target):
+            try:
+                from .services.attribution_bridge import (
+                    record_whatsapp_contact_from_session,
+                )
+
+                record_whatsapp_contact_from_session(
+                    request,
+                    user_id=user_id,
+                    pandit_id=pandit_id,
+                )
+            except Exception:
+                pass
 
     # Batch A: enrich allowlisted WhatsApp destinations only (after safe resolve).
     if _is_allowed_whatsapp_redirect(target):
