@@ -9,6 +9,9 @@ Campaign.total_budget vs spent_amount is a serving soft-cap only (no DB writes).
 
 Batch I: AdSet.target_roles is an additional restriction (same predicate as
 Advertisement.is_allowed_for_user). Empty AdSet.target_roles = no extra gate.
+
+Batch J: Campaign.target_roles is an additional restriction (same predicate).
+Empty Campaign.target_roles = no extra gate.
 """
 
 from django.utils import timezone
@@ -55,6 +58,8 @@ def is_ad_hierarchy_eligible(ad, user=None):
 
     - No Campaign: pass (Advertisement-level rules apply elsewhere).
     - Campaign set: must be ACTIVE, within schedule if set, and under total_budget soft-cap.
+    - Campaign.target_roles non-empty: user must pass the same role predicate as
+      Advertisement targeting (additional AND restriction; empty = no-op).
     - AdSet set: must have is_active=True.
     - AdSet.target_roles non-empty: user must pass the same role predicate as
       Advertisement targeting (additional AND restriction; empty = no-op).
@@ -62,6 +67,11 @@ def is_ad_hierarchy_eligible(ad, user=None):
     campaign = getattr(ad, "campaign", None)
     if campaign is not None and not is_campaign_serving_eligible(campaign):
         return False
+
+    if campaign is not None:
+        campaign_roles = getattr(campaign, "target_roles", None) or []
+        if not _roles_allow_user(campaign_roles, user):
+            return False
 
     ad_set = getattr(ad, "ad_set", None)
     if ad_set is not None and not bool(ad_set.is_active):
