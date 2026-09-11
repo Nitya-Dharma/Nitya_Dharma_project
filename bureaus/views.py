@@ -303,6 +303,9 @@ def bureau_detail_view(request, public_id):
     caste_sections = _build_caste_sections(bureau_profile.caste_data)
     reviews_qs = bureau_profile.reviews.only("rating", "review_text", "created_at").order_by("-created_at")[:10]
     review_summary = bureau_profile.reviews.aggregate(avg_rating=Avg("rating"), review_count=Count("id"))
+    from bureaus.whatsapp_contact import get_bureau_whatsapp_url
+
+    whatsapp_number = bureau_profile.whatsapp_number
     bureau_data = {
         "public_id": bureau_profile.public_id,
         "name": bureau_profile.bureau_name,
@@ -311,7 +314,8 @@ def bureau_detail_view(request, public_id):
         "profile_image": bureau_profile.profile_image.url if bureau_profile.profile_image else None,
         "cover_image": bureau_profile.cover_image.url if bureau_profile.cover_image else None,
         "phone": bureau_profile.phone_number,
-        "whatsapp": bureau_profile.whatsapp_number,
+        "whatsapp": whatsapp_number,
+        "whatsapp_url": get_bureau_whatsapp_url(whatsapp_number, request=request),
         "caste_sections": caste_sections,
         "reviews": [
             {

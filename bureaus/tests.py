@@ -584,7 +584,7 @@ class BureauSmokeTests(TestCase):
         self.assertEqual(visible_detail.status_code, 200)
 
     def test_visible_bureau_detail_restores_direct_whatsapp_cta(self):
-        """Public detail renders 200 with the pre-47aa575 direct wa.me CTA."""
+        """Public detail WhatsApp CTA uses track_whatsapp; bare wa.me when no Ads attribution."""
         with_whatsapp = _make_bureau(
             email="visible-wa@example.com",
             bureau_name="Visible WhatsApp Bureau",
@@ -609,14 +609,15 @@ class BureauSmokeTests(TestCase):
         )
         self.assertEqual(with_response.status_code, 200)
         with_body = with_response.content.decode("utf-8", errors="ignore")
-        expected_href = f'href="https://wa.me/{stored_whatsapp}"'
-        self.assertIn(expected_href, with_body)
-        self.assertRegex(
-            with_body,
-            rf'{expected_href} target="_blank" rel="noopener noreferrer"[^>]*>\s*WhatsApp\s*<',
-        )
-        self.assertNotIn("whatsapp_cta_link.html", with_body)
-        self.assertNotIn("track_whatsapp", with_body)
+        track_path = reverse("ads_analytics:track_whatsapp")
+        self.assertIn(track_path, with_body)
+        # Django template |urlencode keeps "/" in the safe set by default.
+        self.assertIn(f"wa.me/{stored_whatsapp}", with_body)
+        self.assertIn('target="_blank"', with_body)
+        self.assertIn('rel="noopener noreferrer"', with_body)
+        self.assertIn(">WhatsApp<", with_body.replace("\n", "").replace(" ", ""))
+        # Display of stored number in Contact tab remains.
+        self.assertIn(stored_whatsapp, with_body)
 
         without_response = self.client.get(
             reverse(
@@ -626,7 +627,8 @@ class BureauSmokeTests(TestCase):
         )
         self.assertEqual(without_response.status_code, 200)
         without_body = without_response.content.decode("utf-8", errors="ignore")
-        self.assertNotIn("https://wa.me/", without_body)
+        self.assertNotIn(f"wa.me/{stored_whatsapp}", without_body)
+        self.assertNotIn(f"{track_path}?redirect=", without_body)
 
         city_response = self.client.get(
             reverse("bureaus:bureau_city", kwargs={"city": "hyderabad"})

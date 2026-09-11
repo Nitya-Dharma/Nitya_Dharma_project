@@ -58,8 +58,11 @@ View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
                 Call
               </a>
             {% endif %}
-            {% if bureau.whatsapp %}
-              <a href="https://wa.me/{{ bureau.whatsapp }}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm">
+            {% if bureau.whatsapp_url %}
+              <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ bureau.whatsapp_url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="btn btn-success btn-sm">
                 WhatsApp
               </a>
             {% endif %}
