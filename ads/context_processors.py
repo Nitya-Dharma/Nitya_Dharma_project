@@ -42,7 +42,7 @@ def active_ads(request):
     slots = {}
 
     for ad in ads_qs:
-        if campaigns_enabled and not is_ad_hierarchy_eligible(ad):
+        if campaigns_enabled and not is_ad_hierarchy_eligible(ad, request.user):
             continue
         if hasattr(ad, "is_currently_active") and not ad.is_currently_active():
             continue
