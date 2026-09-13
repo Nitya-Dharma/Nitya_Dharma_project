@@ -4,8 +4,10 @@
  * Supports: static cache, runtime cache, images, search caching, offline fallback,
  * push notifications, background sync.
  */
-const STATIC_CACHE = "nd-static-v1";
-const RUNTIME_CACHE = "nd-runtime-v1";
+/* Cache names include PWA_CACHE_VERSION from Django settings. Bump that setting
+   on PWA-relevant releases so this script's bytes change and old caches are pruned. */
+const STATIC_CACHE = "nd-static-{{ pwa_cache_version }}";
+const RUNTIME_CACHE = "nd-runtime-{{ pwa_cache_version }}";
 const SYNC_QUEUE_DB = "nd-sync-queue";
 const SYNC_QUEUE_STORE = "requests";
 

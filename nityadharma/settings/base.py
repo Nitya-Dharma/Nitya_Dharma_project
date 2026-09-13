@@ -354,6 +354,15 @@ ENABLE_CAMPAIGNS = _env_bool("ENABLE_CAMPAIGNS", False)
 # Floating Advertisement chrome in base.html. Presentation-only. Default OFF.
 ENABLE_FLOATING_ADS = _env_bool("ENABLE_FLOATING_ADS", False)
 
+# PWA Service Worker cache version (single source of truth for nd-static-* / nd-runtime-*).
+# Whenever a release changes PWA-relevant assets/behavior, bump PWA_CACHE_VERSION
+# (set env PWA_CACHE_VERSION, or change the default below) and restart the app.
+# Ordinary deploys that leave this value unchanged do NOT change /service-worker.js bytes.
+_raw_pwa_cache_version = os.environ.get("PWA_CACHE_VERSION", "v1").strip() or "v1"
+PWA_CACHE_VERSION = "".join(
+    ch for ch in _raw_pwa_cache_version if ch.isalnum() or ch in "._-"
+) or "v1"
+
 MSG91_AUTH_KEY = os.environ.get("MSG91_AUTH_KEY", "").strip()
 MSG91_BASE_URL = (
     os.environ.get("MSG91_BASE_URL", "https://control.msg91.com/api/v5/flow/").strip()

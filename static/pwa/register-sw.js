@@ -10,6 +10,10 @@ if ("serviceWorker" in navigator) {
         if (typeof console !== "undefined" && console.log) {
           console.log("Service Worker registered:", registration.scope);
         }
+        // One lightweight update check after register (no polling, no reload).
+        if (registration && typeof registration.update === "function") {
+          registration.update().catch(function () {});
+        }
       })
       .catch(function (error) {
         if (typeof console !== "undefined" && console.warn) {
