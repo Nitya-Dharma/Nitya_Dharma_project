@@ -5,6 +5,11 @@
 #
 # In .env set DB_HOST=db (or DATABASE_HOST=db) so Django reaches MySQL.
 # MySQL container: use DATABASE_NAME/DB_NAME, DATABASE_USER/DB_USER, DATABASE_PASSWORD/DB_PASSWORD (either set works).
+# Set MYSQL_ROOT_PASSWORD in .env (required). Do not commit real credentials.
+#
+# DJANGO_SETTINGS_MODULE defaults to nityadharma.settings.prod for web/celery.
+# Local override: set DJANGO_SETTINGS_MODULE=nityadharma.settings.dev in the project .env
+# (compose interpolation + env_file). Production must leave it unset or set to .prod.
 
 version: "3.8"
 
@@ -27,7 +32,8 @@ services:
     env_file:
       - ${DJANGO_ENV_FILE:-.env}
     environment:
-      # DJANGO_SETTINGS_MODULE: set in .env (env_file) so local/prod stays in one place
+      # Explicit production default; override via host/.env DJANGO_SETTINGS_MODULE if needed
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-nityadharma.settings.prod}
       - DATABASE_HOST=db
       - DB_HOST=db
       - REDIS_URL=redis://redis:6379/1
@@ -49,14 +55,15 @@ services:
     image: mysql:8
     container_name: mysql_db
     restart: always
-    # Optional: expose MySQL for local debugging only (disable in production)
-    ports:
-      - "3307:3306"
+    # MySQL is internal to the Compose network only (service name: db).
+    # Local debugging only — uncomment temporarily; never enable in production:
+    # ports:
+    #   - "3307:3306"
     environment:
-      MYSQL_DATABASE: nityadharma_db
-      MYSQL_USER: nitya_user
-      MYSQL_PASSWORD: StrongPassword123!
-      MYSQL_ROOT_PASSWORD: Kshruthi13
+      MYSQL_DATABASE: ${DATABASE_NAME:-${DB_NAME:-nityadharma_db}}
+      MYSQL_USER: ${DATABASE_USER:-${DB_USER:-nitya_user}}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-${DB_PASSWORD:?Set DATABASE_PASSWORD or DB_PASSWORD in .env}}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     volumes:
       - mysql_data:/var/lib/mysql
     # Internal only; do not expose 3306 to host in production
@@ -85,6 +92,7 @@ services:
     env_file:
       - ${DJANGO_ENV_FILE:-.env}
     environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-nityadharma.settings.prod}
       - DATABASE_HOST=db
       - DB_HOST=db
       - REDIS_URL=redis://redis:6379/1
