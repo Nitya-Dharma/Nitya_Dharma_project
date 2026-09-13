@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from masterdata.models import City, LocalArea, Pooja
 from masterdata.services import (
@@ -11,6 +12,26 @@ from masterdata.services import (
 def offline(request):
     """PWA offline fallback page. No business logic."""
     return render(request, "offline.html")
+
+
+def service_worker(request):
+    """
+    Controlling PWA service worker at /service-worker.js (root scope).
+
+    Injects settings.PWA_CACHE_VERSION into cache names and disables HTTP
+    caching of the script so browsers can revalidate after a version bump.
+    TemplateView alone cannot set Cache-Control; this keeps the same URL/template.
+    """
+    response = render(
+        request,
+        "pwa/service-worker.js",
+        {"pwa_cache_version": settings.PWA_CACHE_VERSION},
+        content_type="application/javascript",
+    )
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 
 def home(request):

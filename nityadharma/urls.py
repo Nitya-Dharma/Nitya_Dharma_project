@@ -20,7 +20,6 @@ from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.defaults import page_not_found, server_error
-from django.views.generic import TemplateView
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import user_passes_test
 from core import views as core_views
@@ -63,10 +62,7 @@ urlpatterns = [
     path('nd-control-panel/', RedirectView.as_view(url='/' + SECURE_ADMIN_PATH, permanent=False)),
     path(
         'service-worker.js',
-        TemplateView.as_view(
-            template_name='pwa/service-worker.js',
-            content_type='application/javascript',
-        ),
+        core_views.service_worker,
         name='service-worker',
     ),
     path('manifest.json', branding_views.manifest_json, name='manifest_json'),
