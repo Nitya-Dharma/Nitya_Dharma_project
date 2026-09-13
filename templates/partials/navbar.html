@@ -184,6 +184,12 @@
                         </a>
                     </li>
                 {% endif %}
+                <!-- PWA: same install mechanism as footer (#installAppButton / a2hs.js); mobile menu only -->
+                <li class="nav-item d-lg-none">
+                    <button type="button" class="nav-link js-pwa-install border-0 bg-transparent" style="display:none;" aria-hidden="true">
+                        <i class="bi bi-download me-1" aria-hidden="true"></i>Install Now
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
