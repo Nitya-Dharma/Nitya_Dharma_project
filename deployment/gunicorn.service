@@ -5,6 +5,10 @@
 #         sudo systemctl start gunicorn
 # Status:  sudo systemctl status gunicorn
 # Logs:    journalctl -u gunicorn -f
+#
+# Requires /var/www/nityadharma/.env (secrets). Never commit .env.
+# Service runs as www-data — ensure that user can read the app, venv, .env,
+# and write logs/ + media/ (see DEPLOY_HOSTINGER_VPS.md).
 
 [Unit]
 Description=Gunicorn daemon for Nitya Dharma Django app
@@ -16,8 +20,10 @@ Group=www-data
 WorkingDirectory=/var/www/nityadharma
 Environment="PATH=/var/www/nityadharma/venv/bin"
 Environment="DJANGO_SETTINGS_MODULE=nityadharma.settings.prod"
-# Optional: load secrets from file (create /var/www/nityadharma/.env with your values)
-# EnvironmentFile=/var/www/nityadharma/.env
+# Hostinger: write Django rotating logs under the project (overrides prod.py default /logs).
+Environment="LOG_DIR=/var/www/nityadharma/logs"
+# Load secrets and other env vars (SECRET_KEY, DATABASE_*, EMAIL_*, etc.)
+EnvironmentFile=/var/www/nityadharma/.env
 ExecStart=/var/www/nityadharma/venv/bin/gunicorn nityadharma.wsgi:application --config gunicorn_config.py
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
