@@ -32,6 +32,22 @@
                 <li class="nav-item {% if '/search/' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'search_ui:search_results' %}">Search</a>
                 </li>
+                <li class="nav-item {% if '/bureaus/' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'bureaus:bureau_list' %}">Hindu Marriage Bureaus</a>
+                </li>
+                <li class="nav-item dropdown {% if '/services/' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Services
+                        <i class="bi bi-chevron-down ms-1" style="font-size: 0.7rem;"></i>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                        <li><a class="dropdown-item" href="{% url 'astrology_service' %}" style="color: var(--text-primary-theme) !important;">Astrology</a></li>
+                        <li><a class="dropdown-item" href="{% url 'numerology_service' %}" style="color: var(--text-primary-theme) !important;">Numerology</a></li>
+                        <li><a class="dropdown-item" href="{% url 'palmistry_service' %}" style="color: var(--text-primary-theme) !important;">Palmistry</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'become_expert' %}" style="color: var(--text-primary-theme) !important;">Become Expert</a></li>
+                    </ul>
+                </li>
                 
                 {# Premium Multi-level Poojas Dropdown - Hover-based navigation #}
                 <li class="nav-item dropdown poojas-multilevel-dropdown">
