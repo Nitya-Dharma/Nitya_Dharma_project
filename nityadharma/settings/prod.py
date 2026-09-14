@@ -47,19 +47,35 @@ SECRET_KEY = config('SECRET_KEY')  # Will raise error if not set
 # Always False in prod; ignore env so deploy check and VPS never expose debug.
 DEBUG = False
 
-# Phase 2 Module 0 Task 0.1: Environment variable - REQUIRED in production
-# Render: RENDER_EXTERNAL_HOSTNAME is auto-added when set
-# Railway: .railway.app, Fly.io, etc. Add hosts via ALLOWED_HOSTS or platform env.
-# Production: set ALLOWED_HOSTS in env (e.g. yourdomain.com,www.yourdomain.com,server-ip). No default "*".
-ALLOWED_HOSTS = [
-    "nityadharma.com",
-    "www.nityadharma.com",
-]
-
-CSRF_TRUSTED_ORIGINS = [
+# Host / CSRF: env-driven with secure production defaults (same as prior hardcoding).
+# Absent or empty env → fall back to nityadharma.com / www (no "*" / no empty allowlist).
+# Comma-separated via python-decouple Csv(); whitespace trimmed; blank entries ignored.
+_DEFAULT_ALLOWED_HOSTS = ["nityadharma.com", "www.nityadharma.com"]
+_DEFAULT_CSRF_TRUSTED_ORIGINS = [
     "https://nityadharma.com",
     "https://www.nityadharma.com",
 ]
+ALLOWED_HOSTS = [
+    h for h in config(
+        "ALLOWED_HOSTS",
+        default="nityadharma.com,www.nityadharma.com",
+        cast=Csv(),
+    )
+    if h
+]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = list(_DEFAULT_ALLOWED_HOSTS)
+
+CSRF_TRUSTED_ORIGINS = [
+    o for o in config(
+        "CSRF_TRUSTED_ORIGINS",
+        default="https://nityadharma.com,https://www.nityadharma.com",
+        cast=Csv(),
+    )
+    if o
+]
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = list(_DEFAULT_CSRF_TRUSTED_ORIGINS)
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
