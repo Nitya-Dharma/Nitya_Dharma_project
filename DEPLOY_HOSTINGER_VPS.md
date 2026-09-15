@@ -11,6 +11,49 @@ Gunicorn, logging, and Nginx below are tuned for the Hostinger KVM2 plan.
 
 ---
 
+## 0. Deployment safety (read before migrating)
+
+### First-launch architecture (Option A)
+
+This Hostinger path is intentionally:
+
+**Nginx → Gunicorn (systemd) → Django `nityadharma.settings.prod` → MySQL**
+
+**without** requiring Redis or Celery for the first launch. Do not enable Redis/Celery casually (see §4).
+
+### Database safety — never use production DBs for testing
+
+- The original live database name documented for Hostinger is `nityadharma_db`. It is **protected production data**. **Never** use it for testing, QA, fixtures, browser experiments, Django shell experiments, ORM experiments, or migration experiments.
+- **Never** use `nityadharma_recovery_20260817` for testing or experiments.
+- Automated testing must use the dedicated database **`test_nityadharma_db`** only (separate controlled test phase — not this deploy guide).
+- Do **not** use a live or recovery database as a test database.
+- Do **not** run global migrations as a testing technique.
+- Production migration is a **separate controlled operation** requiring explicit approval after preflight and backup gates (see §5).
+
+### Backup ≠ restore ≠ migration
+
+- A **backup** is not the same as a **restore drill**.
+- A backup file existing is **not** proof of recoverability.
+- Restore drills must use a **safe non-production** target. Never experiment with restore against the original live DB.
+- This guide does **not** claim that backup or restore has already been performed on your VPS. Those gates must be completed and verified before any production migration.
+
+### Host-only items (REQUIRES REAL VPS VERIFICATION)
+
+Repository templates and this document are **not** proof that the live VPS is configured. Always verify on the host:
+
+DNS · HTTPS/Certbot · live Nginx · live Gunicorn/systemd · actual `.env` presence · MySQL identity · filesystem permissions · backup location/disk space · log paths.
+
+### Approved production process (do not use bare development defaults)
+
+On Hostinger, start the app via:
+
+- **systemd** unit `deployment/gunicorn.service` (sets `DJANGO_SETTINGS_MODULE=nityadharma.settings.prod`, loads `.env`, runs `gunicorn … --config gunicorn_config.py`), or
+- Manual smoke: `gunicorn nityadharma.wsgi:application --config gunicorn_config.py` with prod settings exported (see §6–§7).
+
+Bare `nityadharma.wsgi` without that config/env can fall back to **development** settings defaults. Do **not** run production that way. (PaaS/Procfile uses `gunicorn.conf.py` separately; do not mix with this VPS procedure.)
+
+---
+
 ## 1. Server setup
 
 SSH into your VPS and update the system:
@@ -93,18 +136,17 @@ Set at least:
 - `DATABASE_PORT=3306`
 - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`
 - `SECURE_SSL_REDIRECT=True` after TLS is live (default in prod is True)
+- `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` (see below) — set explicitly for your production domain(s)
 
 ### Hosts / CSRF (current prod behavior — important)
 
-`nityadharma.settings.prod` currently **hardcodes**:
+`nityadharma.settings.prod` reads **`ALLOWED_HOSTS`** and **`CSRF_TRUSTED_ORIGINS`** from the environment (comma-separated; see `.env.example`).
 
-- `ALLOWED_HOSTS` → `nityadharma.com`, `www.nityadharma.com`
-- `CSRF_TRUSTED_ORIGINS` → `https://nityadharma.com`, `https://www.nityadharma.com`
-
-Setting `ALLOWED_HOSTS=...` in `.env` does **not** change those values while using `nityadharma.settings.prod`.
-`.env.example` may still show host placeholders for other paths or future work.
-
-**Future separate batch (not done here):** make `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` environment-driven if multi-domain VPS deploys need it.
+- If unset or empty after parsing, prod falls back to secure defaults: `nityadharma.com`, `www.nityadharma.com` and matching `https://…` CSRF origins.
+- Operators **should** set these explicitly in `/var/www/nityadharma/.env` to match the live domain(s) and Nginx `server_name`.
+- Do **not** use `ALLOWED_HOSTS=*` or empty allowlists.
+- Do **not** put insecure `http://` origins in `CSRF_TRUSTED_ORIGINS` for production HTTPS sites.
+- Setting these in `.env` **does** apply when using `nityadharma.settings.prod` (via python-decouple).
 
 ### Logging directory
 
@@ -124,31 +166,73 @@ sudo chown www-data:www-data /var/www/nityadharma/logs
 
 Do not change `prod.py` for Hostinger logging; set `LOG_DIR` via systemd (already in the unit) or `.env` if you override it.
 
-### Celery
+### Redis / Celery (optional — not required for Option A)
 
-This Hostinger guide does **not** install or manage Celery. There is no `celery.service` in `deployment/`. Async workers are part of the **Docker Compose** path unless you add a separate ops unit later.
+This Hostinger guide does **not** install or manage Redis or Celery. There is no `celery.service` in `deployment/`. Async workers are part of the **Docker Compose** path unless you add a separate ops unit later.
+
+- Redis is **optional**. Without `REDIS_URL`, Django uses LocMem cache (and DB sessions when Redis is unset).
+- **Do not set `REDIS_URL` casually.** In application settings, if `CELERY_BROKER_URL` is unset, Celery’s broker falls back to `REDIS_URL` (then to a localhost Redis default). Enabling Redis without an operating Celery worker can leave queued tasks (for example email) **unprocessed** while looking successful to the web request.
+- Redis + Celery (separate broker URL such as Redis DB `/2`, plus a worker) is a **separate future operational phase**, not part of first Hostinger launch Option A.
+- Leave `REDIS_URL` unset for Option A unless you intentionally deploy and operate Celery with an explicit `CELERY_BROKER_URL`.
 
 ---
 
-## 5. Migrations and static files
+## 5. Static files and conditional migrations
+
+### 5.1 Collect static (safe after code deploy)
+
+Ensure logs exist (see §4), then:
 
 ```bash
 source venv/bin/activate
 export DJANGO_SETTINGS_MODULE=nityadharma.settings.prod
 export LOG_DIR=/var/www/nityadharma/logs
-python manage.py migrate
 python manage.py collectstatic --noinput
 ```
 
-Ensure logs exist (see §4):
+### 5.2 Pre-migration safety gates (required before any production migrate)
+
+**Do not** treat “migration files exist in Git” as an automatic instruction to run `migrate`.
+
+Unapplied migrations in the repository **do not** mean you must migrate immediately. Migration is **conditional** on preflight, backup/restore readiness, and **explicit approval**.
+
+Complete these gates **before** any production `migrate`:
+
+1. Confirm the intended release/commit SHA on the VPS.
+2. Confirm the application directory (`/var/www/nityadharma` or your approved path).
+3. Confirm the virtualenv (`venv`) and that it is activated for manage commands.
+4. Confirm production env: `DJANGO_SETTINGS_MODULE=nityadharma.settings.prod` and a readable `.env` (do not commit secrets).
+5. Confirm the **correct production database identity** (name/host as configured — do not guess; do not point tools at recovery or test DBs by mistake).
+6. Confirm a **fresh production database backup** has been created under your approved backup procedure.
+7. Confirm the backup is usable / integrity-checked (size, checksum, and/or equivalent verification).
+8. Confirm a **recovery/restore path** exists (a restore drill in a **non-production** environment is required for confidence; never practice restore against the live DB).
+9. Perform the separately authorized **read-only** production migration/schema preflight.
+10. Determine the **actual** migration delta (what is already applied vs what the release expects).
+11. Review high-risk migration prerequisites (for example additive User fields, unique constraints, data `RunPython` migrations) with an approved operator/DBA checklist.
+12. Explicit **GO / NO-GO** decision.
+13. **Only if** migration is required **and** explicit deployment/migration approval exists, proceed with a controlled migration procedure.
+
+If any gate fails: **STOP**. Do not migrate. Do not use production as a testing environment.
+
+### 5.3 Controlled migration (only after GO)
+
+When — and only when — the gates above pass and approval is recorded:
 
 ```bash
-mkdir -p /var/www/nityadharma/logs
+source venv/bin/activate
+export DJANGO_SETTINGS_MODULE=nityadharma.settings.prod
+export LOG_DIR=/var/www/nityadharma/logs
+# ONLY after preflight + backup + restore readiness + explicit approval:
+python manage.py migrate
 ```
+
+Never run migrate against `nityadharma_recovery_20260817`, never use migrate to “test”, and never run global migrations as a substitute for proper preflight.
 
 ---
 
-## 6. Test Gunicorn
+## 6. Smoke-test Gunicorn (approved config)
+
+Use the Hostinger Gunicorn config file (**`gunicorn_config.py`**), not a bare WSGI invoke:
 
 ```bash
 export DJANGO_SETTINGS_MODULE=nityadharma.settings.prod
@@ -157,7 +241,6 @@ gunicorn nityadharma.wsgi:application --config gunicorn_config.py
 ```
 
 In another terminal: `curl http://127.0.0.1:8000/`. Then stop Gunicorn (Ctrl+C).
-
 ---
 
 ## 7. systemd service for Gunicorn
@@ -252,10 +335,12 @@ Do not commit real certificate files or private keys into the repository.
 
 - **Secrets:** In `.env` loaded by systemd `EnvironmentFile`; never in git.
 - **DEBUG:** `False` in `nityadharma.settings.prod`.
-- **Hosts:** Currently hardcoded in prod settings (see §4); deploy on `nityadharma.com` / `www` or plan a future env-driven hosts batch.
-- **HTTPS:** Only after Certbot on the VPS; do not treat the repo template as TLS-complete.
+- **Hosts / CSRF:** Set `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` in `.env` to match live domains (env-driven in prod; secure defaults if unset — see §4). No wildcards; no insecure HTTP CSRF origins in production.
+- **HTTPS:** Only after Certbot on the VPS; do not treat the repo template as TLS-complete. **REQUIRES REAL VPS VERIFICATION.**
+- **Entrypoint:** Use systemd + `gunicorn_config.py` (or the §6 smoke command). Do not run bare WSGI under development defaults in production.
+- **Redis:** Leave unset for Option A unless Celery is intentionally operated (see §4).
 - **Firewall:** `sudo ufw allow 22 && sudo ufw allow 80 && sudo ufw allow 443 && sudo ufw enable`.
-
+- **Testing:** Never use `nityadharma_db` or `nityadharma_recovery_20260817` for testing; automated tests use `test_nityadharma_db` only.
 ---
 
 ## 11. Useful commands
@@ -280,6 +365,6 @@ Configurations used for this plan:
 - **Static/Media:** Served by Nginx from `staticfiles/` and `media/` on NVMe; WhiteNoise still available if needed.
 - **Database:** MySQL via `DATABASE_*` (or `DB_*`) env vars; no credentials in code.
 - **Email:** SMTP via `EMAIL_*` env vars; no credentials in code.
-- **Celery:** Not managed by this Hostinger systemd path.
+- **Celery / Redis:** Not managed by this Hostinger systemd path (Option A). Treat Redis+Celery as a separate future ops phase.
 
 After deployment, run `git status` and `git diff` before committing any changes; never commit `.env` or secrets.
