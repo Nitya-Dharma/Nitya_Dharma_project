@@ -1,8 +1,8 @@
 # Generated for additive AdLead only.
 # Depends on original-present parents: ads.0003 (Advertisement already exists
-# via ads.0001) and ads_analytics.0002 (AdConversionIntent.campaign_id).
+# via ads.0001) and ads_analytics.0003 (AdConversionIntent.campaign_id).
 # Does not depend on deleted ads.0005_adset_and_ad_link or Native ads.0070.
-# Pre-existing index-rename drift is intentionally excluded (same policy as 0002).
+# Pre-existing index-rename drift is intentionally excluded (same policy as 0003).
 
 from django.conf import settings
 from django.db import migrations, models
@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("ads", "0003_add_per_slot_images"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("ads_analytics", "0002_adconversionintent_campaign_id"),
+        ("ads_analytics", "0003_adconversionintent_campaign_id"),
     ]
 
     operations = [

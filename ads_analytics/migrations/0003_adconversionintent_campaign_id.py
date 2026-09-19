@@ -8,7 +8,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("ads_analytics", "0001_initial"),
+        (
+            "ads_analytics",
+            "0002_rename_ads_analyti_ad_id_1c3d4e_idx_ads_analyti_ad_id_6f922a_idx_and_more",
+        ),
     ]
 
     operations = [

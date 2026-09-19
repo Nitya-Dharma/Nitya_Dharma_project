@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("ads", "0003_add_per_slot_images"),
+        ("ads", "0004_alter_advertisement_image_and_more"),
     ]
 
     operations = [

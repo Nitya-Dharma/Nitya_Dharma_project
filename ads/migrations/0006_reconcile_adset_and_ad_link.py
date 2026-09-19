@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("ads", "0004_campaign_and_ad_link"),
+        ("ads", "0005_reconcile_campaign_and_ad_link"),
     ]
 
     operations = [
