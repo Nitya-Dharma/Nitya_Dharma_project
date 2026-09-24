@@ -9,6 +9,33 @@ from services.location_utils import validate_coordinates
 from .services import SearchService, PageSearchService
 
 
+
+def _resolve_search_ui_mode(request, result_type):
+    """
+    Slice-1 Search UI mode for four-tab chrome.
+
+    Precedence (Step 15):
+    1. type=bureau
+    2. tab=experts or legacy expert tab values
+    3. result_type=pages
+    4. pandits (default)
+
+    Does not alter SearchService / PageSearchService semantics when mode is
+    pandits or pages. Bureau mode is handled separately in search_results.
+    """
+    type_param = (request.GET.get("type") or "").strip().lower()
+    if type_param == "bureau":
+        return "bureau"
+
+    tab = (request.GET.get("tab") or "").strip().lower()
+    if tab == "experts" or tab in ("astrology", "numerology", "palmistry"):
+        return "experts"
+
+    if result_type == "pages":
+        return "pages"
+    return "pandits"
+
+
 def search_results(request):
     """
     Search results page (HTML template).
@@ -52,13 +79,248 @@ def search_results(request):
         'pooja_category__display_order', 'pooja_category__name', 'name'
     )
     
-    # Perform search (backend logic) - BRANCH ON result_type
+    # Slice-1/2 mode chrome
+    search_ui_mode = _resolve_search_ui_mode(request, result_type)
+
+    # Resolve Expert subtype before any Expert query (canonical + legacy tab=).
+    ALLOWED_EXPERT_TYPES = ("astrology", "numerology", "palmistry")
+    expert_type = (request.GET.get("expert_type") or "").strip().lower()
+    if search_ui_mode == "experts":
+        if expert_type not in ALLOWED_EXPERT_TYPES:
+            expert_type = ""
+        if not expert_type:
+            legacy_tab = (request.GET.get("tab") or "").strip().lower()
+            if legacy_tab in ALLOWED_EXPERT_TYPES:
+                expert_type = legacy_tab
+
+    # Perform search (backend logic) - BRANCH ON mode / result_type
+    # Production Pandit/Page semantics unchanged when those modes are active.
     search_results_list = []
     pagination = None
     is_page_search = result_type == 'pages'
-    
+
+    experts = []
+    expert_page_obj = None
+    experts_pagination = None
+    expert_result_count = None
+
+    bureaus = []
+    bureau_page_obj = None
+    bureaus_pagination = None
+    bureau_result_count = None
+    bureau_city_filter = ""
+    bureau_caste_filter = ""
+    bureau_caste_groups = ()
+    bureau_is_capped = False
+
+    if search_ui_mode == "bureau":
+        # Bureau-only query via canonical public visibility helper.
+        try:
+            from django.core.paginator import Paginator, EmptyPage
+            from django.db.models import Q
+            from bureaus.utils import get_visible_bureaus
+            from bureaus.views import (
+                ALLOWED_CASTES,
+                CASTE_GROUPS,
+                _bureau_has_caste,
+                _is_valid_caste_data_structure,
+            )
+
+            BUREAU_SEARCH_PAGE_SIZE = 12
+            list_only_fields = (
+                "id",
+                "public_id",
+                "bureau_name",
+                "city",
+                "profile_image",
+                "description",
+            )
+
+            # Bureau city is free-text (existing /bureaus/ list semantics), not masterdata id.
+            bureau_city_filter = (request.GET.get("city") or "").strip()
+            caste = (request.GET.get("caste") or "").strip().lower()
+            bureau_caste_groups = CASTE_GROUPS
+
+            bureaus_qs = (
+                get_visible_bureaus()
+                .only(*list_only_fields)
+                .order_by("-created_at", "-id")
+            )
+
+            if bureau_city_filter:
+                bureaus_qs = bureaus_qs.filter(city=bureau_city_filter)
+
+            q = request.GET.get("q")
+            if not q:
+                q = keyword
+            if q:
+                bureaus_qs = bureaus_qs.filter(
+                    Q(bureau_name__icontains=q)
+                    | Q(description__icontains=q)
+                    | Q(city__icontains=q)
+                )
+
+            bureaus_data = bureaus_qs
+            if caste and caste not in ALLOWED_CASTES:
+                bureaus_data = []
+            elif caste:
+                bureaus_qs = bureaus_qs.only(*list_only_fields, "caste_data")
+                caste_filter_soft_cap = 500
+                ordered_bureaus = list(bureaus_qs.iterator(chunk_size=100))
+                filtered_bureaus = []
+                for bureau in ordered_bureaus:
+                    if _is_valid_caste_data_structure(
+                        bureau.caste_data
+                    ) and _bureau_has_caste(bureau, caste):
+                        filtered_bureaus.append(bureau)
+                if len(filtered_bureaus) > caste_filter_soft_cap:
+                    bureau_is_capped = True
+                    filtered_bureaus = filtered_bureaus[:caste_filter_soft_cap]
+                bureaus_data = filtered_bureaus
+                bureau_caste_filter = caste
+
+            if isinstance(bureaus_data, list):
+                bureau_result_count = len(bureaus_data)
+            else:
+                bureau_result_count = bureaus_data.count()
+
+            paginator = Paginator(bureaus_data, BUREAU_SEARCH_PAGE_SIZE)
+            page = int(request.GET.get("page", 1))
+            try:
+                bureau_page_obj = paginator.page(page)
+            except EmptyPage:
+                bureau_page_obj = paginator.page(paginator.num_pages)
+            bureaus_pagination = {
+                "page": page,
+                "current_page": page,
+                "total_pages": paginator.num_pages,
+                "total_count": paginator.count,
+                "has_next": bureau_page_obj.has_next(),
+                "has_previous": bureau_page_obj.has_previous(),
+                "next_page_number": bureau_page_obj.next_page_number()
+                if bureau_page_obj.has_next()
+                else None,
+                "previous_page_number": bureau_page_obj.previous_page_number()
+                if bureau_page_obj.has_previous()
+                else None,
+            }
+            bureaus = bureau_page_obj
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "Bureau search section failed", exc_info=True
+            )
+            bureaus = []
+            bureau_page_obj = None
+            bureaus_pagination = None
+            bureau_result_count = 0
+            bureau_city_filter = ""
+            bureau_caste_filter = ""
+            bureau_caste_groups = ()
+            bureau_is_capped = False
+    elif search_ui_mode == "experts":
+        # Expert-only query. Invalid/missing expert_type => empty (no arbitrary default).
+        if expert_type in ALLOWED_EXPERT_TYPES:
+            try:
+                from django.core.paginator import Paginator, EmptyPage
+                from django.db.models import Avg, Prefetch
+                from core.api_constants import DEFAULT_SEARCH_PAGE_SIZE
+                from core.models import ExpertProfile, ExpertService
+                from services.expert_discovery import filter_experts_offering
+
+                experts_queryset = ExpertProfile.objects.filter(
+                    is_active=True
+                ).prefetch_related(
+                    Prefetch(
+                        "services",
+                        queryset=ExpertService.objects.filter(is_active=True),
+                        to_attr="active_services",
+                    )
+                )
+                try:
+                    experts_queryset = filter_experts_offering(
+                        experts_queryset,
+                        expert_type,
+                    )
+                except ValueError:
+                    experts_queryset = ExpertProfile.objects.none()
+
+                q = request.GET.get("q")
+                if not q:
+                    q = keyword
+                if q:
+                    experts_queryset = experts_queryset.filter(name__icontains=q)
+
+                min_exp_raw = request.GET.get("min_exp")
+                if min_exp_raw:
+                    try:
+                        min_exp_int = int(min_exp_raw)
+                        if min_exp_int >= 0:
+                            experts_queryset = experts_queryset.filter(
+                                experience_years__gte=min_exp_int
+                            )
+                    except (TypeError, ValueError):
+                        pass
+
+                min_rating_raw = request.GET.get("min_rating")
+                if min_rating_raw:
+                    try:
+                        min_rating_val = float(min_rating_raw)
+                        if min_rating_val > 0:
+                            experts_queryset = experts_queryset.filter(
+                                rating__gte=min_rating_val
+                            )
+                    except (TypeError, ValueError):
+                        pass
+
+                if (request.GET.get("verified") or "").strip() == "1":
+                    experts_queryset = experts_queryset.filter(is_verified=True)
+
+                experts_queryset = experts_queryset.annotate(
+                    avg_rating=Avg("reviews__rating")
+                )
+                experts_queryset = experts_queryset.order_by(
+                    "-experience_years", "-avg_rating"
+                )
+
+                expert_result_count = experts_queryset.count()
+                paginator = Paginator(experts_queryset, DEFAULT_SEARCH_PAGE_SIZE)
+                page = int(request.GET.get("page", 1))
+                try:
+                    expert_page_obj = paginator.page(page)
+                except EmptyPage:
+                    expert_page_obj = paginator.page(paginator.num_pages)
+                experts_pagination = {
+                    "page": page,
+                    "current_page": page,
+                    "total_pages": paginator.num_pages,
+                    "total_count": paginator.count,
+                    "has_next": expert_page_obj.has_next(),
+                    "has_previous": expert_page_obj.has_previous(),
+                    "next_page_number": expert_page_obj.next_page_number()
+                    if expert_page_obj.has_next()
+                    else None,
+                    "previous_page_number": expert_page_obj.previous_page_number()
+                    if expert_page_obj.has_previous()
+                    else None,
+                }
+                experts = expert_page_obj
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).warning(
+                    "Expert search section failed", exc_info=True
+                )
+                experts = []
+                expert_page_obj = None
+                experts_pagination = None
+                expert_result_count = 0
+        else:
+            experts = []
+            expert_result_count = 0
     # Explicit branching: Pandits OR Pages (never mixed)
-    if is_page_search:
+    elif is_page_search:
         # PAGE SEARCH - Isolated from Pandit search
         try:
             queryset = PageSearchService.search_pages(
@@ -202,11 +464,20 @@ def search_results(request):
             debug_lon_raw = None
             # Leave location_lat/location_lon as from request (lat/lon); invalid debug coords ignored
 
+    display_results = search_results_list
+    display_count = pagination["total_count"] if pagination else 0
+    display_pagination = pagination
+    # Expert/Bureau modes must not inherit Pandit/Page result lists or pagination.
+    if search_ui_mode in ("experts", "bureau"):
+        display_results = []
+        display_count = None
+        display_pagination = None
+
     # Prepare context for template
     context = {
-        'search_results': search_results_list,
-        'result_count': pagination['total_count'] if pagination else 0,
-        'pagination': pagination,
+        "search_results": display_results,
+        "result_count": display_count,
+        "pagination": display_pagination,
         'cities': cities,
         'areas': areas,
         'pooja_categories': pooja_categories,
@@ -231,6 +502,21 @@ def search_results(request):
         'debug_location': debug_location,
         'debug_lat': debug_lat_raw,
         'debug_lon': debug_lon_raw,
+        'search_ui_mode': search_ui_mode,
+        'expert_type': expert_type if search_ui_mode == 'experts' else None,
+        'experts': experts if search_ui_mode == 'experts' else [],
+        'expert_page_obj': expert_page_obj if search_ui_mode == 'experts' else None,
+        'expert_result_count': expert_result_count if search_ui_mode == 'experts' else None,
+        'experts_pagination': experts_pagination if search_ui_mode == 'experts' else None,
+        'bureaus': bureaus if search_ui_mode == 'bureau' else [],
+        'bureau_page_obj': bureau_page_obj if search_ui_mode == 'bureau' else None,
+        'bureau_result_count': bureau_result_count if search_ui_mode == 'bureau' else None,
+        'bureaus_pagination': bureaus_pagination if search_ui_mode == 'bureau' else None,
+        'bureau_city_filter': bureau_city_filter if search_ui_mode == 'bureau' else '',
+        'bureau_caste_filter': bureau_caste_filter if search_ui_mode == 'bureau' else '',
+        'bureau_caste_groups': bureau_caste_groups if search_ui_mode == 'bureau' else (),
+        'bureau_is_capped': bureau_is_capped if search_ui_mode == 'bureau' else False,
+        'search_mode_deferred': False,
     }
 
     return render(request, 'module7_search/search_results.html', context)
