@@ -87,7 +87,7 @@
                                 </a>
                             {% elif notification.notification_type == 'page_moderator_assigned' %}
                                 <!-- Moderator assignment notification -->
-                                <a href="{% url 'notifications:mark_read' notification.id %}?next={% if user.role == 'pandit' %}{% url 'module5_dashboards:dashboard_pandit' %}#temple-pages-tab{% else %}{% url 'notifications:list' %}{% endif %}" 
+                                <a href="{% url 'notifications:mark_read' notification.id %}?next={% if notification.page %}{% url 'pages:page_detail' page_public_id=notification.page.public_id %}{% elif user.role == 'pandit' %}{% url 'module5_dashboards:dashboard_pandit' %}#temple-pages-tab{% else %}{% url 'notifications:list' %}{% endif %}" 
                                    class="notification-item {% if not notification.is_read %}notification-unread{% endif %} text-decoration-none d-block">
                                     <div class="d-flex w-100 justify-content-between align-items-start">
                                         <div class="flex-grow-1">
@@ -96,6 +96,27 @@
                                                     You have been given moderator access to <strong>{{ notification.payload.page_title }}</strong>
                                                 {% else %}
                                                     You have been given moderator access to a temple page
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ notification.created_at|date:"M d, Y" }} at {{ notification.created_at|time:"g:i A" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% elif notification.notification_type == 'booking_intent' %}
+                                <a href="{% url 'notifications:mark_read' notification.id %}?next={{ notification.payload.url|urlencode }}"
+                                   class="notification-item {% if not notification.is_read %}notification-unread{% endif %} text-decoration-none d-block">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1 fw-medium text-dark">
+                                                {% if notification.payload.message %}
+                                                    {{ notification.payload.message }}
+                                                {% elif notification.payload.title %}
+                                                    {{ notification.payload.title }}
+                                                {% else %}
+                                                    {{ notification.get_notification_type_display }} notification
                                                 {% endif %}
                                             </p>
                                             <small class="text-muted">
