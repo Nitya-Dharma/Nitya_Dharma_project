@@ -121,15 +121,27 @@
         <div class="container">
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link {% if not result_type or result_type == 'pandits' %}active{% endif %}" 
-                       href="?{% for key, value in request.GET.items %}{% if key != 'result_type' and key != 'page_type' and key != 'has_announcements' and key != 'has_events' and key != 'recently_updated' and key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}result_type=pandits">
+                    <a class="nav-link {% if search_ui_mode == 'pandits' %}active{% endif %}"
+                       href="{% url 'search_ui:search_results' %}?result_type=pandits">
                         <i class="bi bi-person-circle me-2"></i>Pandits
                     </a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link {% if result_type == 'pages' %}active{% endif %}" 
-                       href="?{% for key, value in request.GET.items %}{% if key != 'result_type' and key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}result_type=pages">
-                        <i class="bi bi-file-earmark-text me-2"></i>Pages
+                    <a class="nav-link {% if search_ui_mode == 'pages' %}active{% endif %}"
+                       href="{% url 'search_ui:search_results' %}?result_type=pages">
+                        <i class="bi bi-file-earmark-text me-2"></i>Temples / Pages
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if search_ui_mode == 'experts' %}active{% endif %}"
+                       href="{% url 'search_ui:search_results' %}?tab=experts&expert_type=astrology">
+                        <i class="bi bi-stars me-2"></i>Experts
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if search_ui_mode == 'bureau' %}active{% endif %}"
+                       href="{% url 'search_ui:search_results' %}?type=bureau">
+                        <i class="bi bi-building me-2"></i>Hindu Marriage Bureaus
                     </a>
                 </li>
             </ul>
@@ -142,14 +154,16 @@
                 <div class="col-12 col-md-8">
                     <h1 class="h2 mb-2" id="results-heading">Search Results</h1>
                     
-                    {% if result_count is not None %}
-                        <p class="result-count mb-0">
-                            Found <strong>{{ result_count }}</strong> result{{ result_count|pluralize }}
-                        </p>
+                    {% if search_ui_mode == 'pandits' or search_ui_mode == 'pages' %}
+                        {% if result_count is not None %}
+                            <p class="result-count mb-0">
+                                Found <strong>{{ result_count }}</strong> result{{ result_count|pluralize }}
+                            </p>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="col-12 col-md-4 text-md-end d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
-                    {% if result_type != 'pages' %}
+                    {% if search_ui_mode == 'pandits' %}
                         {% include "partials/search_form.html" %}
                     {% endif %}
                     {% if sort_options %}
@@ -179,6 +193,7 @@
             </div>
 
             
+            {% if search_ui_mode == 'pandits' or search_ui_mode == 'pages' %}
             {% if selected_filters or result_type == 'pages' and request.GET.page_type or result_type == 'pages' and request.GET.has_announcements == '1' or result_type == 'pages' and request.GET.has_events == '1' or result_type == 'pages' and request.GET.recently_updated == '1' %}
                 <div class="selected-filters mt-3">
                     <span class="text-muted small">Active filters:</span>
@@ -212,11 +227,226 @@
                     {% endif %}
                 </div>
             {% endif %}
+            {% endif %}
         </div>
     </div>
 
     
     <div class="container search-results-container">
+        {% if search_ui_mode == 'bureau' %}
+        <div class="row">
+            <div class="col-12 col-lg-3 mb-4">
+                <div class="premium-card p-4 shadow-sm">
+                    <h6 class="fw-semibold mb-3">Refine Bureau Search</h6>
+                    <form method="get" action="{% url 'search_ui:search_results' %}">
+                        <input type="hidden" name="type" value="bureau">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="bureau-city">City</label>
+                            <input type="text"
+                                   id="bureau-city"
+                                   name="city"
+                                   class="form-control"
+                                   placeholder="Enter city"
+                                   value="{{ bureau_city_filter|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="bureau-caste">Caste</label>
+                            <select name="caste" id="bureau-caste" class="form-select">
+                                <option value="">Select caste</option>
+                                {% for category_label, items in bureau_caste_groups %}
+                                    <optgroup label="{{ category_label }}">
+                                        {% for value, display in items %}
+                                            <option value="{{ value }}"{% if bureau_caste_filter == value %} selected{% endif %}>
+                                                {{ display }}
+                                            </option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="bureau-q">Keyword</label>
+                            <input type="text"
+                                   id="bureau-q"
+                                   name="q"
+                                   class="form-control"
+                                   placeholder="Name, description, or city"
+                                   value="{% if request.GET.q %}{{ request.GET.q }}{% else %}{{ request.GET.keyword|default:'' }}{% endif %}">
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100">Search Bureaus</button>
+                        <a href="{% url 'search_ui:search_results' %}?type=bureau"
+                           class="btn btn-outline-secondary w-100 mt-2">Clear</a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-9">
+                <h2 class="h4 mb-3">Hindu Marriage Bureaus</h2>
+
+                {% if bureau_is_capped %}
+                    <div class="alert alert-warning" role="alert">
+                        Showing top results. Refine filters for better accuracy.
+                    </div>
+                {% endif %}
+
+                {% if bureau_result_count is not None %}
+                    <p class="result-count mb-3">
+                        Found <strong>{{ bureau_result_count }}</strong> result{{ bureau_result_count|pluralize }}
+                    </p>
+                    {% if bureau_result_count == 0 %}
+                        <div class="empty-state-premium">
+                            <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+                            <p class="text-muted text-center mb-3">
+                                No bureaus found for selected filters.
+                            </p>
+                            <div class="text-center">
+                                <a href="{% url 'search_ui:search_results' %}?type=bureau"
+                                   class="btn btn-danger">Clear Filters</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <section class="section-padding">
+                            <div class="row g-4">
+                                {% for bureau in bureaus %}
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        {% include "bureaus/_card.html" with bureau=bureau %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                        {% if bureaus_pagination and bureaus_pagination.total_count %}
+                            {% if bureaus_pagination.current_page and bureaus_pagination.total_pages %}
+                                <p class="text-center text-muted small mb-2" aria-live="polite">
+                                    Page {{ bureaus_pagination.current_page }} of {{ bureaus_pagination.total_pages }}
+                                </p>
+                            {% endif %}
+                            {% include "module7_search/pagination.html" with pagination=bureaus_pagination %}
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% elif search_ui_mode == 'experts' %}
+        <div class="row">
+            <div class="col-12 col-lg-3 mb-4">
+                <div class="premium-card p-4 shadow-sm">
+                    <h6 class="fw-semibold mb-3">Expert specialty</h6>
+                    <div class="d-grid gap-2 mb-4">
+                        <a class="btn btn-sm {% if expert_type == 'astrology' %}btn-danger{% else %}btn-outline-secondary{% endif %}"
+                           href="{% url 'search_ui:search_results' %}?tab=experts&expert_type=astrology">Astrology</a>
+                        <a class="btn btn-sm {% if expert_type == 'numerology' %}btn-danger{% else %}btn-outline-secondary{% endif %}"
+                           href="{% url 'search_ui:search_results' %}?tab=experts&expert_type=numerology">Numerology</a>
+                        <a class="btn btn-sm {% if expert_type == 'palmistry' %}btn-danger{% else %}btn-outline-secondary{% endif %}"
+                           href="{% url 'search_ui:search_results' %}?tab=experts&expert_type=palmistry">Palmistry</a>
+                    </div>
+
+                    {% if expert_type %}
+                    <h6 class="fw-semibold mb-3">Refine {{ expert_type|title }} Search</h6>
+                    <form method="get" action="{% url 'search_ui:search_results' %}">
+                        <input type="hidden" name="tab" value="experts">
+                        <input type="hidden" name="expert_type" value="{{ expert_type }}">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="expert-q">Keyword</label>
+                            <input type="text"
+                                   id="expert-q"
+                                   name="q"
+                                   class="form-control"
+                                   placeholder="Search expert name"
+                                   value="{% if request.GET.q %}{{ request.GET.q }}{% else %}{{ request.GET.keyword|default:'' }}{% endif %}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="expert-min-exp">Minimum Experience (years)</label>
+                            <input type="number"
+                                   id="expert-min-exp"
+                                   name="min_exp"
+                                   min="0"
+                                   step="1"
+                                   class="form-control"
+                                   value="{{ request.GET.min_exp|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="expert-min-rating">Minimum Rating</label>
+                            <select name="min_rating" id="expert-min-rating" class="form-select">
+                                <option value="">Any</option>
+                                <option value="3" {% if request.GET.min_rating == "3" %}selected{% endif %}>3+ stars</option>
+                                <option value="4" {% if request.GET.min_rating == "4" %}selected{% endif %}>4+ stars</option>
+                                <option value="4.5" {% if request.GET.min_rating == "4.5" %}selected{% endif %}>4.5+ stars</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="expert-verified"
+                                   name="verified"
+                                   value="1"
+                                   {% if request.GET.verified == "1" %}checked{% endif %}>
+                            <label class="form-check-label" for="expert-verified">Verified only</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100">Search Experts</button>
+                        <a href="{% url 'search_ui:search_results' %}?tab=experts&expert_type={{ expert_type }}"
+                           class="btn btn-outline-secondary w-100 mt-2">Clear</a>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-9">
+                <h2 class="h4 mb-3">
+                    Experts{% if expert_type %} — {{ expert_type|title }}{% endif %}
+                </h2>
+
+                {% if not expert_type %}
+                    <div class="empty-state-premium">
+                        <i class="bi bi-stars fs-1 text-muted mb-3 d-block"></i>
+                        <p class="text-muted text-center mb-3">
+                            Choose Astrology, Numerology, or Palmistry to view Expert results.
+                        </p>
+                    </div>
+                {% elif expert_result_count is not None %}
+                    <p class="result-count mb-3">
+                        Found <strong>{{ expert_result_count }}</strong> result{{ expert_result_count|pluralize }}
+                    </p>
+                    {% if expert_result_count == 0 %}
+                        <div class="empty-state-premium">
+                            <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+                            <p class="text-muted text-center mb-3">
+                                No experts found for selected filters.
+                            </p>
+                            <div class="text-center">
+                                <a href="{% url 'search_ui:search_results' %}?tab=experts&expert_type={{ expert_type }}"
+                                   class="btn btn-danger">Clear Filters</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <section class="section-padding">
+                            <div class="row g-4">
+                                {% for expert in experts %}
+                                    {% include "services/_card.html" with expert=expert %}
+                                {% endfor %}
+                            </div>
+                        </section>
+                        {% if experts_pagination and experts_pagination.total_count %}
+                            {% if experts_pagination.current_page and experts_pagination.total_pages %}
+                                <p class="text-center text-muted small mb-2" aria-live="polite">
+                                    Page {{ experts_pagination.current_page }} of {{ experts_pagination.total_pages }}
+                                </p>
+                            {% endif %}
+                            {% include "module7_search/pagination.html" with pagination=experts_pagination %}
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
         <!-- Mobile Filter Button (above results, full width) -->
         <div class="d-lg-none mb-3">
             <button type="button"
@@ -323,9 +553,11 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Mobile Filter Offcanvas (slide drawer) -->
+    {% if search_ui_mode == 'pandits' or search_ui_mode == 'pages' %}
     <div class="offcanvas offcanvas-start mobile-filter-offcanvas"
          tabindex="-1"
          id="mobileFilterDrawer"
@@ -356,6 +588,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     </div>
 
 {% endblock %}
