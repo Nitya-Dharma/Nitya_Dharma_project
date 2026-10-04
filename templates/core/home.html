@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load expert_contact_tags %}
 
 {% block title %}Home - Nitya Dharma{% endblock %}
 
@@ -148,6 +149,246 @@
         </div>
     </section>
     {% endif %}
+
+    <div class="container my-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Explore Hindu Marriage Bureaus</h3>
+      </div>
+
+      <div class="row g-4">
+        {% with bureaus_list=bureaus|default_if_none:None %}
+        {% if bureaus_list %}
+          {% for bureau in bureaus_list|slice:":3" %}
+            <div class="col-12 col-md-6 col-lg-3">
+              {% include "bureaus/_card.html" with bureau=bureau %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12 text-center">
+            <p>No bureaus available</p>
+          </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/bureaus/" class="btn btn-danger px-4 py-2">
+          View All Bureaus →
+        </a>
+      </div>
+    </div>
+
+    <div class="container mt-5">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold">Explore Astrologers</h4>
+      </div>
+
+      {% if astrologers %}
+      <div class="row">
+
+        {% for expert in astrologers %}
+
+          <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+              <div class="card-body d-flex flex-column p-3 text-center">
+
+                {% if expert.profile_image %}
+                  <img src="{{ expert.profile_image.url }}" class="rounded-circle mb-2" width="80" height="80" alt="" loading="lazy" decoding="async">
+                {% endif %}
+
+                <h6 class="mb-1">{{ expert.name|default:"-" }}</h6>
+                <p class="text-muted mb-3">{{ expert.experience_years }} yrs exp</p>
+
+                <div class="mt-auto">
+                  {% url 'expert_profile' expert.id as profile_url %}
+                  <a href="{{ profile_url }}" class="btn btn-sm btn-primary w-100 mb-2">
+                    View Profile
+                  </a>
+                  {% if user.is_authenticated %}
+                    <a href="{{ profile_url }}#booking" class="btn btn-sm btn-danger w-100 mb-2">
+                      Send Booking Intent
+                    </a>
+                  {% else %}
+                    <a href="{% url 'accounts:login' %}?next={{ profile_url|urlencode }}%23booking"
+                       class="btn btn-sm btn-danger w-100 mb-2">
+                      Login to Send Booking Intent
+                    </a>
+                  {% endif %}
+                  <div class="d-flex gap-2">
+                    {% with contact_info=expert|expert_contact_info %}
+                      {% if contact_info.has_call %}
+                        <a href="{{ contact_info.call_url }}" class="btn btn-success btn-sm w-100">Call</a>
+                      {% endif %}
+                      {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
+                    {% endwith %}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        {% endfor %}
+
+      </div>
+      {% else %}
+      <p class="text-muted text-center">
+        No astrologers available right now.
+      </p>
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/astrology/" class="btn btn-danger px-4 py-2">
+          View All Astrologers →
+        </a>
+      </div>
+
+    </div>
+
+    <div class="container mt-5">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold">Explore Numerologists</h4>
+      </div>
+
+      {% if numerologists %}
+
+        <div class="row g-4">
+
+          {% for expert in numerologists %}
+
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column p-3 text-center">
+
+                  {% if expert.profile_image %}
+                    <img src="{{ expert.profile_image.url }}" class="rounded-circle mb-2" width="80" height="80" alt="" loading="lazy" decoding="async">
+                  {% endif %}
+
+                  <h6 class="mb-1">{{ expert.name|default:"-" }}</h6>
+                  <p class="text-muted mb-3">{{ expert.experience_years }} yrs exp</p>
+
+                  <div class="mt-auto">
+                    {% url 'expert_profile' expert.id as profile_url %}
+                    <a href="{{ profile_url }}" class="btn btn-sm btn-primary w-100 mb-2">
+                      View Profile
+                    </a>
+                    {% if user.is_authenticated %}
+                      <a href="{{ profile_url }}#booking" class="btn btn-sm btn-danger w-100 mb-2">
+                        Send Booking Intent
+                      </a>
+                    {% else %}
+                      <a href="{% url 'accounts:login' %}?next={{ profile_url|urlencode }}%23booking"
+                         class="btn btn-sm btn-danger w-100 mb-2">
+                        Login to Send Booking Intent
+                      </a>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                      {% with contact_info=expert|expert_contact_info %}
+                        {% if contact_info.has_call %}
+                          <a href="{{ contact_info.call_url }}" class="btn btn-success btn-sm w-100">Call</a>
+                        {% endif %}
+                        {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
+                      {% endwith %}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+      {% else %}
+
+        <p class="text-muted text-center">
+          No numerologists available right now.
+        </p>
+
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/numerology/" class="btn btn-danger px-4 py-2">
+          View All Numerologists →
+        </a>
+      </div>
+
+    </div>
+
+    <div class="container mt-5">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold">Explore Palmists</h4>
+      </div>
+
+      {% if palmists %}
+
+        <div class="row g-4">
+
+          {% for expert in palmists %}
+
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column p-3 text-center">
+
+                  {% if expert.profile_image %}
+                    <img src="{{ expert.profile_image.url }}" class="rounded-circle mb-2" width="80" height="80" alt="" loading="lazy" decoding="async">
+                  {% endif %}
+
+                  <h6 class="mb-1">{{ expert.name|default:"-" }}</h6>
+                  <p class="text-muted mb-3">{{ expert.experience_years }} yrs exp</p>
+
+                  <div class="mt-auto">
+                    {% url 'expert_profile' expert.id as profile_url %}
+                    <a href="{{ profile_url }}" class="btn btn-sm btn-primary w-100 mb-2">
+                      View Profile
+                    </a>
+                    {% if user.is_authenticated %}
+                      <a href="{{ profile_url }}#booking" class="btn btn-sm btn-danger w-100 mb-2">
+                        Send Booking Intent
+                      </a>
+                    {% else %}
+                      <a href="{% url 'accounts:login' %}?next={{ profile_url|urlencode }}%23booking"
+                         class="btn btn-sm btn-danger w-100 mb-2">
+                        Login to Send Booking Intent
+                      </a>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                      {% with contact_info=expert|expert_contact_info %}
+                        {% if contact_info.has_call %}
+                          <a href="{{ contact_info.call_url }}" class="btn btn-success btn-sm w-100">Call</a>
+                        {% endif %}
+                        {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
+                      {% endwith %}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+      {% else %}
+
+        <p class="text-muted text-center">
+          No palmists available right now.
+        </p>
+
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/palmistry/" class="btn btn-danger px-4 py-2">
+          View All Palmists →
+        </a>
+      </div>
+
+    </div>
 
     <section class="trust-section py-5 bg-light">
         <div class="container animate-fade-up">

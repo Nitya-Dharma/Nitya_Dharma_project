@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.shortcuts import render
+from bureaus.utils import get_homepage_bureaus
 from masterdata.models import City, LocalArea, Pooja
 from masterdata.services import (
     get_active_cities,
@@ -7,6 +8,7 @@ from masterdata.services import (
     get_active_poojas,
     get_active_pooja_categories,
 )
+from services.expert_discovery import experts_offering
 
 
 def offline(request):
@@ -244,5 +246,22 @@ def home(request):
     
     # Optional: Show reviews context section (backend can control this)
     context['show_reviews_context'] = True  # Backend can make this conditional
+
+    astrologers = experts_offering("astrology").order_by(
+        "-experience_years"
+    )[:4]
+
+    numerologists = experts_offering("numerology").order_by(
+        "-experience_years"
+    )[:4]
+
+    palmists = experts_offering("palmistry").order_by(
+        "-experience_years"
+    )[:4]
+
+    context["astrologers"] = astrologers
+    context["numerologists"] = numerologists
+    context["palmists"] = palmists
+    context["bureaus"] = get_homepage_bureaus()
     
     return render(request, 'core/home.html', context)
