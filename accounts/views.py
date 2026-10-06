@@ -1622,7 +1622,7 @@ def profile_settings(request):
     from .phone_utils import normalize_phone_number, phone_already_registered
 
     needs_phone_otp = (
-        getattr(request.user, "role", None) == "user"
+        getattr(request.user, "role", None) in ("user", "pandit")
         and not getattr(request.user, "is_phone_verified", True)
         and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
     )
@@ -1724,7 +1724,7 @@ def profile_settings(request):
         else raw_phone
     )
     needs_phone_otp = (
-        getattr(request.user, "role", None) == "user"
+        getattr(request.user, "role", None) in ("user", "pandit")
         and not getattr(request.user, "is_phone_verified", True)
         and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
     )
