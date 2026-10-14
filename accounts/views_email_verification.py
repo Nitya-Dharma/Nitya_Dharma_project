@@ -27,11 +27,10 @@ def verify_email_view(request, token):
     Returns:
         Redirect to login or error page
     """
-    # Add logging at entry point
-    logger.info(f"[VERIFY EMAIL] View hit - token: {token[:20]}... (length: {len(token) if token else 0})")
+    logger.info("Email verification attempted")
     
     if not token or not token.strip():
-        logger.warning("[VERIFY EMAIL] Empty token provided")
+        logger.warning("Email verification rejected: empty token")
         messages.error(request, 'Invalid verification link. Token is missing.')
         return redirect('accounts:login')
     
@@ -39,9 +38,8 @@ def verify_email_view(request, token):
     token = token.strip()
     
     try:
-        logger.info(f"[VERIFY EMAIL] Attempting to verify token: {token[:20]}...")
         user = verify_email(token)
-        logger.info(f"[VERIFY EMAIL] ✓ Email verified successfully for user: {user.email}")
+        logger.info("Email verification succeeded for user %s", user.email)
         
         # TASK 17: Check account status after verification
         # Verification confirms email only - role/status resolved at activation time
@@ -68,11 +66,14 @@ def verify_email_view(request, token):
         
         return redirect('accounts:login')
     except ValidationError as e:
-        logger.warning(f"[VERIFY EMAIL] Validation error: {str(e)}")
-        messages.error(request, f'Email verification failed: {str(e)}')
+        logger.warning("Email verification rejected")
+        messages.error(request, 'This verification link is invalid or expired. Please request a new one.')
         return redirect('accounts:login')
     except Exception as e:
-        logger.error(f"[VERIFY EMAIL] ✗ Unexpected error during verification: {str(e)}", exc_info=True)
-        messages.error(request, f'Email verification failed: {str(e)}')
+        logger.error(
+            "Email verification failed",
+            extra={"error_type": type(e).__name__},
+        )
+        messages.error(request, 'This verification link is invalid or expired. Please request a new one.')
         return redirect('accounts:login')
 

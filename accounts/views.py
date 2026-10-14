@@ -657,6 +657,36 @@ def pandit_register(request, referral_token):
                 }
             
             # Return response based on request type
+            # Widget proof is persisted only after create/referral succeed, and
+            # only when this submission did not take the allowed skip path.
+            if not skip_phone_verification:
+                from otp_verification.registration.completions import (
+                    mark_pandit_user_phone_verified,
+                )
+                from otp_verification.registration.gate import (
+                    _challenge_represents_successful_verification,
+                )
+                from otp_verification.registration.session import (
+                    phone_verified_matches_registration,
+                )
+
+                phone_verified = phone_verified_matches_registration(
+                    request,
+                    flow_type=otp_constants.FLOW_PANDIT_REGISTRATION,
+                    destination=phone_number,
+                )
+                challenge_id = ""
+                if phone_verified is not None:
+                    challenge_id = str(phone_verified.get("challenge_id") or "")
+                if (
+                    phone_verified is not None
+                    and challenge_id
+                    and _challenge_represents_successful_verification(
+                        challenge_id=challenge_id,
+                        flow_type=otp_constants.FLOW_PANDIT_REGISTRATION,
+                    )
+                ):
+                    mark_pandit_user_phone_verified(email=email, phone=phone_number)
             from otp_verification.registration.session import consume_phone_verified_session
             consume_phone_verified_session(request)
             if request.content_type == 'application/json':

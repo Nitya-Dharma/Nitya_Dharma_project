@@ -105,7 +105,6 @@ def create_email_verification(user, sent_by=None):
                 logger.warning(f"[EMAIL DEBUG] User email_verified: {user.email_verified}")
                 logger.warning(f"[EMAIL DEBUG] Token ID: {verification_token.id}")
                 logger.warning(f"[EMAIL DEBUG] Token public_id: {verification_token.public_id}")
-                logger.warning(f"[EMAIL DEBUG] Token: {verification_token.token[:20]}...")
                 logger.warning(f"[EMAIL DEBUG] Token expires_at: {verification_token.expires_at}")
                 
                 # Send verification email in a background thread so the HTTP request returns
@@ -130,8 +129,9 @@ def create_email_verification(user, sent_by=None):
                             pass
                     except Exception as email_error:
                         logger.error(
-                            f"Verification email failed for {user.email}: {type(email_error).__name__}: {email_error}",
-                            exc_info=True,
+                            "Email verification scheduling failed for %s",
+                            user.email,
+                            extra={"error_type": type(email_error).__name__},
                         )
 
                 thread = threading.Thread(target=_send_in_thread, daemon=True)
@@ -141,11 +141,15 @@ def create_email_verification(user, sent_by=None):
             # Schedule email to be sent after transaction commits
             transaction.on_commit(send_email_after_commit)
             
-            logger.info(f"Email verification token created for user {user.email} (token: {verification_token.public_id})")
+            logger.info("Email verification token created for user %s", user.email)
             return verification_token
             
     except Exception as e:
-        logger.error(f"Error creating email verification token for user {user.email}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification token creation failed for %s",
+            user.email,
+            extra={"error_type": type(e).__name__},
+        )
         raise
 
 
@@ -174,7 +178,7 @@ def send_verification_email(user, verification_token):
             logger.error(f"[EMAIL DEBUG] Invalid verification token - token is None or empty")
             raise ValidationError("Invalid verification token for email sending")
         
-        logger.warning(f"[EMAIL DEBUG] Building verification URL for token: {verification_token.token[:20]}...")
+        logger.warning("Email verification URL construction started")
         
         # Build absolute URL using SITE_URL from settings (FIXED: Use SITE_URL directly)
         try:
@@ -210,14 +214,16 @@ def send_verification_email(user, verification_token):
             verification_url = f"{site_url}{relative_path}"
             
             logger.warning(f"[EMAIL DEBUG] SITE_URL: {site_url}")
-            logger.warning(f"[EMAIL DEBUG] Relative path: {relative_path}")
-            logger.warning(f"[EMAIL DEBUG] Verification URL built: {verification_url}")
+            logger.warning("Email verification URL constructed")
             
         except Exception as url_error:
-            logger.error(f"[EMAIL DEBUG] Error building verification URL: {url_error}", exc_info=True)
+            logger.error(
+                "Email verification URL construction failed",
+                extra={"error_type": type(url_error).__name__},
+            )
             # Final fallback: use relative URL (user will need to copy-paste)
             verification_url = f'/accounts/verify-email/{verification_token.token}/'
-            logger.warning(f"[EMAIL DEBUG] Using fallback relative URL: {verification_url}")
+            logger.warning("Email verification URL fallback constructed")
         
         # Email subject
         subject = 'Verify your email address - Nitya Dharma'
@@ -309,16 +315,22 @@ Nitya Dharma Team
             logger.warning(f"[EMAIL DEBUG] Email should arrive at: {user_email}")
             logger.info(f"Verification email sent to {user_email}")
         except Exception as send_error:
-            logger.error(f"[EMAIL DEBUG] ✗ send_mail() FAILED for {user_email}")
-            logger.error(f"[EMAIL DEBUG] Error type: {type(send_error).__name__}")
-            logger.error(f"[EMAIL DEBUG] Error message: {str(send_error)}")
+            logger.error("Email verification send failed for %s", user_email)
+            logger.error(
+                "Email verification send failed",
+                extra={"error_type": type(send_error).__name__},
+            )
             raise  # Re-raise to ensure error is visible
         
     except Exception as e:
         logger.error(f"[EMAIL DEBUG] ========================================")
         logger.error(f"[EMAIL DEBUG] CRITICAL: Email sending FAILED")
         logger.error(f"[EMAIL DEBUG] ========================================")
-        logger.error(f"[EMAIL DEBUG] Error sending verification email to {user_email}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification send failed for %s",
+            user_email,
+            extra={"error_type": type(e).__name__},
+        )
         # Check email backend and warn if using console
         # Use module-level settings import (already imported at top of file)
         email_backend = getattr(settings, 'EMAIL_BACKEND', 'unknown')
@@ -468,13 +480,18 @@ def verify_email(token):
                 pass
             
             logger.info(
-                f"Email verified for user {user.email} (token: {verification_token.public_id}) - "
-                f"Role: {user.role}, Status: {user.status} (unchanged by verification)"
+                "Email verified for user %s. Role: %s, Status: %s (unchanged by verification)",
+                user.email,
+                user.role,
+                user.status,
             )
             return user
             
     except Exception as e:
-        logger.error(f"Error verifying email token {token}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification failed",
+            extra={"error_type": type(e).__name__},
+        )
         raise
 
 

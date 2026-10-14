@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 
 import requests
 from django.conf import settings
@@ -36,10 +35,6 @@ _OTP_SMS_TEMPLATE = (
 )
 
 
-def _redact_url(url: str) -> str:
-    return re.sub(r"([?&]ApiKey=)[^&]+", r"\1***", url)
-
-
 def _normalize_number(destination: str) -> str:
     """Ensure Indian mobiles are sent as 91XXXXXXXXXX when possible."""
 
@@ -52,19 +47,25 @@ def _normalize_number(destination: str) -> str:
 
 
 def _parse_provider_reference(response: requests.Response) -> str:
+    # Raise outside the handler so a response body inside ValueError is not chained.
+    non_json = False
     try:
         payload = response.json()
-    except ValueError as exc:
+    except ValueError:
+        non_json = True
+    if non_json:
         raise ProviderFailureException(
             "broadcast_sms returned a non-JSON response."
-        ) from exc
+        )
 
+    if not isinstance(payload, dict):
+        raise ProviderFailureException(
+            "broadcast_sms returned an unexpected response format."
+        )
     code = str(payload.get("code") or "").strip()
     if code and code != "200":
-        api_message = str(payload.get("message") or "").strip()
         raise ProviderFailureException(
-            f"broadcast_sms delivery failed with API code {code}"
-            + (f": {api_message}" if api_message else ".")
+            "broadcast_sms delivery failed with a non-success API code."
         )
 
     message_raw = payload.get("message")
@@ -128,15 +129,17 @@ class BroadcastSmsProvider(BaseOTPProvider):
             "Authorization": f"Bearer {api_key}",
         }
 
-        prepared = requests.Request("GET", SEND_URL, params=params, headers=headers).prepare()
         logger.info(
-            "Broadcast SMS Request",
+            "Broadcast SMS request started",
             extra={
-                "url": _redact_url(prepared.url or SEND_URL),
-                "headers": {"Authorization": "Bearer ***"},
+                "provider_name": self.provider_name,
+                "outcome": "request_started",
             },
         )
 
+        # Record transport failures, then raise outside this handler. The requests
+        # exception message can contain the URL, API key, OTP, and phone number.
+        transport_error: ProviderTimeoutException | ProviderUnavailableException | None = None
         try:
             response = requests.get(
                 SEND_URL,
@@ -144,27 +147,43 @@ class BroadcastSmsProvider(BaseOTPProvider):
                 headers=headers,
                 timeout=TIMEOUT_SECONDS,
             )
-        except requests.Timeout as exc:
-            logger.error("Broadcast SMS timeout", exc_info=True)
-            raise ProviderTimeoutException("broadcast_sms request timed out.") from exc
-        except requests.ConnectionError as exc:
-            logger.error("Broadcast SMS connection error", exc_info=True)
-            raise ProviderUnavailableException(
+        except requests.Timeout:
+            logger.error(
+                "Broadcast SMS timeout",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "timeout",
+                },
+            )
+            transport_error = ProviderTimeoutException(
+                "broadcast_sms request timed out."
+            )
+        except requests.ConnectionError:
+            logger.error(
+                "Broadcast SMS connection error",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "unavailable",
+                },
+            )
+            transport_error = ProviderUnavailableException(
                 "broadcast_sms provider unavailable."
-            ) from exc
+            )
+        if transport_error is not None:
+            raise transport_error
 
         logger.info(
-            "Broadcast SMS Response",
+            "Broadcast SMS response received",
             extra={
-                "status": response.status_code,
-                "body": response.text[:1000],
+                "provider_name": self.provider_name,
+                "http_status": response.status_code,
+                "outcome": "http_response",
             },
         )
 
         if response.status_code != 200:
             raise ProviderFailureException(
-                f"broadcast_sms delivery failed with HTTP {response.status_code}: "
-                f"{response.text[:500]}"
+                f"broadcast_sms delivery failed with HTTP {response.status_code}."
             )
 
         provider_reference = _parse_provider_reference(response)

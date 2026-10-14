@@ -25,6 +25,7 @@ from otp_verification.registration.factory import build_registration_otp_service
 from otp_verification.registration.session import (
     get_pending_registration,
     store_pending_registration,
+    store_phone_verified,
 )
 from otp_verification.registration.views import verify_registration_otp
 from otp_verification.services.factory import (
@@ -365,3 +366,87 @@ class PanditRegistrationOTPSkipTests(TestCase):
         self.assertFalse(
             User.objects.filter(email="bad-referral-skip@example.com").exists()
         )
+
+    def _seed_client_widget_proof(self, *, phone):
+        """Verify a Pandit challenge on the test runtime and store session proof."""
+
+        issued = self._issue_pandit_challenge(phone=phone)
+        self.service.verify_challenge(
+            challenge_id=issued.challenge.id,
+            submitted_otp=issued.otp_code,
+        )
+        holder = _prepare_request(self.factory)
+        session = self.client.session
+        holder.session = session
+        store_phone_verified(
+            holder,
+            challenge_id=issued.challenge.id,
+            destination=phone,
+            flow_type=constants.FLOW_PANDIT_REGISTRATION,
+        )
+        session.save()
+        return issued
+
+    def test_widget_verified_session_marks_phone_verified_without_activation(self):
+        phone = "9876543216"
+        email = "widget-verified@example.com"
+        self._seed_client_widget_proof(phone=phone)
+        payload = _pandit_form_payload(email=email, phone=phone)
+        with (
+            patch(
+                "otp_verification.registration.factory.is_registration_otp_required",
+                return_value=True,
+            ),
+            patch(
+                "otp_verification.registration.gate.build_registration_otp_service",
+                return_value=self.service,
+            ),
+        ):
+            response = self.client.post(self.register_url, payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.filter(email=email).count(), 1)
+        user = User.objects.get(email=email)
+        profile = PanditProfile.objects.get(user=user)
+        self.assertTrue(user.is_phone_verified)
+        self.assertEqual(user.status, "pending")
+        self.assertFalse(user.is_active)
+        self.assertFalse(profile.is_profile_approved)
+        self.assertEqual(
+            ReferralUsage.objects.filter(referred_pandit=user).count(),
+            1,
+        )
+
+    def test_skip_registration_stays_unverified_when_widget_proof_is_present(self):
+        # skip_phone_verification bypasses begin_otp_or_continue. A prior widget
+        # proof can still be in the session; that submission must stay unverified.
+        phone = "9876543217"
+        email = "widget-skip-stale@example.com"
+        self._seed_client_widget_proof(phone=phone)
+        payload = {
+            **_pandit_form_payload(email=email, phone=phone),
+            "skip_phone_verification": "1",
+        }
+        with (
+            patch(
+                "otp_verification.registration.factory.is_registration_otp_required",
+                return_value=True,
+            ),
+            patch(
+                "otp_verification.registration.gate.begin_otp_or_continue",
+                side_effect=AssertionError("OTP gate must not run when skipping"),
+            ),
+            patch(
+                "otp_verification.registration.gate.build_registration_otp_service",
+                return_value=self.service,
+            ),
+        ):
+            response = self.client.post(self.register_url, payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.filter(email=email).count(), 1)
+        user = User.objects.get(email=email)
+        self.assertFalse(user.is_phone_verified)
+        self.assertEqual(user.status, "pending")
+        self.assertFalse(user.is_active)
+        self.assertFalse(PanditProfile.objects.get(user=user).is_profile_approved)

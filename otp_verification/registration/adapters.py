@@ -66,10 +66,7 @@ def normalize_destination(destination: str) -> str:
     if normalized is None:
         raise RegistrationOTPValidationError("Phone number format is invalid.")
 
-    logger.info(
-        "Normalized phone number",
-        extra={"original": original, "normalized": normalized},
-    )
+    logger.info("Phone number normalized")
     return normalized
 
 
