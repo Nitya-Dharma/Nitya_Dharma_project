@@ -612,9 +612,16 @@ class SendRegistrationOTPTests(SimpleTestCase):
                 wants_json=True,
             )
 
+        self.assertIsNotNone(blocked)
         self.assertEqual(blocked.status_code, 429)
         self.assertEqual(_json(blocked)["error"], ERROR_GENERATION_LIMIT)
         self.assertEqual(service.start_verification.call_count, 5)
+        self.assertEqual(
+            get_otp_generation_count(
+                request, flow_type=constants.FLOW_PANDIT_REGISTRATION
+            ),
+            5,
+        )
         self.assertIn(GENERATION_BUDGET_SESSION_KEY, request.session)
 
     def test_authenticated_edit_profile_budget_follows_django_session(self):

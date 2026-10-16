@@ -17,6 +17,7 @@ from otp_verification.registration.exceptions import (
     RegistrationOTPError,
     RegistrationOTPGenerationLimitReached,
     RegistrationOTPNotFound,
+    RegistrationOTPValidationError,
 )
 from otp_verification.registration.factory import (
     build_registration_otp_service,
@@ -189,6 +190,21 @@ def begin_otp_or_continue(
         # Provider delivery failed. OTP is not a registration barrier.
         # Caller continues the existing create path; is_phone_verified stays False.
         return None
+    except RegistrationOTPValidationError as exc:
+        # Preserve invalid-input validation; optional OTP does not bypass it.
+        if wants_json:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": "invalid_otp_request",
+                    "error_code": "invalid_otp_request",
+                    "result": None,
+                    "message": str(exc),
+                },
+                status=400,
+            )
+        messages.error(request, str(exc))
+        return HttpResponse(status=400)
     except RegistrationOTPError as exc:
         if wants_json:
             return JsonResponse(
