@@ -1,0 +1,92 @@
+name: otp-broadcast-sms-isolated
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "otp_verification/providers/broadcast_sms.py"
+      - "otp_verification/tests/unit/test_broadcast_sms_provider.py"
+      - "otp_verification/tests/unit/test_broadcast_sms_provider_post.py"
+      - ".github/workflows/otp-broadcast-sms-isolated.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-provider-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      DJANGO_SETTINGS_MODULE: otp_broadcast_sms_ci_settings
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Confirm checkout matches PR head SHA
+        env:
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          checked_out="$(git rev-parse HEAD)"
+          echo "event_sha=$EVENT_SHA"
+          echo "checked_out=$checked_out"
+          if [ "$checked_out" != "$EVENT_SHA" ]; then
+            echo "Checkout does not match github.event.pull_request.head.sha"
+            exit 1
+          fi
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Write runner-only settings and empty URLconf
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ci_urls.py" <<'PY'
+          urlpatterns = []
+          PY
+          cat > "$RUNNER_TEMP/otp_broadcast_sms_ci_settings.py" <<'PY'
+          SECRET_KEY = "isolated-ci-not-for-production"
+          DEBUG = False
+          ALLOWED_HOSTS = []
+          USE_TZ = True
+          USE_I18N = False
+          ROOT_URLCONF = "ci_urls"
+          MIDDLEWARE = []
+          INSTALLED_APPS = [
+              "django.contrib.contenttypes",
+              "otp_verification",
+          ]
+          DATABASES = {
+              "default": {
+                  "ENGINE": "django.db.backends.sqlite3",
+                  "NAME": ":memory:",
+              }
+          }
+          SMS_API_KEY = ""
+          OTP_ENABLED = False
+          OTP_MODE = "mock"
+          OTP_PROVIDER = "mock_sms"
+          OTP_PROVIDER_ENABLED = False
+          PY
+
+      - name: Install Django 4.2.30 and requests only
+        run: python -m pip install "Django==4.2.30" "requests>=2.31,<3"
+
+      - name: Run only the two Broadcast SMS modules
+        env:
+          PYTHONPATH: ${{ runner.temp }}:${{ github.workspace }}
+        run: |
+          python -m django test \
+            otp_verification.tests.unit.test_broadcast_sms_provider \
+            otp_verification.tests.unit.test_broadcast_sms_provider_post \
+            --verbosity=2
