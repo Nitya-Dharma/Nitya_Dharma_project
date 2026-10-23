@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 
 import requests
 from django.conf import settings
@@ -23,21 +22,26 @@ from otp_verification.interfaces.providers import BaseOTPProvider, ProviderReque
 logger = logging.getLogger(__name__)
 
 SEND_URL = "https://dashboard.broadcast.run/api/v1/sms/sendsms"
+POST_SEND_URL = "https://dashboard.broadcast.run/api/v1/send"
 SENDER_ID = "NDHRMA"
 PE_ID = "1701177338710464858"
 DLT_TEMPLATE_ID = "1777178575487318004"
+CHAIN_VALUE = "1701177338710464858,1702157434240941334"
 TIMEOUT_SECONDS = 10
 
-# DLT-approved template; {#num#} is replaced with the engine OTP at send time.
+# GET transport embeds the engine OTP into the approved wording via {otp}.
 _OTP_SMS_TEMPLATE = (
     "Hello Your Nitya Dharma Registration OTP is {otp} "
     "It is valid for 10 minutes. Please do not share this OTP with anyone. "
     "https://nityadharma.com"
 )
 
-
-def _redact_url(url: str) -> str:
-    return re.sub(r"([?&]ApiKey=)[^&]+", r"\1***", url)
+# POST transport keeps approved wording; provider substitutes {#var1#}.
+_OTP_SMS_TEMPLATE_POST = (
+    "Hello Your Nitya Dharma Registration OTP is {#var1#} "
+    "It is valid for 10 minutes. Please do not share this OTP with anyone. "
+    "https://nityadharma.com"
+)
 
 
 def _normalize_number(destination: str) -> str:
@@ -51,20 +55,44 @@ def _normalize_number(destination: str) -> str:
     return raw
 
 
+def _resolve_transport() -> str:
+    """Return 'get' or 'post'. Absent/empty settings+env => 'get'."""
+
+    setting_raw = getattr(settings, "BROADCAST_SMS_TRANSPORT", None)
+    if setting_raw is not None and str(setting_raw).strip() != "":
+        value = str(setting_raw).strip().lower()
+    else:
+        value = str(os.environ.get("BROADCAST_SMS_TRANSPORT", "") or "").strip().lower()
+
+    if value == "":
+        return "get"
+    if value in {"get", "post"}:
+        return value
+    raise ConfigurationException(
+        "BROADCAST_SMS_TRANSPORT must be 'get' or 'post'."
+    )
+
+
 def _parse_provider_reference(response: requests.Response) -> str:
+    # Raise outside the handler so a response body inside ValueError is not chained.
+    non_json = False
     try:
         payload = response.json()
-    except ValueError as exc:
+    except ValueError:
+        non_json = True
+    if non_json:
         raise ProviderFailureException(
             "broadcast_sms returned a non-JSON response."
-        ) from exc
+        )
 
+    if not isinstance(payload, dict):
+        raise ProviderFailureException(
+            "broadcast_sms returned an unexpected response format."
+        )
     code = str(payload.get("code") or "").strip()
     if code and code != "200":
-        api_message = str(payload.get("message") or "").strip()
         raise ProviderFailureException(
-            f"broadcast_sms delivery failed with API code {code}"
-            + (f": {api_message}" if api_message else ".")
+            "broadcast_sms delivery failed with a non-success API code."
         )
 
     message_raw = payload.get("message")
@@ -74,9 +102,11 @@ def _parse_provider_reference(response: requests.Response) -> str:
         except (TypeError, ValueError):
             entries = None
         if isinstance(entries, list) and entries:
-            message_id = str(entries[0].get("messageId") or "").strip()
-            if message_id:
-                return message_id
+            first_entry = entries[0]
+            if isinstance(first_entry, dict):
+                message_id = str(first_entry.get("messageId") or "").strip()
+                if message_id:
+                    return message_id
 
     raise ProviderFailureException(
         "broadcast_sms success response missing provider messageId."
@@ -84,7 +114,7 @@ def _parse_provider_reference(response: requests.Response) -> str:
 
 
 class BroadcastSmsProvider(BaseOTPProvider):
-    """SMS delivery adapter for broadcast.run Omni SMS (GET + query params)."""
+    """SMS delivery adapter for broadcast.run (GET default; optional POST)."""
 
     provider_name = constants.PROVIDER_BROADCAST_SMS
 
@@ -111,10 +141,27 @@ class BroadcastSmsProvider(BaseOTPProvider):
         if not request.message:
             raise ValidationException("Provider request requires message.")
 
+        transport = _resolve_transport()
         api_key = self._resolve_api_key()
-        # request.message is the engine OTP only — never log or store it.
-        text = _OTP_SMS_TEMPLATE.format(otp=request.message)
         number = _normalize_number(request.destination)
+
+        if transport == "get":
+            return self._send_get(
+                api_key=api_key,
+                number=number,
+                otp_code=str(request.message),
+            )
+        return self._send_post(
+            api_key=api_key,
+            number=number,
+            otp_code=str(request.message),
+        )
+
+    def _send_get(
+        self, *, api_key: str, number: str, otp_code: str
+    ) -> ProviderResponse:
+        # request.message / otp_code is the engine OTP only — never log or store it.
+        text = _OTP_SMS_TEMPLATE.format(otp=otp_code)
 
         params = {
             "ApiKey": api_key,
@@ -128,15 +175,18 @@ class BroadcastSmsProvider(BaseOTPProvider):
             "Authorization": f"Bearer {api_key}",
         }
 
-        prepared = requests.Request("GET", SEND_URL, params=params, headers=headers).prepare()
         logger.info(
-            "Broadcast SMS Request",
+            "Broadcast SMS request started",
             extra={
-                "url": _redact_url(prepared.url or SEND_URL),
-                "headers": {"Authorization": "Bearer ***"},
+                "provider_name": self.provider_name,
+                "outcome": "request_started",
+                "transport": "get",
             },
         )
 
+        # Record transport failures, then raise outside this handler. The requests
+        # exception message can contain the URL, API key, OTP, and phone number.
+        transport_error: ProviderTimeoutException | ProviderUnavailableException | None = None
         try:
             response = requests.get(
                 SEND_URL,
@@ -144,27 +194,135 @@ class BroadcastSmsProvider(BaseOTPProvider):
                 headers=headers,
                 timeout=TIMEOUT_SECONDS,
             )
-        except requests.Timeout as exc:
-            logger.error("Broadcast SMS timeout", exc_info=True)
-            raise ProviderTimeoutException("broadcast_sms request timed out.") from exc
-        except requests.ConnectionError as exc:
-            logger.error("Broadcast SMS connection error", exc_info=True)
-            raise ProviderUnavailableException(
+        except requests.Timeout:
+            logger.error(
+                "Broadcast SMS timeout",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "timeout",
+                    "transport": "get",
+                },
+            )
+            transport_error = ProviderTimeoutException(
+                "broadcast_sms request timed out."
+            )
+        except requests.ConnectionError:
+            logger.error(
+                "Broadcast SMS connection error",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "unavailable",
+                    "transport": "get",
+                },
+            )
+            transport_error = ProviderUnavailableException(
                 "broadcast_sms provider unavailable."
-            ) from exc
+            )
+        if transport_error is not None:
+            raise transport_error
 
         logger.info(
-            "Broadcast SMS Response",
+            "Broadcast SMS response received",
             extra={
-                "status": response.status_code,
-                "body": response.text[:1000],
+                "provider_name": self.provider_name,
+                "http_status": response.status_code,
+                "outcome": "http_response",
+                "transport": "get",
             },
         )
 
         if response.status_code != 200:
             raise ProviderFailureException(
-                f"broadcast_sms delivery failed with HTTP {response.status_code}: "
-                f"{response.text[:500]}"
+                f"broadcast_sms delivery failed with HTTP {response.status_code}."
+            )
+
+        provider_reference = _parse_provider_reference(response)
+        return ProviderResponse(
+            accepted=True,
+            provider_name=self.provider_name,
+            provider_reference=provider_reference,
+            metadata={},
+        )
+
+    def _send_post(
+        self, *, api_key: str, number: str, otp_code: str
+    ) -> ProviderResponse:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        body = {
+            "channel": "SMS",
+            "to": [number],
+            "from": SENDER_ID,
+            "content": {
+                "data": {
+                    "dlttemplateid": DLT_TEMPLATE_ID,
+                    "text": _OTP_SMS_TEMPLATE_POST,
+                    "peid": PE_ID,
+                    "chainvalue": CHAIN_VALUE,
+                },
+                "params": {"var1": otp_code},
+            },
+        }
+
+        logger.info(
+            "Broadcast SMS request started",
+            extra={
+                "provider_name": self.provider_name,
+                "outcome": "request_started",
+                "transport": "post",
+            },
+        )
+
+        transport_error: ProviderTimeoutException | ProviderUnavailableException | None = None
+        try:
+            response = requests.post(
+                POST_SEND_URL,
+                json=body,
+                headers=headers,
+                timeout=TIMEOUT_SECONDS,
+            )
+        except requests.Timeout:
+            logger.error(
+                "Broadcast SMS timeout",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "timeout",
+                    "transport": "post",
+                },
+            )
+            transport_error = ProviderTimeoutException(
+                "broadcast_sms request timed out."
+            )
+        except requests.ConnectionError:
+            logger.error(
+                "Broadcast SMS connection error",
+                extra={
+                    "provider_name": self.provider_name,
+                    "outcome": "unavailable",
+                    "transport": "post",
+                },
+            )
+            transport_error = ProviderUnavailableException(
+                "broadcast_sms provider unavailable."
+            )
+        if transport_error is not None:
+            raise transport_error
+
+        logger.info(
+            "Broadcast SMS response received",
+            extra={
+                "provider_name": self.provider_name,
+                "http_status": response.status_code,
+                "outcome": "http_response",
+                "transport": "post",
+            },
+        )
+
+        if response.status_code != 200:
+            raise ProviderFailureException(
+                f"broadcast_sms delivery failed with HTTP {response.status_code}."
             )
 
         provider_reference = _parse_provider_reference(response)
