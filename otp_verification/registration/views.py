@@ -464,8 +464,65 @@ def verify_registration_otp(request):
             flow_type=flow_type,
             challenge_id=challenge_id,
         ):
-            verified_flow = flow_type
-            verified_challenge = challenge_id
+            # A session marker alone is insufficient: confirm durable challenge state.
+            try:
+                status = service.get_challenge_status(challenge_id=challenge_id)
+            except RegistrationOTPError:
+                status = None
+            except Exception:
+                logger.exception(
+                    "event=%s flow=%s challenge=%s reason=status_check_failed",
+                    AuditEvent.REGISTRATION_VERIFY_FAILED,
+                    flow_type,
+                    challenge_id,
+                )
+                status = None
+
+            status_value = getattr(status, "status", None)
+            raw_status = getattr(status_value, "value", status_value)
+            if (
+                status is not None
+                and str(status.challenge_id) == challenge_id
+                and str(status.flow_type) == flow_type
+                and str(raw_status).upper() == "VERIFIED"
+            ):
+                verified_flow = flow_type
+                verified_challenge = challenge_id
+            else:
+                # Do not trust the marker; require a fresh OTP verification.
+                request.session.pop("otp.registration.verified", None)
+                request.session.modified = True
+                if not submitted_otp:
+                    raise RegistrationOTPValidationError(
+                        "OTP verification is required. Please enter your code."
+                    )
+                verified = service.verify_challenge(
+                    challenge_id=posted_challenge,
+                    submitted_otp=submitted_otp,
+                )
+                if verified.flow_type != flow_type or verified.challenge_id != challenge_id:
+                    return _respond_error(
+                        request,
+                        wants_json=wants_json,
+                        error=ERROR_OWNERSHIP,
+                        message="Invalid verification request. Please restart registration.",
+                        clear_pending=True,
+                        resume_path=resume_path,
+                    )
+                mark_registration_otp_verified(
+                    request,
+                    challenge_id=verified.challenge_id,
+                    flow_type=verified.flow_type,
+                )
+                if destination:
+                    store_phone_verified(
+                        request,
+                        challenge_id=verified.challenge_id,
+                        destination=destination,
+                        flow_type=verified.flow_type,
+                    )
+                verified_flow = verified.flow_type
+                verified_challenge = verified.challenge_id
             logger.info(
                 "event=%s flow=%s challenge=%s mode=resume_verified",
                 AuditEvent.REGISTRATION_VERIFY_SUCCEEDED,

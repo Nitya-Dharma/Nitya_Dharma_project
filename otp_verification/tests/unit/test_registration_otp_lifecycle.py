@@ -350,6 +350,10 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         )
         _as_json_client(request)
         self._store_pending(request, challenge_id=issued.challenge.id)
+        self.service.verify_challenge(
+            challenge_id=issued.challenge.id,
+            submitted_otp=issued.otp_code,
+        )
         mark_registration_otp_verified(
             request,
             challenge_id=issued.challenge.id,
@@ -357,6 +361,9 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         )
 
         with patch(
+            "otp_verification.registration.views.build_registration_otp_service",
+            return_value=self.service,
+        ), patch(
             "otp_verification.registration.views.complete_pending_registration",
             side_effect=CompletionError("db failed"),
         ):
@@ -381,6 +388,10 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         )
         _as_json_client(request)
         self._store_pending(request, challenge_id=issued.challenge.id)
+        self.service.verify_challenge(
+            challenge_id=issued.challenge.id,
+            submitted_otp=issued.otp_code,
+        )
         mark_registration_otp_verified(
             request,
             challenge_id=issued.challenge.id,
@@ -388,6 +399,9 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         )
 
         with patch(
+            "otp_verification.registration.views.build_registration_otp_service",
+            return_value=self.service,
+        ), patch(
             "otp_verification.registration.views.complete_pending_registration",
             side_effect=RuntimeError("secret provider stack"),
         ):
@@ -439,6 +453,33 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/otp/registration/verify/", response.url)
 
+    def test_unverified_challenge_cannot_resume_from_forged_session_marker(self):
+        issued = self._issue()
+        request = _prepare_request(
+            self.factory,
+            method="post",
+            data={"challenge_id": issued.challenge.id, "otp": ""},
+        )
+        _as_json_client(request)
+        self._store_pending(request, challenge_id=issued.challenge.id)
+        mark_registration_otp_verified(
+            request,
+            challenge_id=issued.challenge.id,
+            flow_type=constants.FLOW_USER_REGISTRATION,
+        )
+
+        with patch(
+            "otp_verification.registration.views.build_registration_otp_service",
+            return_value=self.service,
+        ), patch(
+            "otp_verification.registration.views.complete_pending_registration",
+        ) as complete:
+            response = verify_registration_otp(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(_json_body(response)["error"], ERROR_VALIDATION)
+        complete.assert_not_called()
+
     def test_concurrent_verified_resume_skips_reverify(self):
         """Second POST after verified marker resumes completion without re-OTP."""
 
@@ -450,12 +491,19 @@ class RegistrationOTPLifecycleHardeningTests(SimpleTestCase):
         )
         _as_json_client(request)
         self._store_pending(request, challenge_id=issued.challenge.id)
+        self.service.verify_challenge(
+            challenge_id=issued.challenge.id,
+            submitted_otp=issued.otp_code,
+        )
         mark_registration_otp_verified(
             request,
             challenge_id=issued.challenge.id,
             flow_type=constants.FLOW_USER_REGISTRATION,
         )
         with patch(
+            "otp_verification.registration.views.build_registration_otp_service",
+            return_value=self.service,
+        ), patch(
             "otp_verification.registration.views.complete_pending_registration",
             return_value={
                 "flow_type": constants.FLOW_USER_REGISTRATION,

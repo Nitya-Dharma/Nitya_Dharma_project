@@ -13,9 +13,11 @@ from django.urls import reverse
 from otp_verification.enums import AuditEvent, ChallengeStatus
 from otp_verification import constants
 from otp_verification.registration.exceptions import (
+    RegistrationOTPDeliveryFailed,
     RegistrationOTPError,
     RegistrationOTPGenerationLimitReached,
     RegistrationOTPNotFound,
+    RegistrationOTPValidationError,
 )
 from otp_verification.registration.factory import (
     build_registration_otp_service,
@@ -71,7 +73,8 @@ def begin_otp_or_continue(
 
     Returns None when:
     - OTP is disabled (caller uses existing create logic), or
-    - a valid phone_verified session matches this flow + phone (skip OTP issue only).
+    - a valid phone_verified session matches this flow + phone (skip OTP issue only), or
+    - SMS/provider delivery fails (caller creates the account with phone unverified).
 
     When OTP was already verified but completion is unfinished, redirects
     to the verify endpoint so completion uses the session pending payload
@@ -183,6 +186,25 @@ def begin_otp_or_continue(
             )
         messages.error(request, str(exc))
         return HttpResponse(status=429)
+    except RegistrationOTPDeliveryFailed:
+        # Provider delivery failed. OTP is not a registration barrier.
+        # Caller continues the existing create path; is_phone_verified stays False.
+        return None
+    except RegistrationOTPValidationError as exc:
+        # Preserve invalid-input validation; optional OTP does not bypass it.
+        if wants_json:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "error": "invalid_otp_request",
+                    "error_code": "invalid_otp_request",
+                    "result": None,
+                    "message": str(exc),
+                },
+                status=400,
+            )
+        messages.error(request, str(exc))
+        return HttpResponse(status=400)
     except RegistrationOTPError as exc:
         if wants_json:
             return JsonResponse(
