@@ -50,6 +50,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # Pin the tested feature snapshot (qa.py + DB-free suite + Phase 2D sources).
+          # Update this SHA intentionally when the tested feature tip changes; do not
+          # silently float to main or to an unreviewed commit.
+          ref: c2240eb1bf3d62d312c3064f43667942e971146b
 
       - name: Set up Python 3.11
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
