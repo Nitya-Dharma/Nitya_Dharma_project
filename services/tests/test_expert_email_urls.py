@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.test import Client, RequestFactory, TestCase, override_settings
@@ -102,6 +103,63 @@ class ExpertEmailUrlTests(TestCase):
             approval_calls[0].kwargs.get("message")
             or approval_calls[0].args[1]
         )
+        self.assertNotIn("127.0.0.1", message)
+        self.assertNotIn("localhost", message)
+        self.assertIn(f"{TEST_SITE_URL}/accounts/login/", message)
+        self.assertIn(f"{TEST_SITE_URL}/dashboard/expert/", message)
+
+    @patch("dashboards.views.send_mail")
+    def test_bulk_approval_email_uses_site_url_login_and_dashboard_paths(
+        self, mock_send_mail
+    ):
+        """bulk_approve_experts must match single-approve email recipient and URLs."""
+        admin = User.objects.create_superuser(
+            email="expert-bulk-email-admin@example.com",
+            password="AdminPass123!",
+        )
+        expert = ExpertProfile.objects.create(
+            name="Pending Bulk Email Expert",
+            expert_type="ASTROLOGER",
+            email="expert-bulk-email-approve@example.com",
+            phone="9876543297",
+            experience_years=3,
+            description="Pending bulk approval email test",
+            is_active=False,
+        )
+        expert.services.add(self.astrology)
+
+        self.client.force_login(admin)
+        response = self.client.post(
+            reverse("module5_dashboards:bulk_approve_experts"),
+            {
+                "selected_experts": [str(expert.id)],
+                "type": "ASTROLOGER",
+                "status": "pending",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        expert.refresh_from_db()
+        self.assertTrue(expert.is_active)
+
+        approval_calls = [
+            call
+            for call in mock_send_mail.call_args_list
+            if call.kwargs.get("subject") == "Your Expert Profile is Approved"
+            or (call.args and call.args[0] == "Your Expert Profile is Approved")
+        ]
+        self.assertEqual(len(approval_calls), 1)
+        call = approval_calls[0]
+        recipient_list = call.kwargs.get("recipient_list")
+        if recipient_list is None and len(call.args) > 3:
+            recipient_list = call.args[3]
+        message = call.kwargs.get("message") or call.args[1]
+        from_email = call.kwargs.get("from_email")
+        if from_email is None and len(call.args) > 2:
+            from_email = call.args[2]
+
+        self.assertEqual(recipient_list, ["expert-bulk-email-approve@example.com"])
+        self.assertEqual(from_email, settings.DEFAULT_FROM_EMAIL)
         self.assertNotIn("127.0.0.1", message)
         self.assertNotIn("localhost", message)
         self.assertIn(f"{TEST_SITE_URL}/accounts/login/", message)
