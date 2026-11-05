@@ -73,6 +73,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # Pinned feature snapshot c2240eb predates main's requests>=2.31.0
+          # declaration (OTP HTTP transport imports requests at module load).
+          pip install 'requests>=2.31.0'
 
       - name: Run database-free ZeptoMail unittest suite
         run: |
