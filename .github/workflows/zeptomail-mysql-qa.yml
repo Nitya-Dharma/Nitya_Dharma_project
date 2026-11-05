@@ -1,0 +1,144 @@
+# Manual-only CI: disposable MySQL 8 QA for selected ZeptoMail-related app paths.
+# Preserves the separate DB-free workflow unchanged.
+#
+# Safety:
+# - No production/Hostinger credentials or hosts.
+# - QA host must be the ephemeral service alias "mysql" (never localhost).
+# - Locmem email + mock OTP; no real SMTP/SMS/ZeptoMail.
+# - Django TestCase runner creates/destroys a disposable test database on the
+#   same MySQL service (see QA_DB_TEST_NAME). Do not point this job at any
+#   durable database.
+#
+# Creating this file does not authorize running the workflow.
+
+name: ZeptoMail MySQL QA (disposable)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mysql-qa:
+    name: Selected TestCase paths on disposable MySQL
+    runs-on: ubuntu-latest
+
+    # Container job so the MySQL service is reachable as hostname "mysql"
+    # (required by nityadharma.settings.qa host allowlist; localhost is rejected).
+    container:
+      image: python:3.11-bookworm
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: nd_ci_qa
+          MYSQL_USER: nd_ci_user
+          MYSQL_PASSWORD: ci-only-disposable-mysql-user-not-prod
+          MYSQL_ROOT_PASSWORD: ci-only-disposable-mysql-root-not-prod
+        # No persistent volumes — data discarded when the job ends.
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-only-disposable-mysql-root-not-prod"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DJANGO_SETTINGS_MODULE: nityadharma.settings.qa
+      QA_SECRET_KEY: ci-mysql-qa-secret-not-for-production
+      QA_DB_ENGINE: django.db.backends.mysql
+      # DB name must not be forbidden (nityadharma_db, mysql, …).
+      QA_DB_NAME: nd_ci_qa
+      # Root is used only on this ephemeral service so Django can CREATE/DROP
+      # the test database (QA_DB_TEST_NAME). Not a production credential.
+      QA_DB_USER: root
+      QA_DB_PASSWORD: ci-only-disposable-mysql-root-not-prod
+      QA_DB_HOST: mysql
+      QA_DB_PORT: "3306"
+      QA_ALLOWED_DB_HOSTS: mysql
+      QA_DB_TEST_NAME: test_nd_ci_qa
+      OTP_MODE: mock
+      OTP_PROVIDER: mock_sms
+      EMAIL_HOST: ""
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      RESEND_API_KEY: ""
+      REDIS_URL: ""
+      DATABASE_URL: ""
+      MYSQL_URL: ""
+      MSG91_AUTH_KEY: ""
+      SMS_API_KEY: ""
+
+    steps:
+      - name: Checkout pinned feature snapshot
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # Same reviewed ZeptoMail feature tip as the DB-free workflow.
+          # Update intentionally when the tested snapshot changes.
+          ref: c2240eb1bf3d62d312c3064f43667942e971146b
+
+      - name: Fail closed — QA isolation guards
+        run: |
+          set -euo pipefail
+          test "${DJANGO_SETTINGS_MODULE}" = "nityadharma.settings.qa"
+          test "${QA_DB_HOST}" = "mysql"
+          test "${QA_ALLOWED_DB_HOSTS}" = "mysql"
+          test "${QA_DB_NAME}" = "nd_ci_qa"
+          test "${QA_DB_NAME}" != "nityadharma_db"
+          test "${QA_DB_NAME}" != "mysql"
+          test -z "${DATABASE_URL}"
+          test -z "${MYSQL_URL}"
+          test -z "${EMAIL_HOST_PASSWORD}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${REDIS_URL}"
+          test -z "${MSG91_AUTH_KEY}"
+          test -z "${SMS_API_KEY}"
+          test "${QA_DB_HOST}" != "localhost"
+          test "${QA_DB_HOST}" != "127.0.0.1"
+
+      - name: Install system packages for mysqlclient
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            default-libmysqlclient-dev \
+            default-mysql-client \
+            pkg-config
+
+      - name: Wait for disposable MySQL service
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h mysql -uroot -p"${QA_DB_PASSWORD}" --silent; then
+              echo "MySQL service ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "MySQL service failed health wait" >&2
+          exit 1
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Pinned feature snapshot predates main's requests>=2.31.0 declaration.
+          pip install 'requests>=2.31.0'
+
+      - name: Run selected Django TestCase modules on disposable MySQL
+        run: |
+          set -euo pipefail
+          # Prefer test-runner-managed test DB (creates/destroys QA_DB_TEST_NAME
+          # on host "mysql"). Do not migrate a durable app DB separately.
+          #
+          # Allowlist (TestCase + mocked/locmem email; mock OTP where used):
+          # - services.tests.test_expert_email_urls
+          #     Expert registration email URL/recipient behavior (patches send_mail).
+          # - accounts.test_pandit_registration_otp_skip
+          #     Pandit registration OTP skip/gate paths with locmem email + OTP mocks.
+          # Excludes password-reset rate-limit-exceeded paths (LocMem cache.ttl gap).
+          python manage.py test \
+            services.tests.test_expert_email_urls \
+            accounts.test_pandit_registration_otp_skip \
+            -v 2
