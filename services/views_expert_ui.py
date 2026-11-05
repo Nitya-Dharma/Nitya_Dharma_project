@@ -293,11 +293,16 @@ def expert_register_page(request):
                         ExpertSocialLink.objects.create(expert=expert, url=link)
 
                 try:
+                    # Prefer dedicated admin inbox; fall back to prior From-as-To semantics
+                    # when ADMIN_NOTIFICATION_EMAIL is unset (current Gmail dual-use).
+                    _admin_to = (
+                        getattr(settings, "ADMIN_NOTIFICATION_EMAIL", "") or ""
+                    ).strip() or settings.DEFAULT_FROM_EMAIL
                     send_mail(
                         subject="New Expert Registration",
                         message=f"A new expert has registered.\n\nName: {name}\nPhone: {phone}\nType: {normalized_type}",
                         from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                        recipient_list=[_admin_to],
                         fail_silently=True,
                     )
                 except Exception:

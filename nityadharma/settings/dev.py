@@ -84,6 +84,10 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'noreply@nityadharma.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
+# Admin alerts (expert/pandit). Independent of DEFAULT_FROM_EMAIL / SMTP From.
+# Empty → callers keep prior fallbacks (expert: DEFAULT_FROM_EMAIL; pandit: ADMINS).
+ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='').strip()
+
 # Use SMTP only when all three are set (same as prod)
 EMAIL_BACKEND = (
     "django.core.mail.backends.smtp.EmailBackend"
@@ -91,11 +95,12 @@ EMAIL_BACKEND = (
     else "django.core.mail.backends.console.EmailBackend"
 )
 
-# TASK 4: Hard fail on misconfiguration (DEV ONLY)
-# Gmail SMTP requires FROM address to match authenticated account
-# This prevents silent email drops
+# DEV ONLY: Gmail SMTP silently drops mail when From != authenticated user.
+# Other providers (e.g. ZeptoMail emailapikey + no-reply@…) may differ — do not hard-fail them.
 if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
-    if EMAIL_HOST_USER and DEFAULT_FROM_EMAIL != EMAIL_HOST_USER:
+    _email_host_l = (EMAIL_HOST or "").strip().lower()
+    _is_gmail_smtp = ("gmail.com" in _email_host_l) or _email_host_l.endswith("google.com")
+    if _is_gmail_smtp and EMAIL_HOST_USER and DEFAULT_FROM_EMAIL != EMAIL_HOST_USER:
         import logging
         logger = logging.getLogger(__name__)
         logger.error("=" * 80)
@@ -107,8 +112,7 @@ if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
         logger.error("Gmail SMTP requires DEFAULT_FROM_EMAIL == EMAIL_HOST_USER")
         logger.error("Change .env: DEFAULT_FROM_EMAIL={EMAIL_HOST_USER}")
         logger.error("=" * 80)
-        
-        # In DEBUG mode, raise exception to prevent silent failures
+
         if DEBUG:
             from django.core.exceptions import ImproperlyConfigured
             raise ImproperlyConfigured(

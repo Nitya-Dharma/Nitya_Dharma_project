@@ -266,3 +266,11 @@ else:
         else "django.core.mail.backends.console.EmailBackend"
     )
 
+# Admin alerts (expert/pandit). Independent of DEFAULT_FROM_EMAIL / SMTP From.
+# Empty → callers keep prior fallbacks (expert: DEFAULT_FROM_EMAIL; pandit: ADMINS).
+# Future cutover example (set in env only): ADMIN_NOTIFICATION_EMAIL=nityadharma3@gmail.com
+ADMIN_NOTIFICATION_EMAIL = (
+    os.environ.get('ADMIN_NOTIFICATION_EMAIL', '').strip()
+    or config('ADMIN_NOTIFICATION_EMAIL', default='').strip()
+)
+

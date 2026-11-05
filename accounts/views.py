@@ -605,31 +605,37 @@ def pandit_register(request, referral_token):
             try:
                 from django.conf import settings as django_settings
                 from django.core.mail import send_mail
-                admins = getattr(django_settings, 'ADMINS', ())
-                if admins and user.email:
-                    recipient_list = [email for _, email in admins]
-                    if recipient_list:
-                        try:
-                            # NOTE:
-                            # If Redis is UP but Celery worker is DOWN,
-                            # tasks will queue and NOT execute immediately.
-                            # This is expected Celery behavior.
-                            from core.tasks_email import send_email_task
+                admin_notify = (
+                    getattr(django_settings, 'ADMIN_NOTIFICATION_EMAIL', '') or ''
+                ).strip()
+                if admin_notify:
+                    recipient_list = [admin_notify]
+                else:
+                    # Prior behavior: Django ADMINS only (often empty if unset).
+                    admins = getattr(django_settings, 'ADMINS', ())
+                    recipient_list = [email for _, email in admins] if admins else []
+                if recipient_list and user.email:
+                    try:
+                        # NOTE:
+                        # If Redis is UP but Celery worker is DOWN,
+                        # tasks will queue and NOT execute immediately.
+                        # This is expected Celery behavior.
+                        from core.tasks_email import send_email_task
 
-                            send_email_task.delay(
-                                '[Nitya Dharma] New Pandit registration',
-                                f'A new Pandit has registered: {user.email}. Please review in the admin.',
-                                django_settings.DEFAULT_FROM_EMAIL,
-                                recipient_list,
-                            )
-                        except Exception:
-                            send_mail(
-                                subject='[Nitya Dharma] New Pandit registration',
-                                message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
-                                from_email=django_settings.DEFAULT_FROM_EMAIL,
-                                recipient_list=recipient_list,
-                                fail_silently=True,
-                            )
+                        send_email_task.delay(
+                            '[Nitya Dharma] New Pandit registration',
+                            f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                            django_settings.DEFAULT_FROM_EMAIL,
+                            recipient_list,
+                        )
+                    except Exception:
+                        send_mail(
+                            subject='[Nitya Dharma] New Pandit registration',
+                            message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                            from_email=django_settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=recipient_list,
+                            fail_silently=True,
+                        )
             except Exception:
                 pass
             
