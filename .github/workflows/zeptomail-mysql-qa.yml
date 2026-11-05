@@ -79,6 +79,7 @@ jobs:
           ref: c2240eb1bf3d62d312c3064f43667942e971146b
 
       - name: Fail closed — QA isolation guards
+        shell: bash
         run: |
           set -euo pipefail
           test "${DJANGO_SETTINGS_MODULE}" = "nityadharma.settings.qa"
@@ -107,6 +108,7 @@ jobs:
             pkg-config
 
       - name: Wait for disposable MySQL service
+        shell: bash
         run: |
           set -euo pipefail
           for i in $(seq 1 30); do
@@ -127,6 +129,7 @@ jobs:
           pip install 'requests>=2.31.0'
 
       - name: Run selected Django TestCase modules on disposable MySQL
+        shell: bash
         run: |
           set -euo pipefail
           # Prefer test-runner-managed test DB (creates/destroys QA_DB_TEST_NAME
