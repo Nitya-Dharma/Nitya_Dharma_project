@@ -157,11 +157,11 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         mock_send.assert_called_once()
         args, kwargs = mock_send.call_args
         # send_for_flow → send_via_provider(default) uses positional send_mail args
-        if kwargs:
-            self.assertEqual(kwargs.get("recipient_list"), ["ops@example.test"])
-            self.assertTrue(kwargs.get("fail_silently"))
-        else:
-            self.assertEqual(args[3], ["ops@example.test"])
+        self.assertEqual(args[0], "[Nitya Dharma] New Pandit registration")
+        self.assertIn("pandit4@example.test", args[1])
+        self.assertEqual(args[2], "noreply@example.test")
+        self.assertEqual(args[3], ["ops@example.test"])
+        self.assertTrue(kwargs.get("fail_silently"))
 
     @patch("core.email_providers.send_mail")
     def test_send_email_task_invokes_send_mail_in_process(self, mock_send):
@@ -195,12 +195,14 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         mock_delay.assert_called_once()
         self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "verification")
         mock_send.assert_called_once()
-        kwargs = mock_send.call_args.kwargs
-        self.assertEqual(kwargs["subject"], "Verify your email address - Nitya Dharma")
-        self.assertEqual(kwargs["from_email"], "noreply@example.test")
-        self.assertEqual(kwargs["recipient_list"], ["user@example.test"])
-        self.assertIn("abc123verificationtoken", kwargs["message"])
-        self.assertIn("Test User", kwargs["message"])
+        args, kwargs = mock_send.call_args
+        # send_via_provider(default) uses positional send_mail args
+        self.assertEqual(args[0], "Verify your email address - Nitya Dharma")
+        self.assertIn("abc123verificationtoken", args[1])
+        self.assertIn("Test User", args[1])
+        self.assertEqual(args[2], "noreply@example.test")
+        self.assertEqual(args[3], ["user@example.test"])
+        self.assertFalse(kwargs.get("fail_silently"))
 
     @patch("core.tasks_email.send_email_task.delay")
     def test_password_change_notification_with_fake_user(self, mock_delay):
@@ -246,8 +248,10 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         mock_delay.assert_called_once()
         self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "password_reset")
         mock_send.assert_called_once()
-        kwargs = mock_send.call_args.kwargs
-        self.assertEqual(kwargs["from_email"], "noreply@example.test")
-        self.assertEqual(kwargs["recipient_list"], ["reset@example.test"])
-        self.assertIn("set-password-token", kwargs["message"])
-        self.assertIn("Reset User", kwargs["message"])
+        args, kwargs = mock_send.call_args
+        # send_via_provider(default) uses positional send_mail args
+        self.assertIn("set-password-token", args[1])
+        self.assertIn("Reset User", args[1])
+        self.assertEqual(args[2], "noreply@example.test")
+        self.assertEqual(args[3], ["reset@example.test"])
+        self.assertFalse(kwargs.get("fail_silently"))
