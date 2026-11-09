@@ -34,7 +34,8 @@ jobs:
       DJANGO_SETTINGS_MODULE: nityadharma.e10b_worker_probe_settings
       CELERY_BROKER_URL: redis://127.0.0.1:6379/0
       CELERY_RESULT_BACKEND: redis://127.0.0.1:6379/1
-      ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR: ${{ runner.temp }}/e10b-mail
+      # ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR is set in a step via RUNNER_TEMP + GITHUB_ENV.
+      # Avoid runner context expressions in job-level env (GitHub parser rejects them).
       ZEPTOMAIL_WORKER_PROBE_ALLOWED_BROKER_HOSTS: 127.0.0.1,localhost
       ZEPTOMAIL_WORKER_PROBE_ALLOWED_BROKER_PORTS: "6379"
       ZEPTOMAIL_WORKER_PROBE_AUTHORIZED: "YES"
@@ -77,12 +78,16 @@ jobs:
 
       - name: Prepare empty filebased email directory
         run: |
-          mkdir -p "$ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR"
-          # Fail if any pre-existing files somehow appear.
-          if [ -n "$(ls -A "$ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR" 2>/dev/null)" ]; then
+          set -euo pipefail
+          # GitHub-hosted runners expose RUNNER_TEMP; export for later steps.
+          EMAIL_DIR="${RUNNER_TEMP}/e10b-mail"
+          echo "ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR=${EMAIL_DIR}" >> "$GITHUB_ENV"
+          mkdir -p "${EMAIL_DIR}"
+          if [ -n "$(ls -A "${EMAIL_DIR}" 2>/dev/null)" ]; then
             echo "Email dir must be empty before E10B run"
             exit 1
           fi
+          echo "Prepared email dir: ${EMAIL_DIR}"
 
       - name: Start Celery worker (background)
         run: |
@@ -92,14 +97,14 @@ jobs:
             -c 1 \
             --prefetch-multiplier=1 \
             -l info \
-            > "${{ runner.temp }}/e10b-worker.log" 2>&1 &
-          echo $! > "${{ runner.temp }}/e10b-worker.pid"
-          echo "E10B_WORKER_PID=$(cat "${{ runner.temp }}/e10b-worker.pid")" >> "$GITHUB_ENV"
+            > "${RUNNER_TEMP}/e10b-worker.log" 2>&1 &
+          echo $! > "${RUNNER_TEMP}/e10b-worker.pid"
+          echo "E10B_WORKER_PID=$(cat "${RUNNER_TEMP}/e10b-worker.pid")" >> "$GITHUB_ENV"
           # Brief readiness wait (worker import/boot).
           sleep 5
-          if ! kill -0 "$(cat "${{ runner.temp }}/e10b-worker.pid")" 2>/dev/null; then
+          if ! kill -0 "$(cat "${RUNNER_TEMP}/e10b-worker.pid")" 2>/dev/null; then
             echo "Celery worker failed to stay alive"
-            cat "${{ runner.temp }}/e10b-worker.log" || true
+            cat "${RUNNER_TEMP}/e10b-worker.log" || true
             exit 1
           fi
 
@@ -115,15 +120,15 @@ jobs:
         if: failure()
         run: |
           echo "===== e10b-worker.log ====="
-          cat "${{ runner.temp }}/e10b-worker.log" || true
+          cat "${RUNNER_TEMP}/e10b-worker.log" || true
           echo "===== email dir listing ====="
-          ls -la "$ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR" || true
+          ls -la "${ZEPTOMAIL_WORKER_PROBE_EMAIL_DIR}" || true
 
       - name: Stop Celery worker (always)
         if: always()
         run: |
           set +e
-          PID_FILE="${{ runner.temp }}/e10b-worker.pid"
+          PID_FILE="${RUNNER_TEMP}/e10b-worker.pid"
           if [ -f "$PID_FILE" ]; then
             PID="$(cat "$PID_FILE")"
             if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
