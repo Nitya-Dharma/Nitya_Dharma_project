@@ -1,7 +1,8 @@
 """
 E10B email-file assertion helper.
 
-Waits for exactly one filebased email written by the Celery worker.
+Polls until final directory contents show exactly one matching filebased email
+written by the Celery worker (directory need not be empty at assert start).
 Does not call SMTP, does not start Redis/Docker, does not touch databases.
 
 Expected environment:
@@ -98,12 +99,10 @@ def main() -> int:
         except ValueError as exc:
             raise AssertRefusal("E10B_WORKER_PID must be an integer") from exc
 
-    initial = _list_email_files(email_dir)
-    if initial:
-        _fail(
-            f"Email directory must start empty for E10B assert; "
-            f"found {len(initial)} file(s)"
-        )
+    # Emptiness before produce is enforced by the workflow "Prepare empty …"
+    # step. Assert may start after the worker has already written the file.
+    if not email_dir.is_dir():
+        _fail(f"Email directory does not exist: {email_dir}")
 
     deadline = time.monotonic() + timeout_sec
     last_count = 0
