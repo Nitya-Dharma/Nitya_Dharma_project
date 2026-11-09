@@ -26,13 +26,16 @@ from core.email_providers import (
 from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows
 
 
+# Unmistakable test-only placeholder (not a real credential).
+_TEST_ONLY_ZEPTOMAIL_PASSWORD = "TEST_ONLY_ZEPTOMAIL_PASSWORD"
+
 _ZEPTO_COMPLETE = dict(
     ZEPTOMAIL_EMAIL_HOST="smtp.zeptomail.in",
     ZEPTOMAIL_EMAIL_PORT=587,
     ZEPTOMAIL_EMAIL_USE_TLS=True,
     ZEPTOMAIL_EMAIL_USE_SSL=False,
     ZEPTOMAIL_EMAIL_HOST_USER="emailapikey",
-    ZEPTOMAIL_EMAIL_HOST_PASSWORD="zepto-test-token-not-real",
+    ZEPTOMAIL_EMAIL_HOST_PASSWORD=_TEST_ONLY_ZEPTOMAIL_PASSWORD,
     ZEPTOMAIL_DEFAULT_FROM_EMAIL="no-reply@nityadharma.com",
     ZEPTOMAIL_EMAIL_TIMEOUT=10,
 )
@@ -109,7 +112,10 @@ class SendViaProviderTests(SimpleTestCase):
         conn_kwargs = mock_conn.call_args.kwargs
         self.assertEqual(conn_kwargs["host"], "smtp.zeptomail.in")
         self.assertEqual(conn_kwargs["username"], "emailapikey")
-        self.assertEqual(conn_kwargs["password"], "zepto-test-token-not-real")
+        self.assertEqual(
+            conn_kwargs["password"],
+            _ZEPTO_COMPLETE["ZEPTOMAIL_EMAIL_HOST_PASSWORD"],
+        )
         # EMAIL_* Gmail host must not be used for ZeptoMail connection
         self.assertNotEqual(conn_kwargs["host"], "smtp.gmail.com")
         mock_send.assert_called_once()
