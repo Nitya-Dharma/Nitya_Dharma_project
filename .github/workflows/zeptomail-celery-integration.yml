@@ -1,0 +1,365 @@
+# Manual-only: Django + disposable MySQL + disposable Redis + real Celery worker
+# integration QA for transactional email flows (ZeptoMail allowlist stays empty).
+#
+# Additive testing only. Does NOT deploy, migrate durable DBs, push images,
+# use production secrets, or send real SMTP/Resend/ZeptoMail/SMS.
+#
+# Worker listens to default,emails because the registered task name
+# core.send_email_task currently routes to the default queue (route key mismatch
+# is intentionally not changed here).
+#
+# Checkout uses the workflow_dispatch ref (branch/commit that contains these
+# additive files). Reviewed app source 32c67d51… must be a git ancestor of HEAD.
+# Creating this file does not authorize running it.
+
+name: ZeptoMail Celery integration QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  celery-integration:
+    name: Five-flow Celery email integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    # Container job so service hostnames are "mysql" and "redis"
+    # (qa/integration_ci reject localhost).
+    container:
+      image: python:3.11-bookworm
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: nd_ci_integration
+          MYSQL_USER: nd_ci_user
+          MYSQL_PASSWORD: ci-only-disposable-mysql-user-not-prod
+          MYSQL_ROOT_PASSWORD: ci-only-disposable-mysql-root-not-prod
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-only-disposable-mysql-root-not-prod"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=20
+
+    env:
+      DJANGO_SETTINGS_MODULE: nityadharma.settings.integration_ci
+      INTEGRATION_CI_RUN: "1"
+      # Harmless CI-only values — not production credentials.
+      QA_SECRET_KEY: ci-only-celery-integration-not-for-production
+      QA_DB_ENGINE: django.db.backends.mysql
+      QA_DB_NAME: nd_ci_integration
+      QA_DB_USER: root
+      QA_DB_PASSWORD: ci-only-disposable-mysql-root-not-prod
+      QA_DB_HOST: mysql
+      QA_DB_PORT: "3306"
+      QA_ALLOWED_DB_HOSTS: mysql
+      QA_DB_TEST_NAME: test_nd_ci_integration
+      INTEGRATION_CI_ALLOWED_REDIS_HOSTS: redis
+      INTEGRATION_CI_REDIS_URL: redis://redis:6379/0
+      INTEGRATION_CI_REDIS_RESULT_URL: redis://redis:6379/1
+      INTEGRATION_CI_EMAIL_FILE_PATH: /tmp/nitya-dharma-integration-mail
+      INTEGRATION_CI_EMAIL_ROLE: test
+      INTEGRATION_CI_WORKER_PID_FILE: /tmp/celery-integration-worker.pid
+      INTEGRATION_CI_DEFAULT_FROM_EMAIL: integration-ci@example.invalid
+      INTEGRATION_CI_ADMIN_EMAIL: integration-ci-ops@example.invalid
+      OTP_MODE: mock
+      OTP_PROVIDER: mock_sms
+      EMAIL_HOST: ""
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      RESEND_API_KEY: ""
+      REDIS_URL: ""
+      DATABASE_URL: ""
+      MYSQL_URL: ""
+      MSG91_AUTH_KEY: ""
+      SMS_API_KEY: ""
+      ZEPTOMAIL_EMAIL_HOST: ""
+      ZEPTOMAIL_EMAIL_HOST_USER: ""
+      ZEPTOMAIL_EMAIL_HOST_PASSWORD: ""
+      ZEPTOMAIL_DEFAULT_FROM_EMAIL: ""
+      ZEPTOMAIL_ENABLED_FLOWS: ""
+      REVIEWED_APP_SOURCE_SHA: 32c67d51b279ec8b021034282892f42ff07c3243
+
+    steps:
+      - name: Checkout dispatch ref (must include Phase 64A files)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          # Full history required for ancestry check against reviewed app source.
+          fetch-depth: 0
+
+      - name: Verify additive files and reviewed app source ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f nityadharma/settings/integration_ci.py
+          test -f accounts/tests/ci_email_backend.py
+          test -f accounts/tests/test_zeptomail_celery_integration.py
+          test -f core/email_providers.py
+          test -f core/tasks_email.py
+          test -f nityadharma/settings/qa.py
+          grep -q 'name="core.send_email_task"' core/tasks_email.py
+          HEAD_SHA="$(git rev-parse HEAD)"
+          echo "SOURCE_HEAD=${HEAD_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "REVIEWED_APP_SOURCE_SHA=${REVIEWED_APP_SOURCE_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          # Do not check out 32c67d5 alone (would omit these four additive files).
+          # Require that reviewed application source is an ancestor of dispatch HEAD.
+          if ! git cat-file -e "${REVIEWED_APP_SOURCE_SHA}^{commit}"; then
+            echo "Reviewed app source commit is missing from fetched history." >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "${REVIEWED_APP_SOURCE_SHA}" HEAD; then
+            echo "FAIL: ${REVIEWED_APP_SOURCE_SHA} is not an ancestor of ${HEAD_SHA}" >&2
+            exit 1
+          fi
+          echo "ANCESTRY_OK ${REVIEWED_APP_SOURCE_SHA} <= ${HEAD_SHA}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail closed — isolation guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${DJANGO_SETTINGS_MODULE}" = "nityadharma.settings.integration_ci"
+          test "${INTEGRATION_CI_RUN}" = "1"
+          test "${QA_DB_HOST}" = "mysql"
+          test "${QA_ALLOWED_DB_HOSTS}" = "mysql"
+          test "${QA_DB_NAME}" = "nd_ci_integration"
+          test "${QA_DB_NAME}" != "nityadharma_db"
+          test "${INTEGRATION_CI_ALLOWED_REDIS_HOSTS}" = "redis"
+          test "${INTEGRATION_CI_REDIS_URL}" = "redis://redis:6379/0"
+          test "${INTEGRATION_CI_EMAIL_FILE_PATH}" = "/tmp/nitya-dharma-integration-mail"
+          test -z "${DATABASE_URL}"
+          test -z "${MYSQL_URL}"
+          test -z "${REDIS_URL}"
+          test -z "${EMAIL_HOST_PASSWORD}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${MSG91_AUTH_KEY}"
+          test -z "${SMS_API_KEY}"
+          test -z "${ZEPTOMAIL_EMAIL_HOST_PASSWORD}"
+          test -z "${ZEPTOMAIL_ENABLED_FLOWS}"
+          test "${QA_DB_HOST}" != "localhost"
+          test "${QA_DB_HOST}" != "127.0.0.1"
+
+      - name: Install system packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            default-libmysqlclient-dev \
+            default-mysql-client \
+            pkg-config \
+            redis-tools \
+            procps
+
+      - name: Wait for disposable MySQL and Redis
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h mysql -uroot -p"${QA_DB_PASSWORD}" --silent; then
+              echo "MySQL ready"
+              break
+            fi
+            sleep 2
+            if [ "$i" -eq 30 ]; then
+              echo "MySQL health wait failed" >&2
+              exit 1
+            fi
+          done
+          for i in $(seq 1 30); do
+            if redis-cli -h redis ping | grep -q PONG; then
+              echo "Redis ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Redis health wait failed" >&2
+          exit 1
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install 'requests>=2.31.0'
+
+      - name: Start worker, run integration tests, always cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORKER_PID_FILE="${INTEGRATION_CI_WORKER_PID_FILE}"
+          WORKER_LOG=/tmp/celery-integration-worker.log
+
+          cleanup_worker() {
+            status=$?
+            if [ -f "${WORKER_PID_FILE}" ]; then
+              wpid="$(cat "${WORKER_PID_FILE}" || true)"
+              if [ -n "${wpid}" ] && kill -0 "${wpid}" 2>/dev/null; then
+                kill "${wpid}" 2>/dev/null || true
+                for _ in $(seq 1 20); do
+                  if ! kill -0 "${wpid}" 2>/dev/null; then
+                    break
+                  fi
+                  sleep 0.5
+                done
+                if kill -0 "${wpid}" 2>/dev/null; then
+                  kill -9 "${wpid}" 2>/dev/null || true
+                fi
+                wait "${wpid}" 2>/dev/null || true
+              fi
+            fi
+            if [ "${status}" -ne 0 ]; then
+              echo "---- celery worker log (failure) ----" >&2
+              cat "${WORKER_LOG}" >&2 || true
+            fi
+            return "${status}"
+          }
+          trap cleanup_worker EXIT
+
+          mkdir -p "${INTEGRATION_CI_EMAIL_FILE_PATH}/_executed"
+          mkdir -p "${INTEGRATION_CI_EMAIL_FILE_PATH}/_fail"
+          mkdir -p "${INTEGRATION_CI_EMAIL_FILE_PATH}/_attempts"
+          : > "${WORKER_LOG}"
+
+          # Unique predictable worker name: integration-ci@<nodename>.
+          # solo pool: one process executes tasks (PID/role asserts stay simple).
+          # Cleanup kills only the exact PID recorded below from $! of this start.
+          INTEGRATION_CI_EMAIL_ROLE=worker \
+            celery -A nityadharma worker \
+              --loglevel=info \
+              --pool=solo \
+              -Q default,emails \
+              --hostname=integration-ci@%h \
+              >> "${WORKER_LOG}" 2>&1 &
+          echo $! > "${WORKER_PID_FILE}"
+          echo "WORKER_PID=$(cat "${WORKER_PID_FILE}")" >> "$GITHUB_STEP_SUMMARY"
+
+          # Readiness / identity:
+          # 1) PID file process must be alive.
+          # 2) inspect.ping() must include expected hostname integration-ci@<host>.
+          # 3) Fail if unexpected workers respond (including "only unexpected").
+          # 4) inspect.stats() pid for that hostname must match the PID file.
+          # Limitation: ping alone does NOT include PIDs. Hostname↔PID binding is
+          # proven via stats()['pid'] when Celery provides it — not via ping.
+          python - <<'PY'
+          import os
+          import socket
+          import sys
+          import time
+          from pathlib import Path
+
+          pid_file = Path(os.environ["INTEGRATION_CI_WORKER_PID_FILE"])
+          log_path = Path("/tmp/celery-integration-worker.log")
+          expected_name = f"integration-ci@{socket.gethostname()}"
+          print(f"EXPECTED_WORKER_HOSTNAME={expected_name}")
+          deadline = time.time() + 60
+          last_err = ""
+
+          def dump_log() -> None:
+              if log_path.exists():
+                  sys.stderr.write(log_path.read_text(encoding="utf-8", errors="replace"))
+
+          while time.time() < deadline:
+              if not pid_file.is_file():
+                  last_err = "worker pid file missing"
+                  time.sleep(1)
+                  continue
+              try:
+                  started_pid = int(pid_file.read_text(encoding="utf-8").strip() or "0")
+              except ValueError:
+                  last_err = "worker pid file is not an integer"
+                  time.sleep(1)
+                  continue
+              if started_pid <= 0:
+                  last_err = f"invalid worker pid {started_pid}"
+                  time.sleep(1)
+                  continue
+              try:
+                  os.kill(started_pid, 0)
+              except OSError:
+                  last_err = f"worker pid {started_pid} not running"
+                  dump_log()
+                  time.sleep(1)
+                  continue
+              try:
+                  from nityadharma.celery import app
+
+                  inspector = app.control.inspect(timeout=2.0)
+                  replies = inspector.ping() or {}
+                  if not replies:
+                      last_err = "inspect.ping returned empty"
+                      time.sleep(2)
+                      continue
+
+                  names = sorted(replies.keys())
+                  unexpected = [n for n in names if n != expected_name]
+                  if expected_name not in replies:
+                      last_err = (
+                          f"expected worker {expected_name!r} missing from ping; "
+                          f"responders={names}"
+                      )
+                      # Explicitly reject the "only unexpected responders" case.
+                      if unexpected and expected_name not in replies:
+                          last_err = (
+                              f"only unexpected workers responded: {unexpected}; "
+                              f"expected {expected_name!r}"
+                          )
+                      time.sleep(2)
+                      continue
+                  if unexpected:
+                      last_err = (
+                          f"unexpected workers also responded: {unexpected}; "
+                          f"expected only {expected_name!r}"
+                      )
+                      time.sleep(2)
+                      continue
+
+                  # ping cannot bind hostname→PID. Use stats() when available.
+                  stats = inspector.stats() or {}
+                  worker_stats = stats.get(expected_name) or {}
+                  stats_pid = worker_stats.get("pid")
+                  if stats_pid is None:
+                      last_err = (
+                          f"inspect.stats() for {expected_name!r} has no pid; "
+                          "refusing to claim hostname↔PID binding from ping alone"
+                      )
+                      time.sleep(2)
+                      continue
+                  if int(stats_pid) != started_pid:
+                      last_err = (
+                          f"stats pid {stats_pid} != started pid file {started_pid} "
+                          f"for {expected_name!r}"
+                      )
+                      time.sleep(2)
+                      continue
+
+                  print(f"WORKER_PING_OK name={expected_name} responders={names}")
+                  print(
+                      f"WORKER_PID_BIND_OK hostname={expected_name} "
+                      f"pid_file={started_pid} stats_pid={stats_pid}"
+                  )
+                  raise SystemExit(0)
+              except SystemExit:
+                  raise
+              except Exception as exc:  # noqa: BLE001 — readiness loop
+                  last_err = f"{type(exc).__name__}: {exc}"
+              time.sleep(2)
+
+          print(f"Celery worker readiness failed: {last_err}", file=sys.stderr)
+          dump_log()
+          raise SystemExit(1)
+          PY
+
+          # Test process role remains "test" (refuse-closed for direct sends).
+          export INTEGRATION_CI_EMAIL_ROLE=test
+          export INTEGRATION_CI_RUN=1
+          python manage.py test accounts.tests.test_zeptomail_celery_integration -v 2
