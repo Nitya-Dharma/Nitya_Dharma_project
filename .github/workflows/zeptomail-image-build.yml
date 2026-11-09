@@ -1,0 +1,89 @@
+name: ZeptoMail image build (DB-free, no archive)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zeptomail-image-build-32c67d5
+  cancel-in-progress: false
+
+jobs:
+  build-and-verify:
+    name: Build and verify isolated image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout approved source commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 32c67d51b279ec8b021034282892f42ff07c3243
+          persist-credentials: false
+
+      - name: Verify checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          expected="32c67d51b279ec8b021034282892f42ff07c3243"
+          test "$actual" = "$expected"
+          echo "SOURCE_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
+          test -f Dockerfile
+          test -f core/email_providers.py
+          test -f core/tasks_email.py
+          test -f nityadharma/settings/_zeptomail_env.py
+
+      - name: Build image on hosted runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull=false --tag nitya-dharma:zeptomail-32c67d5 .
+          docker image inspect nitya-dharma:zeptomail-32c67d5             --format 'IMAGE_ID={{.Id}}' | tee image-id.txt
+          cat image-id.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify image contents and Python imports without network
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --entrypoint sh             nitya-dharma:zeptomail-32c67d5 -c '
+              set -eu
+              test -f /app/core/email_providers.py
+              test -f /app/core/tasks_email.py
+              test -f /app/nityadharma/settings/_zeptomail_env.py
+              command -v gunicorn
+              command -v celery
+              python -c "import django; print(\"DJANGO_IMPORT_OK\")"
+            '
+          docker run --rm --network none --entrypoint python             -e DJANGO_SETTINGS_MODULE=nityadharma.settings.prod             -e SECRET_KEY=ci-only-not-a-production-secret             -e LOG_DIR=/tmp/nitya-dharma-ci-logs             -e DATABASE_NAME=nitya_ci_unused             -e DATABASE_USER=nitya_ci_unused             -e DATABASE_PASSWORD=ci-only-unused             -e DATABASE_HOST=qa-db.invalid             -e DATABASE_PORT=3306             -e EMAIL_HOST=             -e EMAIL_HOST_USER=             -e EMAIL_HOST_PASSWORD=             -e RESEND_API_KEY=             -e ZEPTOMAIL_ENABLED_FLOWS=             nitya-dharma:zeptomail-32c67d5 -c '
+          from django.conf import settings
+          from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows
+          import core.email_providers
+          assert parse_zeptomail_enabled_flows("") == frozenset()
+          assert not settings.ZEPTOMAIL_ENABLED_FLOWS
+          assert settings.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend", settings.EMAIL_BACKEND
+          print("PRODUCTION_SETTINGS_IMPORT_OK")
+          print("ZEPTOMAIL_ALLOWLIST_EMPTY_OK")
+          print("DEFAULT_EMAIL_BACKEND_CONSOLE_OK")
+          '
+
+      - name: Record image identity and streamed archive checksum (no archive retained)
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_id="$(docker image inspect nitya-dharma:zeptomail-32c67d5 --format '{{.Id}}')"
+          archive_sha256="$(docker save nitya-dharma:zeptomail-32c67d5 | sha256sum | awk '{print $1}')"
+          {
+            echo "### Isolated image verification"
+            echo "- Source commit: 32c67d51b279ec8b021034282892f42ff07c3243"
+            echo "- Image tag: nitya-dharma:zeptomail-32c67d5"
+            echo "- Image ID: $image_id"
+            echo "- docker-save stream SHA-256: $archive_sha256"
+            echo "- Archive retained/uploaded: **No**"
+            echo "- Deployment or production access: **No**"
+            echo "- Database/Redis services: **None**"
+            echo "- ZeptoMail allowlist: **Empty**"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "IMAGE_ID=$image_id"
+          echo "DOCKER_SAVE_STREAM_SHA256=$archive_sha256"
