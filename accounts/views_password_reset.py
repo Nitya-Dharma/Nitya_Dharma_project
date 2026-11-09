@@ -126,27 +126,19 @@ Time: {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 — Nitya Dharma Team
         """.strip()
         
-        try:
-            # NOTE:
-            # If Redis is UP but Celery worker is DOWN,
-            # tasks will queue and NOT execute immediately.
-            # This is expected Celery behavior.
-            from core.tasks_email import send_email_task
-
-            send_email_task.delay(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-            )
-        except Exception:
-            django_send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+        from core.email_providers import (
+            FLOW_PASSWORD_CHANGE,
+            queue_or_send_transactional_email,
+        )
+        # Empty ZEPTOMAIL_ENABLED_FLOWS → default EMAIL_* (Gmail) path unchanged.
+        queue_or_send_transactional_email(
+            FLOW_PASSWORD_CHANGE,
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
         
         logger.info(f"Password change notification sent to {user.email}")
     except Exception as e:
@@ -201,22 +193,19 @@ If you didn't request this password reset, please ignore this email.
 — Nitya Dharma Team"""
         
         # Send simple plain text email (no HTML)
-        try:
-            # NOTE:
-            # If Redis is UP but Celery worker is DOWN,
-            # tasks will queue and NOT execute immediately.
-            # This is expected Celery behavior.
-            from core.tasks_email import send_email_task
+        from core.email_providers import (
+            FLOW_PASSWORD_RESET,
+            queue_or_send_transactional_email,
+        )
 
-            send_email_task.delay(subject, message, from_email, [to_email])
-        except Exception:
-            django_send_mail(
-                subject=subject,
-                message=message,
-                from_email=from_email,
-                recipient_list=[to_email],
-                fail_silently=False,
-            )
+        queue_or_send_transactional_email(
+            FLOW_PASSWORD_RESET,
+            subject,
+            message,
+            from_email,
+            [to_email],
+            fail_silently=False,
+        )
         
         logger.info(f"Password reset email sent to {to_email} (simple format)")
     

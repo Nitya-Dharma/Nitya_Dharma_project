@@ -91,6 +91,29 @@ EMAIL_BACKEND = (
     else "django.core.mail.backends.console.EmailBackend"
 )
 
+# Additive ZeptoMail (optional). Empty allowlist → default EMAIL_* path.
+# Never assigned onto EMAIL_*. Does not change the Gmail hard-fail checks below.
+import os as _os_zepto  # noqa: E402
+from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows  # noqa: E402
+
+ZEPTOMAIL_EMAIL_HOST = _os_zepto.environ.get("ZEPTOMAIL_EMAIL_HOST", "").strip()
+ZEPTOMAIL_EMAIL_PORT = int(_os_zepto.environ.get("ZEPTOMAIL_EMAIL_PORT", "587") or "587")
+ZEPTOMAIL_EMAIL_USE_TLS = config("ZEPTOMAIL_EMAIL_USE_TLS", default=True, cast=bool)
+ZEPTOMAIL_EMAIL_USE_SSL = config("ZEPTOMAIL_EMAIL_USE_SSL", default=False, cast=bool)
+ZEPTOMAIL_EMAIL_HOST_USER = _os_zepto.environ.get("ZEPTOMAIL_EMAIL_HOST_USER", "").strip()
+ZEPTOMAIL_EMAIL_HOST_PASSWORD = _os_zepto.environ.get(
+    "ZEPTOMAIL_EMAIL_HOST_PASSWORD", ""
+).strip()
+ZEPTOMAIL_DEFAULT_FROM_EMAIL = _os_zepto.environ.get(
+    "ZEPTOMAIL_DEFAULT_FROM_EMAIL", ""
+).strip()
+ZEPTOMAIL_EMAIL_TIMEOUT = int(
+    _os_zepto.environ.get("ZEPTOMAIL_EMAIL_TIMEOUT", "10") or "10"
+)
+ZEPTOMAIL_ENABLED_FLOWS = parse_zeptomail_enabled_flows(
+    _os_zepto.environ.get("ZEPTOMAIL_ENABLED_FLOWS", "")
+)
+
 # TASK 4: Hard fail on misconfiguration (DEV ONLY)
 # Gmail SMTP requires FROM address to match authenticated account
 # This prevents silent email drops

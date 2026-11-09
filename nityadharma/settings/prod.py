@@ -266,3 +266,29 @@ else:
         else "django.core.mail.backends.console.EmailBackend"
     )
 
+# ---------------------------------------------------------------------------
+# Additive ZeptoMail (optional second provider). NEVER assigned onto EMAIL_*.
+# Empty ZEPTOMAIL_ENABLED_FLOWS → all flows keep the default Gmail/Resend/SMTP path.
+# ---------------------------------------------------------------------------
+from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows  # noqa: E402
+
+ZEPTOMAIL_EMAIL_HOST = os.environ.get("ZEPTOMAIL_EMAIL_HOST", "").strip()
+ZEPTOMAIL_EMAIL_PORT = int(os.environ.get("ZEPTOMAIL_EMAIL_PORT", "587") or "587")
+ZEPTOMAIL_EMAIL_USE_TLS = config(
+    "ZEPTOMAIL_EMAIL_USE_TLS",
+    default=True,
+    cast=bool,
+)
+ZEPTOMAIL_EMAIL_USE_SSL = config(
+    "ZEPTOMAIL_EMAIL_USE_SSL",
+    default=False,
+    cast=bool,
+)
+ZEPTOMAIL_EMAIL_HOST_USER = os.environ.get("ZEPTOMAIL_EMAIL_HOST_USER", "").strip()
+ZEPTOMAIL_EMAIL_HOST_PASSWORD = os.environ.get("ZEPTOMAIL_EMAIL_HOST_PASSWORD", "").strip()
+ZEPTOMAIL_DEFAULT_FROM_EMAIL = os.environ.get("ZEPTOMAIL_DEFAULT_FROM_EMAIL", "").strip()
+ZEPTOMAIL_EMAIL_TIMEOUT = int(os.environ.get("ZEPTOMAIL_EMAIL_TIMEOUT", "10") or "10")
+ZEPTOMAIL_ENABLED_FLOWS = parse_zeptomail_enabled_flows(
+    os.environ.get("ZEPTOMAIL_ENABLED_FLOWS", "")
+)
+

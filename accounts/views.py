@@ -604,32 +604,24 @@ def pandit_register(request, referral_token):
             # Optional: notify admins of new Pandit registration (production-safe; fail_silently)
             try:
                 from django.conf import settings as django_settings
-                from django.core.mail import send_mail
                 admins = getattr(django_settings, 'ADMINS', ())
                 if admins and user.email:
                     recipient_list = [email for _, email in admins]
                     if recipient_list:
-                        try:
-                            # NOTE:
-                            # If Redis is UP but Celery worker is DOWN,
-                            # tasks will queue and NOT execute immediately.
-                            # This is expected Celery behavior.
-                            from core.tasks_email import send_email_task
+                        from core.email_providers import (
+                            FLOW_PANDIT_ADMIN,
+                            queue_or_send_transactional_email,
+                        )
 
-                            send_email_task.delay(
-                                '[Nitya Dharma] New Pandit registration',
-                                f'A new Pandit has registered: {user.email}. Please review in the admin.',
-                                django_settings.DEFAULT_FROM_EMAIL,
-                                recipient_list,
-                            )
-                        except Exception:
-                            send_mail(
-                                subject='[Nitya Dharma] New Pandit registration',
-                                message=f'A new Pandit has registered: {user.email}. Please review in the admin.',
-                                from_email=django_settings.DEFAULT_FROM_EMAIL,
-                                recipient_list=recipient_list,
-                                fail_silently=True,
-                            )
+                        # Empty allowlist → default EMAIL_* path; fail_silently preserves prior behavior.
+                        queue_or_send_transactional_email(
+                            FLOW_PANDIT_ADMIN,
+                            '[Nitya Dharma] New Pandit registration',
+                            f'A new Pandit has registered: {user.email}. Please review in the admin.',
+                            django_settings.DEFAULT_FROM_EMAIL,
+                            recipient_list,
+                            fail_silently=True,
+                        )
             except Exception:
                 pass
             
@@ -1451,7 +1443,6 @@ def password_reset_request(request):
         from django.contrib.auth.tokens import default_token_generator
         from django.utils.http import urlsafe_base64_encode
         from django.utils.encoding import force_bytes
-        from django.core.mail import send_mail
         from django.conf import settings
         
         token = default_token_generator.make_token(user)
@@ -1481,27 +1472,19 @@ Nitya Dharma Team
         '''
         
         try:
-            try:
-                # NOTE:
-                # If Redis is UP but Celery worker is DOWN,
-                # tasks will queue and NOT execute immediately.
-                # This is expected Celery behavior.
-                from core.tasks_email import send_email_task
+            from core.email_providers import (
+                FLOW_LEGACY_PASSWORD_RESET,
+                queue_or_send_transactional_email,
+            )
 
-                send_email_task.delay(
-                    subject,
-                    message,
-                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
-                    [user.email],
-                )
-            except Exception:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
+            queue_or_send_transactional_email(
+                FLOW_LEGACY_PASSWORD_RESET,
+                subject,
+                message,
+                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nityadharma.com'),
+                [user.email],
+                fail_silently=False,
+            )
             messages.success(request, 'If an account exists with this email, a password reset link has been sent.')
         except Exception as e:
             messages.error(request, f'Failed to send email: {str(e)}')
