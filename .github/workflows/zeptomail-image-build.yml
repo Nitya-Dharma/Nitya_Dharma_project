@@ -109,10 +109,9 @@ jobs:
           assert application is not None
 
           from nityadharma.celery import app as celery_app
+          import core.tasks  # registers core.send_email_task via tasks_email import
           task_names = celery_app.tasks.keys()
-          assert "core.send_email_task" in task_names, sorted(
-              n for n in task_names if "email" in n
-          )
+          assert "core.send_email_task" in task_names, sorted(task_names)
 
           print("DJANGO_SETUP_OK")
           print("WSGI_IMPORT_OK")
