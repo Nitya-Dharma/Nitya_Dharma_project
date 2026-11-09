@@ -95,6 +95,28 @@ EMAIL_BACKEND = (
     else "django.core.mail.backends.console.EmailBackend"
 )
 
+# Additive ZeptoMail — separate from EMAIL_*; allowlist empty by default.
+import os as _os_zepto
+from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows
+
+ZEPTOMAIL_EMAIL_HOST = _os_zepto.environ.get("ZEPTOMAIL_EMAIL_HOST", "").strip()
+ZEPTOMAIL_EMAIL_PORT = int(_os_zepto.environ.get("ZEPTOMAIL_EMAIL_PORT", "587") or "587")
+ZEPTOMAIL_EMAIL_USE_TLS = config("ZEPTOMAIL_EMAIL_USE_TLS", default=True, cast=bool)
+ZEPTOMAIL_EMAIL_USE_SSL = config("ZEPTOMAIL_EMAIL_USE_SSL", default=False, cast=bool)
+ZEPTOMAIL_EMAIL_HOST_USER = _os_zepto.environ.get("ZEPTOMAIL_EMAIL_HOST_USER", "").strip()
+ZEPTOMAIL_EMAIL_HOST_PASSWORD = _os_zepto.environ.get(
+    "ZEPTOMAIL_EMAIL_HOST_PASSWORD", ""
+).strip()
+ZEPTOMAIL_DEFAULT_FROM_EMAIL = _os_zepto.environ.get(
+    "ZEPTOMAIL_DEFAULT_FROM_EMAIL", ""
+).strip()
+ZEPTOMAIL_EMAIL_TIMEOUT = int(
+    _os_zepto.environ.get("ZEPTOMAIL_EMAIL_TIMEOUT", "10") or "10"
+)
+ZEPTOMAIL_ENABLED_FLOWS = parse_zeptomail_enabled_flows(
+    _os_zepto.environ.get("ZEPTOMAIL_ENABLED_FLOWS", "")
+)
+
 # DEV ONLY: Gmail SMTP silently drops mail when From != authenticated user.
 # Other providers (e.g. ZeptoMail emailapikey + no-reply@…) may differ — do not hard-fail them.
 if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":

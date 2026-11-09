@@ -219,6 +219,16 @@ SERVER_EMAIL = _env_optional("QA_SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 ADMIN_NOTIFICATION_EMAIL = _env_optional(
     "QA_ADMIN_NOTIFICATION_EMAIL", "qa-admin@example.invalid"
 )
+# Additive ZeptoMail isolated: present but disabled (empty allowlist).
+ZEPTOMAIL_EMAIL_HOST = ""
+ZEPTOMAIL_EMAIL_PORT = 587
+ZEPTOMAIL_EMAIL_USE_TLS = True
+ZEPTOMAIL_EMAIL_USE_SSL = False
+ZEPTOMAIL_EMAIL_HOST_USER = ""
+ZEPTOMAIL_EMAIL_HOST_PASSWORD = ""
+ZEPTOMAIL_DEFAULT_FROM_EMAIL = ""
+ZEPTOMAIL_EMAIL_TIMEOUT = 10
+ZEPTOMAIL_ENABLED_FLOWS = frozenset()
 
 # ---------------------------------------------------------------------------
 # Cache / sessions — no inherited Redis

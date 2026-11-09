@@ -52,30 +52,32 @@ def _invoke_expert_admin_alert(name, phone, normalized_type):
 
 def _invoke_pandit_admin_alert(user_email):
     """Invoke pandit admin alert paths mirroring accounts.views Phase 2D."""
-    from django.core.mail import send_mail
+    from core.email_providers import FLOW_PANDIT_ADMIN, send_for_flow
+    from core.tasks_email import send_email_task
 
     recipient_list = _pandit_admin_recipients()
     if not (recipient_list and user_email):
         return "skipped"
+    subject = "[Nitya Dharma] New Pandit registration"
+    message = (
+        f"A new Pandit has registered: {user_email}. Please review in the admin."
+    )
     try:
-        from core.tasks_email import send_email_task
-
         send_email_task.delay(
-            "[Nitya Dharma] New Pandit registration",
-            f"A new Pandit has registered: {user_email}. Please review in the admin.",
+            subject,
+            message,
             settings.DEFAULT_FROM_EMAIL,
             recipient_list,
+            flow=FLOW_PANDIT_ADMIN,
         )
         return "celery"
     except Exception:
-        send_mail(
-            subject="[Nitya Dharma] New Pandit registration",
-            message=(
-                f"A new Pandit has registered: {user_email}. "
-                f"Please review in the admin."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=recipient_list,
+        send_for_flow(
+            FLOW_PANDIT_ADMIN,
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            recipient_list,
             fail_silently=True,
         )
         return "fallback"
@@ -173,37 +175,39 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         mock_send.assert_not_called()
 
     @patch("core.tasks_email.send_email_task.delay", side_effect=RuntimeError("no broker"))
-    @patch("django.core.mail.send_mail")
+    @patch("core.email_providers.send_mail")
     def test_pandit_admin_fallback_send_mail_path(self, mock_send, mock_delay):
         path = _invoke_pandit_admin_alert("pandit4@example.test")
         self.assertEqual(path, "fallback")
         mock_delay.assert_called_once()
+        self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "pandit_admin")
         mock_send.assert_called_once()
         kwargs = mock_send.call_args.kwargs
         self.assertEqual(kwargs["subject"], "[Nitya Dharma] New Pandit registration")
         self.assertEqual(kwargs["recipient_list"], ["admin-notify@example.test"])
         self.assertTrue(kwargs["fail_silently"])
 
-    @patch("django.core.mail.send_mail")
+    @patch("core.email_providers.send_mail")
     def test_send_email_task_invokes_send_mail_in_process(self, mock_send):
         from core.tasks_email import send_email_task
 
         # Celery bind=True: first arg is task instance when called as .run()
+        # Omitting flow= keeps default provider (Gmail/EMAIL_* path).
         send_email_task.run(
             "Task Subject",
             "Task body",
             "from@example.test",
             ["to@example.test"],
         )
-        mock_send.assert_called_once_with(
-            "Task Subject",
-            "Task body",
-            "from@example.test",
-            ["to@example.test"],
-        )
+        mock_send.assert_called_once()
+        args, kwargs = mock_send.call_args
+        self.assertEqual(args[0], "Task Subject")
+        self.assertEqual(args[1], "Task body")
+        self.assertEqual(args[2], "from@example.test")
+        self.assertEqual(args[3], ["to@example.test"])
 
     @patch("core.tasks_email.send_email_task.delay", side_effect=RuntimeError("no broker"))
-    @patch("accounts.email_verification.send_mail", return_value=1)
+    @patch("core.email_providers.send_mail", return_value=1)
     def test_send_verification_email_with_fake_user_token(self, mock_send, mock_delay):
         from accounts.email_verification import send_verification_email
 
@@ -215,7 +219,8 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         send_verification_email(user, token)
 
         mock_delay.assert_called_once()
-        # delay failed → fallback send_mail (module-local import)
+        self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "verification")
+        # delay failed → sync send_for_flow → default provider send_mail
         mock_send.assert_called_once()
         kwargs = mock_send.call_args.kwargs
         self.assertEqual(kwargs["subject"], "Verify your email address - Nitya Dharma")
@@ -240,9 +245,10 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         self.assertIn("Changed User", args[1])
         self.assertEqual(args[2], "noreply@example.test")
         self.assertEqual(args[3], ["changed@example.test"])
+        self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "password_change")
 
     @patch("core.tasks_email.send_email_task.delay", side_effect=RuntimeError("no broker"))
-    @patch("accounts.views_password_reset.django_send_mail")
+    @patch("core.email_providers.send_mail")
     def test_password_reset_view_send_mail_override(self, mock_send, mock_delay):
         from accounts.views_password_reset import EnhancedPasswordResetView
 
@@ -265,6 +271,7 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
             "reset@example.test",
         )
         mock_delay.assert_called_once()
+        self.assertEqual(mock_delay.call_args.kwargs.get("flow"), "password_reset")
         mock_send.assert_called_once()
         kwargs = mock_send.call_args.kwargs
         self.assertEqual(kwargs["from_email"], "noreply@example.test")
