@@ -1,6 +1,7 @@
 # Manual-only: build and verify ZeptoMail app image off-production.
 # Retains a private Actions artifact (docker save + SHA-256). No registry push.
 # Does NOT deploy, migrate, or use production credentials/DB/Redis.
+# Source pin: Phase 84 commit 33f578b (nine-flow Expert/Bureau transactional wiring).
 
 name: ZeptoMail image build (DB-free, private artifact)
 
@@ -12,7 +13,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: zeptomail-image-build-32c67d5
+  group: zeptomail-image-build-33f578b
   cancel-in-progress: false
 
 jobs:
@@ -24,7 +25,7 @@ jobs:
       - name: Checkout approved source commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 32c67d51b279ec8b021034282892f42ff07c3243
+          ref: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3
           persist-credentials: false
 
       - name: Verify checked-out source
@@ -32,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          expected="32c67d51b279ec8b021034282892f42ff07c3243"
+          expected="33f578b9b283d47f85e3f2659ef01b1e43abcbc3"
           test "$actual" = "$expected"
           echo "SOURCE_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
           test -f Dockerfile
@@ -40,12 +41,202 @@ jobs:
           test -f core/tasks_email.py
           test -f nityadharma/settings/_zeptomail_env.py
 
+          # Phase 84 commit must not introduce schema paths (integration is email-only).
+          if git diff-tree --no-commit-id --name-only -r HEAD | grep -E '(^|/)models\.py$|/migrations/'; then
+            echo "FAIL: Phase 84 tip commit includes models/migrations paths" >&2
+            exit 1
+          fi
+          echo "PHASE84_NO_SCHEMA_PATHS_OK" >> "$GITHUB_STEP_SUMMARY"
+
+          # AST-based source checks (no Django, no network, no SMTP).
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import ast
+          import sys
+          from pathlib import Path
+
+          EXPECTED_FLOWS = frozenset(
+              {
+                  "verification",
+                  "password_reset",
+                  "password_change",
+                  "pandit_admin",
+                  "legacy_password_reset",
+                  "expert_set_password",
+                  "expert_admin",
+                  "expert_approval",
+                  "bureau_approval",
+              }
+          )
+
+
+          def parse(path: str) -> ast.AST:
+              return ast.parse(Path(path).read_text(encoding="utf-8"), filename=path)
+
+
+          def const_str(node: ast.AST) -> str | None:
+              if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                  return node.value
+              return None
+
+
+          def assigned_names(tree: ast.AST) -> dict[str, ast.AST]:
+              out: dict[str, ast.AST] = {}
+              for node in tree.body:
+                  if isinstance(node, ast.Assign):
+                      for target in node.targets:
+                          if isinstance(target, ast.Name):
+                              out[target.id] = node.value
+                  elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                      if node.value is not None:
+                          out[node.target.id] = node.value
+              return out
+
+
+          def frozen_str_set(node: ast.AST, names: dict[str, ast.AST]) -> frozenset[str]:
+              if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "frozenset"):
+                  raise AssertionError(f"Expected frozenset(...), got {ast.dump(node)}")
+              if not node.args:
+                  raise AssertionError("frozenset() missing argument")
+              container = node.args[0]
+              if not isinstance(container, (ast.Set, ast.Tuple, ast.List)):
+                  raise AssertionError("frozenset argument must be a set/tuple/list literal")
+              values: set[str] = set()
+              for elt in container.elts:
+                  s = const_str(elt)
+                  if s is not None:
+                      values.add(s)
+                      continue
+                  if isinstance(elt, ast.Name) and elt.id in names:
+                      resolved = const_str(names[elt.id])
+                      if resolved is None:
+                          raise AssertionError(f"Cannot resolve flow constant {elt.id}")
+                      values.add(resolved)
+                      continue
+                  raise AssertionError(f"Unsupported frozenset element: {ast.dump(elt)}")
+              return frozenset(values)
+
+
+          def imports_from_module(tree: ast.AST, module: str, names: set[str]) -> set[str]:
+              found: set[str] = set()
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.ImportFrom) and node.module == module:
+                      for alias in node.names:
+                          if alias.name in names:
+                              found.add(alias.name)
+              return found
+
+
+          def calls_name(tree: ast.AST, func_name: str) -> bool:
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Call):
+                      if isinstance(node.func, ast.Name) and node.func.id == func_name:
+                          return True
+              return False
+
+
+          def function_def(tree: ast.AST, name: str) -> ast.FunctionDef | None:
+              for node in tree.body:
+                  if isinstance(node, ast.FunctionDef) and node.name == name:
+                      return node
+              return None
+
+
+          # --- nine-flow registry ---
+          providers = parse("core/email_providers.py")
+          names = assigned_names(providers)
+          if "KNOWN_FLOWS" not in names:
+              raise SystemExit("FAIL: KNOWN_FLOWS not found")
+          flows = frozen_str_set(names["KNOWN_FLOWS"], names)
+          if flows != EXPECTED_FLOWS:
+              raise SystemExit(f"FAIL: KNOWN_FLOWS mismatch: {sorted(flows)}")
+          print("KNOWN_FLOWS_NINE_OK")
+
+          # --- Celery task optional flow= ---
+          tasks = parse("core/tasks_email.py")
+          send_email = function_def(tasks, "send_email_task")
+          if send_email is None:
+              raise SystemExit("FAIL: send_email_task missing")
+          flow_args = [
+              a
+              for a in send_email.args.args
+              if isinstance(a, ast.arg) and a.arg == "flow"
+          ]
+          # After bind=True self, positional args; flow may be kw-only.
+          kwonly = [a for a in send_email.args.kwonlyargs if a.arg == "flow"]
+          if not flow_args and not kwonly:
+              # Also accept if listed in args with default via defaults alignment
+              raise SystemExit("FAIL: send_email_task has no flow parameter")
+          # Default must be None (keyword or positional default).
+          has_none_default = False
+          if flow_args:
+              # positional: match trailing defaults
+              pos = send_email.args.args
+              defaults = list(send_email.args.defaults)
+              # defaults apply to the last len(defaults) positional args
+              for i, arg in enumerate(pos[-len(defaults) :] if defaults else []):
+                  if arg.arg == "flow" and isinstance(defaults[i], ast.Constant) and defaults[i].value is None:
+                      has_none_default = True
+          if kwonly:
+              for i, arg in enumerate(send_email.args.kwonlyargs):
+                  if arg.arg == "flow":
+                      d = send_email.args.kw_defaults[i]
+                      if isinstance(d, ast.Constant) and d.value is None:
+                          has_none_default = True
+          if not has_none_default:
+              raise SystemExit("FAIL: send_email_task.flow default is not None")
+          print("CELERY_FLOW_OPTIONAL_OK")
+
+          # --- Expert registration transactional emails ---
+          expert_ui = parse("services/views_expert_ui.py")
+          needed = {"FLOW_EXPERT_SET_PASSWORD", "FLOW_EXPERT_ADMIN", "queue_or_send_transactional_email"}
+          found = imports_from_module(expert_ui, "core.email_providers", needed)
+          if found != needed:
+              raise SystemExit(f"FAIL: expert_ui imports incomplete: {found}")
+          if not calls_name(expert_ui, "queue_or_send_transactional_email"):
+              raise SystemExit("FAIL: expert_ui does not call queue_or_send_transactional_email")
+          print("EXPERT_REGISTRATION_SELECTOR_OK")
+
+          # --- Expert approval shared helper ---
+          dash = parse("dashboards/views.py")
+          needed = {"FLOW_EXPERT_APPROVAL", "queue_or_send_transactional_email"}
+          found = imports_from_module(dash, "core.email_providers", needed)
+          if found != needed:
+              raise SystemExit(f"FAIL: dashboards imports incomplete: {found}")
+          helper = function_def(dash, "_send_expert_approval_email")
+          if helper is None:
+              raise SystemExit("FAIL: _send_expert_approval_email missing")
+          if not calls_name(helper, "queue_or_send_transactional_email"):
+              raise SystemExit("FAIL: approval helper does not call queue_or_send_transactional_email")
+          # Single + bulk call sites must reference the helper.
+          helper_calls = 0
+          for node in ast.walk(dash):
+              if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_send_expert_approval_email":
+                  helper_calls += 1
+          if helper_calls < 2:
+              raise SystemExit(f"FAIL: expected >=2 _send_expert_approval_email calls, got {helper_calls}")
+          print("EXPERT_APPROVAL_SELECTOR_OK")
+
+          # --- Bureau approval ---
+          bureau = parse("bureaus/signals.py")
+          needed = {"FLOW_BUREAU_APPROVAL", "queue_or_send_transactional_email"}
+          found = imports_from_module(bureau, "core.email_providers", needed)
+          if found != needed:
+              raise SystemExit(f"FAIL: bureau signals imports incomplete: {found}")
+          if not calls_name(bureau, "queue_or_send_transactional_email"):
+              raise SystemExit("FAIL: bureau signals does not call queue_or_send_transactional_email")
+          print("BUREAU_APPROVAL_SELECTOR_OK")
+
+          print("PHASE84_SOURCE_AST_CHECKS_OK")
+          PY
+
       - name: Build image on hosted runner
         shell: bash
         run: |
           set -euo pipefail
-          docker build --pull=false --tag nitya-dharma:zeptomail-32c67d5 .
-          docker image inspect nitya-dharma:zeptomail-32c67d5 \
+          docker build --pull=false --tag nitya-dharma:zeptomail-33f578b .
+          docker image inspect nitya-dharma:zeptomail-33f578b \
             --format 'IMAGE_ID={{.Id}}' | tee image-id.txt
           cat image-id.txt >> "$GITHUB_STEP_SUMMARY"
 
@@ -56,7 +247,7 @@ jobs:
 
           # Quoting: outer double-quoted sh -c; inner python -c uses single quotes.
           docker run --rm --network none --entrypoint sh \
-            nitya-dharma:zeptomail-32c67d5 -c "
+            nitya-dharma:zeptomail-33f578b -c "
               set -eu
               test -f /app/core/email_providers.py || { echo 'FAIL: missing email_providers.py' >&2; exit 1; }
               test -f /app/core/tasks_email.py || { echo 'FAIL: missing tasks_email.py' >&2; exit 1; }
@@ -85,9 +276,10 @@ jobs:
             -e ZEPTOMAIL_ENABLED_FLOWS= \
             -e REDIS_URL= \
             -e CELERY_BROKER_URL= \
-            nitya-dharma:zeptomail-32c67d5 -c '
+            nitya-dharma:zeptomail-33f578b -c '
           import os
           import sys
+          import inspect
 
           os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nityadharma.settings.prod")
           import django
@@ -99,11 +291,43 @@ jobs:
 
           from django.conf import settings
           from nityadharma.settings._zeptomail_env import parse_zeptomail_enabled_flows
-          import core.email_providers  # noqa: F401
+          from core.email_providers import (
+              KNOWN_FLOWS,
+              FLOW_VERIFICATION,
+              FLOW_PASSWORD_RESET,
+              FLOW_PASSWORD_CHANGE,
+              FLOW_PANDIT_ADMIN,
+              FLOW_LEGACY_PASSWORD_RESET,
+              FLOW_EXPERT_SET_PASSWORD,
+              FLOW_EXPERT_ADMIN,
+              FLOW_EXPERT_APPROVAL,
+              FLOW_BUREAU_APPROVAL,
+          )
+          from core.tasks_email import send_email_task
+
+          expected = frozenset(
+              {
+                  FLOW_VERIFICATION,
+                  FLOW_PASSWORD_RESET,
+                  FLOW_PASSWORD_CHANGE,
+                  FLOW_PANDIT_ADMIN,
+                  FLOW_LEGACY_PASSWORD_RESET,
+                  FLOW_EXPERT_SET_PASSWORD,
+                  FLOW_EXPERT_ADMIN,
+                  FLOW_EXPERT_APPROVAL,
+                  FLOW_BUREAU_APPROVAL,
+              }
+          )
+          assert KNOWN_FLOWS == expected, sorted(KNOWN_FLOWS)
+          assert len(KNOWN_FLOWS) == 9
 
           assert parse_zeptomail_enabled_flows("") == frozenset()
           assert settings.ZEPTOMAIL_ENABLED_FLOWS == frozenset(), settings.ZEPTOMAIL_ENABLED_FLOWS
           assert settings.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend", settings.EMAIL_BACKEND
+
+          sig = inspect.signature(send_email_task.run)
+          assert "flow" in sig.parameters, sig
+          assert sig.parameters["flow"].default is None, sig.parameters["flow"].default
 
           from nityadharma.wsgi import application
           assert application is not None
@@ -116,6 +340,8 @@ jobs:
           print("DJANGO_SETUP_OK")
           print("WSGI_IMPORT_OK")
           print("CELERY_TASK_REGISTERED_OK")
+          print("CELERY_FLOW_PARAM_OK")
+          print("KNOWN_FLOWS_NINE_OK")
           print("PRODUCTION_SETTINGS_IMPORT_OK")
           print("ZEPTOMAIL_ALLOWLIST_EMPTY_OK")
           print("DEFAULT_EMAIL_BACKEND_CONSOLE_OK")
@@ -125,18 +351,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          image_id="$(docker image inspect nitya-dharma:zeptomail-32c67d5 --format '{{.Id}}')"
-          archive="nitya-dharma-zeptomail-32c67d5.tar.gz"
+          image_id="$(docker image inspect nitya-dharma:zeptomail-33f578b --format '{{.Id}}')"
+          archive="nitya-dharma-zeptomail-33f578b.tar.gz"
           checksum_file="${archive}.sha256"
 
-          docker save nitya-dharma:zeptomail-32c67d5 | gzip -1 > "$archive"
+          docker save nitya-dharma:zeptomail-33f578b | gzip -1 > "$archive"
           sha256sum "$archive" | tee "$checksum_file"
           archive_sha256="$(awk '{print $1}' "$checksum_file")"
 
           {
             echo "### Isolated image verification"
-            echo "- Source commit: 32c67d51b279ec8b021034282892f42ff07c3243"
-            echo "- Image tag: nitya-dharma:zeptomail-32c67d5"
+            echo "- Source commit: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3"
+            echo "- Image tag: nitya-dharma:zeptomail-33f578b"
             echo "- Image ID: $image_id"
             echo "- Archive file: $archive"
             echo "- Archive SHA-256: $archive_sha256"
@@ -149,18 +375,18 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "IMAGE_ID=$image_id" | tee image-build-meta.txt
-          echo "SOURCE_SHA=32c67d51b279ec8b021034282892f42ff07c3243" >> image-build-meta.txt
-          echo "IMAGE_TAG=nitya-dharma:zeptomail-32c67d5" >> image-build-meta.txt
+          echo "SOURCE_SHA=33f578b9b283d47f85e3f2659ef01b1e43abcbc3" >> image-build-meta.txt
+          echo "IMAGE_TAG=nitya-dharma:zeptomail-33f578b" >> image-build-meta.txt
           echo "ARCHIVE_SHA256=$archive_sha256" >> image-build-meta.txt
           ls -lh "$archive" "$checksum_file" image-id.txt image-build-meta.txt
 
       - name: Upload private image artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: zeptomail-32c67d5-image
+          name: zeptomail-33f578b-image
           path: |
-            nitya-dharma-zeptomail-32c67d5.tar.gz
-            nitya-dharma-zeptomail-32c67d5.tar.gz.sha256
+            nitya-dharma-zeptomail-33f578b.tar.gz
+            nitya-dharma-zeptomail-33f578b.tar.gz.sha256
             image-id.txt
             image-build-meta.txt
           if-no-files-found: error
