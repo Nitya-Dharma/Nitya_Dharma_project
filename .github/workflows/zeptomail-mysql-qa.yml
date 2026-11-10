@@ -71,12 +71,12 @@ jobs:
       SMS_API_KEY: ""
 
     steps:
-      - name: Checkout pinned feature snapshot
+      - name: Checkout workflow_dispatch ref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          # Same reviewed ZeptoMail feature tip as the DB-free workflow.
-          # Update intentionally when the tested snapshot changes.
-          ref: a745a3f6072dd406a7946200aaccf97556e20fa1
+          # Use the dispatched branch/commit (candidate tip), not an obsolete pin.
+          persist-credentials: false
+          fetch-depth: 1
 
       - name: Fail closed — QA isolation guards
         shell: bash

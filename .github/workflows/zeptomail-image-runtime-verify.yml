@@ -1,15 +1,17 @@
-# Manual-only: verify the exact Phase 86 candidate Docker image at runtime.
+# Manual-only: verify the exact candidate Docker image at runtime.
 #
-# Loads private artifact zeptomail-33f578b-image from run 42802556685 on a
-# GitHub-hosted runner. Starts disposable Redis on an internal Docker network,
+# Loads a private build artifact (name zeptomail-7282691-image) from a caller-
+# supplied Actions run id. Starts disposable Redis on an internal Docker network,
 # then runs publisher + Celery worker from the SAME image ID.
+#
+# Image ID, archive SHA-256, and artifact run id MUST come from the image-build
+# job outputs/summary — never invent them. Source SHA is fixed to 7282691.
 #
 # Does NOT rebuild the image, push a registry, deploy, start MySQL, use
 # production DB/Redis/SMTP/ZeptoMail/Resend/Gmail credentials, or claim
 # exactly-once delivery (CELERY_TASK_ACKS_LATE + autoretry remain at-least-once).
 #
-# Artifact retention from Phase 86 ends 2026-11-24; missing/expired/invalid
-# artifacts fail closed.
+# Missing/expired/invalid artifacts fail closed.
 #
 # Creating this file does not authorize dispatching it.
 
@@ -17,13 +19,31 @@ name: ZeptoMail candidate image runtime verify
 
 on:
   workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: "Actions run ID that uploaded zeptomail-7282691-image"
+        required: true
+        type: string
+      image_id:
+        description: "Exact IMAGE_ID from image-build-meta.txt (sha256:...)"
+        required: true
+        type: string
+      archive_sha256:
+        description: "ARCHIVE_SHA256 from image-build-meta.txt"
+        required: true
+        type: string
+      artifact_id:
+        description: "Optional artifact id reference (documentation only)"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: zeptomail-image-runtime-verify-33f578b
+  group: zeptomail-image-runtime-verify-7282691
   cancel-in-progress: false
 
 jobs:
@@ -33,16 +53,15 @@ jobs:
     timeout-minutes: 45
 
     env:
-      EXPECTED_SOURCE_SHA: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3
-      EXPECTED_WORKFLOW_SHA: 26a7bf9d921e0b0d5dcc92ebab891240863afcc5
-      EXPECTED_ARTIFACT_RUN_ID: "42802556685"
-      EXPECTED_ARTIFACT_NAME: zeptomail-33f578b-image
-      EXPECTED_ARTIFACT_ID: "13757137004"
-      EXPECTED_ARCHIVE_NAME: nitya-dharma-zeptomail-33f578b.tar.gz
-      EXPECTED_ARCHIVE_SHA256: 2c1fc6a4d7d3f6e8eacb6805f6bd9c601eac9cf1f73c722728e90c656233b100
-      EXPECTED_IMAGE_ID: sha256:40d92d6b7d9c367b60472021b385f6ae6eabc518b42da71e46da69c5b71aa60e
-      EXPECTED_IMAGE_TAG: nitya-dharma:zeptomail-33f578b
-      ARTIFACT_EXPIRES_NOTE: "2026-11-24"
+      EXPECTED_SOURCE_SHA: 72826912f0e7fe48d57015f4eeedeb8e81422bb6
+      EXPECTED_ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id }}
+      EXPECTED_ARTIFACT_NAME: zeptomail-7282691-image
+      EXPECTED_ARTIFACT_ID: ${{ inputs.artifact_id }}
+      EXPECTED_ARCHIVE_NAME: nitya-dharma-zeptomail-7282691.tar.gz
+      EXPECTED_ARCHIVE_SHA256: ${{ inputs.archive_sha256 }}
+      EXPECTED_IMAGE_ID: ${{ inputs.image_id }}
+      EXPECTED_IMAGE_TAG: nitya-dharma:zeptomail-7282691
+      ARTIFACT_EXPIRES_NOTE: "14 days from image-build upload"
 
     steps:
       - name: Checkout dispatch ref (workflow only; image comes from artifact)
@@ -73,11 +92,11 @@ jobs:
           done
           echo "AMBIENT_SECRET_ENV_EMPTY_OK" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Download Phase 86 image artifact (cross-run)
+      - name: Download candidate image artifact (cross-run)
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
-          name: zeptomail-33f578b-image
-          run-id: 42802556685
+          name: ${{ env.EXPECTED_ARTIFACT_NAME }}
+          run-id: ${{ env.EXPECTED_ARTIFACT_RUN_ID }}
           github-token: ${{ github.token }}
           path: image-artifact
 

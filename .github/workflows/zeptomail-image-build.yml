@@ -1,7 +1,7 @@
 # Manual-only: build and verify ZeptoMail app image off-production.
 # Retains a private Actions artifact (docker save + SHA-256). No registry push.
 # Does NOT deploy, migrate, or use production credentials/DB/Redis.
-# Source pin: Phase 84 commit 33f578b (nine-flow Expert/Bureau transactional wiring).
+# Source pin: 7282691 (ZeptoMail + restored migrations + Python/runtime pins).
 
 name: ZeptoMail image build (DB-free, private artifact)
 
@@ -13,7 +13,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: zeptomail-image-build-33f578b
+  group: zeptomail-image-build-7282691
   cancel-in-progress: false
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout approved source commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3
+          ref: 72826912f0e7fe48d57015f4eeedeb8e81422bb6
           persist-credentials: false
 
       - name: Verify checked-out source
@@ -33,20 +33,32 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          expected="33f578b9b283d47f85e3f2659ef01b1e43abcbc3"
+          expected="72826912f0e7fe48d57015f4eeedeb8e81422bb6"
           test "$actual" = "$expected"
           echo "SOURCE_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
           test -f Dockerfile
+          test -f requirements.txt
           test -f core/email_providers.py
           test -f core/tasks_email.py
           test -f nityadharma/settings/_zeptomail_env.py
+          grep -Fq 'FROM python:3.11.17-slim' Dockerfile
+          grep -Fq 'Django==4.2.30' requirements.txt
+          grep -Fq 'celery==5.6.3' requirements.txt
+          grep -Fq 'gunicorn==26.2.0' requirements.txt
+          grep -Fq 'requests==2.34.2' requirements.txt
+          test -f branding/migrations/0002_alter_brandinglogo_favicon_image_and_more.py
+          test -f masterdata/migrations/0002_alter_city_status.py
+          test -f pages/migrations/0004_alter_cmspage_og_image_alter_page_cover_image_and_more.py
+          test -f profiles/migrations/0009_alter_panditprofile_cover_image_and_more.py
+          echo "MIGRATION_FILES_PRESENT_OK" >> "$GITHUB_STEP_SUMMARY"
+          echo "RUNTIME_PINS_DECLARED_OK" >> "$GITHUB_STEP_SUMMARY"
 
-          # Phase 84 commit must not introduce schema paths (integration is email-only).
+          # Tip commit hygiene: pin commit itself must not add models/migrations paths.
           if git diff-tree --no-commit-id --name-only -r HEAD | grep -E '(^|/)models\.py$|/migrations/'; then
-            echo "FAIL: Phase 84 tip commit includes models/migrations paths" >&2
+            echo "FAIL: tip commit includes models/migrations paths" >&2
             exit 1
           fi
-          echo "PHASE84_NO_SCHEMA_PATHS_OK" >> "$GITHUB_STEP_SUMMARY"
+          echo "TIP_COMMIT_NO_SCHEMA_PATHS_OK" >> "$GITHUB_STEP_SUMMARY"
 
           # AST-based source checks (no Django, no network, no SMTP).
           python3 - <<'PY'
@@ -235,8 +247,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker build --pull=false --tag nitya-dharma:zeptomail-33f578b .
-          docker image inspect nitya-dharma:zeptomail-33f578b \
+          docker build --pull=false --tag nitya-dharma:zeptomail-7282691 .
+          docker image inspect nitya-dharma:zeptomail-7282691 \
             --format 'IMAGE_ID={{.Id}}' | tee image-id.txt
           cat image-id.txt >> "$GITHUB_STEP_SUMMARY"
 
@@ -247,13 +259,19 @@ jobs:
 
           # Quoting: outer double-quoted sh -c; inner python -c uses single quotes.
           docker run --rm --network none --entrypoint sh \
-            nitya-dharma:zeptomail-33f578b -c "
+            nitya-dharma:zeptomail-7282691 -c "
               set -eu
               test -f /app/core/email_providers.py || { echo 'FAIL: missing email_providers.py' >&2; exit 1; }
               test -f /app/core/tasks_email.py || { echo 'FAIL: missing tasks_email.py' >&2; exit 1; }
               test -f /app/nityadharma/settings/_zeptomail_env.py || { echo 'FAIL: missing _zeptomail_env.py' >&2; exit 1; }
+              test -f /app/branding/migrations/0002_alter_brandinglogo_favicon_image_and_more.py
+              test -f /app/masterdata/migrations/0002_alter_city_status.py
+              test -f /app/pages/migrations/0004_alter_cmspage_og_image_alter_page_cover_image_and_more.py
+              test -f /app/profiles/migrations/0009_alter_panditprofile_cover_image_and_more.py
               command -v gunicorn >/dev/null || { echo 'FAIL: gunicorn missing' >&2; exit 1; }
               command -v celery >/dev/null || { echo 'FAIL: celery missing' >&2; exit 1; }
+              python -c 'import sys; v=sys.version_info; assert v[:2]==(3,11), v; print(\"PYTHON\", sys.version.split()[0])'
+              python -c 'import django,celery,gunicorn,requests; assert django.get_version()==\"4.2.30\"; assert celery.__version__==\"5.6.3\"; assert gunicorn.__version__==\"26.2.0\"; assert requests.__version__==\"2.34.2\"; print(\"RUNTIME_PINS_OK\")'
               python -c 'import django; print(\"DJANGO_IMPORT_OK\")'
             "
 
@@ -276,7 +294,7 @@ jobs:
             -e ZEPTOMAIL_ENABLED_FLOWS= \
             -e REDIS_URL= \
             -e CELERY_BROKER_URL= \
-            nitya-dharma:zeptomail-33f578b -c '
+            nitya-dharma:zeptomail-7282691 -c '
           import os
           import sys
           import inspect
@@ -351,18 +369,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          image_id="$(docker image inspect nitya-dharma:zeptomail-33f578b --format '{{.Id}}')"
-          archive="nitya-dharma-zeptomail-33f578b.tar.gz"
+          image_id="$(docker image inspect nitya-dharma:zeptomail-7282691 --format '{{.Id}}')"
+          archive="nitya-dharma-zeptomail-7282691.tar.gz"
           checksum_file="${archive}.sha256"
 
-          docker save nitya-dharma:zeptomail-33f578b | gzip -1 > "$archive"
+          docker save nitya-dharma:zeptomail-7282691 | gzip -1 > "$archive"
           sha256sum "$archive" | tee "$checksum_file"
           archive_sha256="$(awk '{print $1}' "$checksum_file")"
 
           {
             echo "### Isolated image verification"
-            echo "- Source commit: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3"
-            echo "- Image tag: nitya-dharma:zeptomail-33f578b"
+            echo "- Source commit: 72826912f0e7fe48d57015f4eeedeb8e81422bb6"
+            echo "- Image tag: nitya-dharma:zeptomail-7282691"
             echo "- Image ID: $image_id"
             echo "- Archive file: $archive"
             echo "- Archive SHA-256: $archive_sha256"
@@ -372,21 +390,22 @@ jobs:
             echo "- Database/Redis services: **None**"
             echo "- ZeptoMail allowlist: **Empty**"
             echo "- Artifact retention: **14 days**"
+            echo "- NOTE: Copy IMAGE_ID, ARCHIVE_SHA256, and this workflow run id into runtime-verify inputs."
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "IMAGE_ID=$image_id" | tee image-build-meta.txt
-          echo "SOURCE_SHA=33f578b9b283d47f85e3f2659ef01b1e43abcbc3" >> image-build-meta.txt
-          echo "IMAGE_TAG=nitya-dharma:zeptomail-33f578b" >> image-build-meta.txt
+          echo "SOURCE_SHA=72826912f0e7fe48d57015f4eeedeb8e81422bb6" >> image-build-meta.txt
+          echo "IMAGE_TAG=nitya-dharma:zeptomail-7282691" >> image-build-meta.txt
           echo "ARCHIVE_SHA256=$archive_sha256" >> image-build-meta.txt
           ls -lh "$archive" "$checksum_file" image-id.txt image-build-meta.txt
 
       - name: Upload private image artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: zeptomail-33f578b-image
+          name: zeptomail-7282691-image
           path: |
-            nitya-dharma-zeptomail-33f578b.tar.gz
-            nitya-dharma-zeptomail-33f578b.tar.gz.sha256
+            nitya-dharma-zeptomail-7282691.tar.gz
+            nitya-dharma-zeptomail-7282691.tar.gz.sha256
             image-id.txt
             image-build-meta.txt
           if-no-files-found: error
