@@ -2,7 +2,7 @@
 # Additive layer: does not replace existing VPS/Gunicorn deployment.
 # Use python-decouple + .env at runtime; no secrets in image.
 
-FROM python:3.11-slim
+FROM python:3.11.17-slim
 
 # Prevent Python from writing pyc and prevent buffering
 ENV PYTHONDONTWRITEBYTECODE=1

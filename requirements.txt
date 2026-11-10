@@ -1,42 +1,29 @@
 # Django LTS Version
-Django>=4.2,<5.0
+Django==4.2.30
 
 # MySQL Database
-mysqlclient>=2.2.0
+mysqlclient==2.3.0
 
 # Environment Variables
-python-decouple>=3.8
+python-decouple==3.8
 
 # Image validation for ad banners (dimensions, format)
-Pillow>=10.0.0
+Pillow==12.3.0
 
 # Production / Render deployment
-gunicorn>=21.0.0
-whitenoise>=6.6.0
+gunicorn==26.2.0
+whitenoise==6.12.0
 dj-database-url>=2.1.0
 psycopg2-binary>=2.9.9
 
 # Optional Redis caching (production); app runs without Redis if REDIS_URL not set
-redis>=4.0.0
-django-redis>=5.0.0
+redis==8.1.0
+django-redis==6.0.0
 
 # Background tasks (optional worker; web runs fine without Celery)
-celery>=5.3.0
+celery==5.6.3
 
 # HTTP client used by OTP/SMS transport
-requests>=2.31.0
+requests==2.34.2
 
 # Additional packages will be added as needed in future modules
-
-
-
-
-
-
-
-
-
-
-
-
-
