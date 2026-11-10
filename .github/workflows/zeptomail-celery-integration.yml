@@ -103,6 +103,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --get-all safe.directory |
+            grep -Fx -- "$GITHUB_WORKSPACE"
           test -f nityadharma/settings/integration_ci.py
           test -f accounts/tests/ci_email_backend.py
           test -f accounts/tests/test_zeptomail_celery_integration.py
