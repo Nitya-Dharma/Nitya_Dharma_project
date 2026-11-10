@@ -1,0 +1,634 @@
+# Manual-only: verify the exact Phase 86 candidate Docker image at runtime.
+#
+# Loads private artifact zeptomail-33f578b-image from run 42802556685 on a
+# GitHub-hosted runner. Starts disposable Redis on an internal Docker network,
+# then runs publisher + Celery worker from the SAME image ID.
+#
+# Does NOT rebuild the image, push a registry, deploy, start MySQL, use
+# production DB/Redis/SMTP/ZeptoMail/Resend/Gmail credentials, or claim
+# exactly-once delivery (CELERY_TASK_ACKS_LATE + autoretry remain at-least-once).
+#
+# Artifact retention from Phase 86 ends 2026-11-24; missing/expired/invalid
+# artifacts fail closed.
+#
+# Creating this file does not authorize dispatching it.
+
+name: ZeptoMail candidate image runtime verify
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: zeptomail-image-runtime-verify-33f578b
+  cancel-in-progress: false
+
+jobs:
+  image-runtime-verify:
+    name: Exact image web-publish + worker verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      EXPECTED_SOURCE_SHA: 33f578b9b283d47f85e3f2659ef01b1e43abcbc3
+      EXPECTED_WORKFLOW_SHA: 26a7bf9d921e0b0d5dcc92ebab891240863afcc5
+      EXPECTED_ARTIFACT_RUN_ID: "42802556685"
+      EXPECTED_ARTIFACT_NAME: zeptomail-33f578b-image
+      EXPECTED_ARTIFACT_ID: "13757137004"
+      EXPECTED_ARCHIVE_NAME: nitya-dharma-zeptomail-33f578b.tar.gz
+      EXPECTED_ARCHIVE_SHA256: 2c1fc6a4d7d3f6e8eacb6805f6bd9c601eac9cf1f73c722728e90c656233b100
+      EXPECTED_IMAGE_ID: sha256:40d92d6b7d9c367b60472021b385f6ae6eabc518b42da71e46da69c5b71aa60e
+      EXPECTED_IMAGE_TAG: nitya-dharma:zeptomail-33f578b
+      ARTIFACT_EXPIRES_NOTE: "2026-11-24"
+
+    steps:
+      - name: Checkout dispatch ref (workflow only; image comes from artifact)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Fail closed — no production secret / endpoint configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Refuse ambient production-shaped env if a runner ever inherits it.
+          for key in \
+            DATABASE_URL MYSQL_URL REDIS_URL \
+            EMAIL_HOST EMAIL_HOST_USER EMAIL_HOST_PASSWORD \
+            RESEND_API_KEY \
+            ZEPTOMAIL_EMAIL_HOST ZEPTOMAIL_EMAIL_HOST_USER \
+            ZEPTOMAIL_EMAIL_HOST_PASSWORD ZEPTOMAIL_DEFAULT_FROM_EMAIL \
+            ZEPTOMAIL_ENABLED_FLOWS \
+            MSG91_AUTH_KEY SMS_API_KEY
+          do
+            val="${!key-}"
+            if [ -n "${val}" ]; then
+              echo "FAIL: ${key} must be empty for image runtime verify (got non-empty)." >&2
+              exit 1
+            fi
+          done
+          echo "AMBIENT_SECRET_ENV_EMPTY_OK" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Download Phase 86 image artifact (cross-run)
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        with:
+          name: zeptomail-33f578b-image
+          run-id: 42802556685
+          github-token: ${{ github.token }}
+          path: image-artifact
+
+      - name: Verify artifact identity (inner archive SHA-256 + meta)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd image-artifact
+          # download-artifact may nest under the artifact name.
+          if [ ! -f "${EXPECTED_ARCHIVE_NAME}" ]; then
+            found="$(find . -type f -name "${EXPECTED_ARCHIVE_NAME}" | head -n 1 || true)"
+            if [ -z "${found}" ]; then
+              echo "FAIL: ${EXPECTED_ARCHIVE_NAME} missing (artifact missing/expired/invalid; expires ${ARTIFACT_EXPIRES_NOTE})." >&2
+              find . -maxdepth 3 -type f | head -n 50 >&2 || true
+              exit 1
+            fi
+            cd "$(dirname "${found}")"
+          fi
+
+          test -f "${EXPECTED_ARCHIVE_NAME}"
+          test -f "${EXPECTED_ARCHIVE_NAME}.sha256"
+          test -f image-id.txt
+          test -f image-build-meta.txt
+
+          actual_archive_sha="$(sha256sum "${EXPECTED_ARCHIVE_NAME}" | awk '{print $1}')"
+          meta_archive_sha="$(awk '{print $1}' "${EXPECTED_ARCHIVE_NAME}.sha256")"
+          if [ "${actual_archive_sha}" != "${EXPECTED_ARCHIVE_SHA256}" ]; then
+            echo "FAIL: archive SHA-256 mismatch." >&2
+            echo "expected=${EXPECTED_ARCHIVE_SHA256}" >&2
+            echo "actual=${actual_archive_sha}" >&2
+            exit 1
+          fi
+          if [ "${meta_archive_sha}" != "${EXPECTED_ARCHIVE_SHA256}" ]; then
+            echo "FAIL: checksum file does not match expected archive digest." >&2
+            exit 1
+          fi
+
+          meta_image_id="$(tr -d '[:space:]' < image-id.txt)"
+          meta_image_id="${meta_image_id#IMAGE_ID=}"
+          if [ "${meta_image_id}" != "${EXPECTED_IMAGE_ID}" ]; then
+            echo "FAIL: image-id.txt mismatch (expected ${EXPECTED_IMAGE_ID}, got ${meta_image_id})." >&2
+            exit 1
+          fi
+          grep -Fq "IMAGE_ID=${EXPECTED_IMAGE_ID}" image-build-meta.txt
+          grep -Fq "SOURCE_SHA=${EXPECTED_SOURCE_SHA}" image-build-meta.txt
+          grep -Fq "IMAGE_TAG=${EXPECTED_IMAGE_TAG}" image-build-meta.txt
+          grep -Fq "ARCHIVE_SHA256=${EXPECTED_ARCHIVE_SHA256}" image-build-meta.txt
+
+          {
+            echo "### Artifact identity"
+            echo "- Artifact run: ${EXPECTED_ARTIFACT_RUN_ID}"
+            echo "- Artifact name: ${EXPECTED_ARTIFACT_NAME}"
+            echo "- Artifact ID (reference): ${EXPECTED_ARTIFACT_ID}"
+            echo "- Archive: ${EXPECTED_ARCHIVE_NAME}"
+            echo "- Archive SHA-256: ${actual_archive_sha}"
+            echo "- Image ID (meta): ${meta_image_id}"
+            echo "- Source SHA (meta): ${EXPECTED_SOURCE_SHA}"
+            echo "- Expiry note: ${ARTIFACT_EXPIRES_NOTE}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Persist absolute paths for later steps.
+          echo "ARCHIVE_PATH=$(pwd)/${EXPECTED_ARCHIVE_NAME}" >> "$GITHUB_ENV"
+          echo "ARTIFACT_DIR=$(pwd)" >> "$GITHUB_ENV"
+
+      - name: Load exact image and verify image ID
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ARCHIVE_PATH}"
+          test -f "${ARCHIVE_PATH}"
+          gunzip -c "${ARCHIVE_PATH}" | docker load
+          loaded_id="$(docker image inspect "${EXPECTED_IMAGE_ID}" --format '{{.Id}}')"
+          if [ "${loaded_id}" != "${EXPECTED_IMAGE_ID}" ]; then
+            echo "FAIL: loaded image Id mismatch." >&2
+            echo "expected=${EXPECTED_IMAGE_ID}" >&2
+            echo "actual=${loaded_id}" >&2
+            exit 1
+          fi
+          # Tag may exist from docker save; never trust tag alone.
+          if docker image inspect "${EXPECTED_IMAGE_TAG}" >/dev/null 2>&1; then
+            tagged_id="$(docker image inspect "${EXPECTED_IMAGE_TAG}" --format '{{.Id}}')"
+            if [ "${tagged_id}" != "${EXPECTED_IMAGE_ID}" ]; then
+              echo "FAIL: tag ${EXPECTED_IMAGE_TAG} points at unexpected Id ${tagged_id}." >&2
+              exit 1
+            fi
+          fi
+          echo "LOADED_IMAGE_ID_OK=${loaded_id}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Runtime verify (Redis + same-image worker + publisher)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RUN_SUFFIX="${GITHUB_RUN_ID}"
+          NET_NAME="nd-img-verify-${RUN_SUFFIX}"
+          VOL_NAME="nd-img-mail-${RUN_SUFFIX}"
+          REDIS_NAME="nd-img-redis-${RUN_SUFFIX}"
+          WORKER_NAME="nd-img-worker-${RUN_SUFFIX}"
+          PUBLISHER_NAME="nd-img-publisher-${RUN_SUFFIX}"
+          WORKER_LOG="/tmp/${WORKER_NAME}.log"
+          PUBLISHER_LOG="/tmp/${PUBLISHER_NAME}.log"
+
+          # STATUS is set by fail() / signal traps. cleanup() also captures $? so a
+          # set -e failure cannot be green-washed when STATUS is still 0.
+          STATUS=0
+          READY_NAMES=()
+          REDIS_IMAGE_ID=""
+
+          cleanup() {
+            # Capture EXIT-triggering status FIRST (before any cleanup command).
+            local trap_ec=$?
+            local status="${STATUS}"
+            if [ "${status}" -eq 0 ] && [ "${trap_ec}" -ne 0 ]; then
+              status="${trap_ec}"
+            fi
+            set +e
+            echo "---- cleanup begin (preserve status=${status} trap_ec=${trap_ec}) ----" >&2
+            if [ "${status}" -ne 0 ]; then
+              echo "---- worker logs (failure) ----" >&2
+              docker logs "${WORKER_NAME}" 2>&1 | tail -n 200 >&2 || true
+              if [ -f "${WORKER_LOG}" ]; then
+                tail -n 200 "${WORKER_LOG}" >&2 || true
+              fi
+              echo "---- publisher logs (failure) ----" >&2
+              docker logs "${PUBLISHER_NAME}" 2>&1 | tail -n 200 >&2 || true
+              if [ -f "${PUBLISHER_LOG}" ]; then
+                tail -n 200 "${PUBLISHER_LOG}" >&2 || true
+              fi
+              echo "---- redis logs (failure) ----" >&2
+              docker logs "${REDIS_NAME}" 2>&1 | tail -n 100 >&2 || true
+            fi
+            # Strict scope: only resources created by this run id (no wildcards/prune).
+            if [ "${#READY_NAMES[@]}" -gt 0 ]; then
+              for ready_ctr in "${READY_NAMES[@]}"; do
+                docker rm -f "${ready_ctr}" >/dev/null 2>&1 || true
+              done
+            fi
+            docker rm -f "${PUBLISHER_NAME}" >/dev/null 2>&1 || true
+            docker rm -f "${WORKER_NAME}" >/dev/null 2>&1 || true
+            docker rm -f "${REDIS_NAME}" >/dev/null 2>&1 || true
+            docker volume rm "${VOL_NAME}" >/dev/null 2>&1 || true
+            docker network rm "${NET_NAME}" >/dev/null 2>&1 || true
+            echo "---- cleanup end ----" >&2
+            exit "${status}"
+          }
+          trap cleanup EXIT
+          trap 'STATUS=130; exit 130' INT
+          trap 'STATUS=143; exit 143' TERM
+
+          fail() {
+            echo "FAIL: $*" >&2
+            STATUS=1
+            exit 1
+          }
+
+          # Correction 1: pull Redis before creating the internal network.
+          # No independently reviewed immutable digest available offline — keep the
+          # reviewed tag and pin the pulled Id for this workflow run.
+          docker pull redis:7-alpine
+          REDIS_IMAGE_ID="$(docker image inspect redis:7-alpine --format '{{.Id}}')"
+          if [ -z "${REDIS_IMAGE_ID}" ]; then
+            fail "could not resolve redis:7-alpine image Id after pull"
+          fi
+          echo "REDIS_IMAGE_ID=${REDIS_IMAGE_ID}" >> "$GITHUB_STEP_SUMMARY"
+
+          docker network create --internal "${NET_NAME}" \
+            || fail "could not create internal network ${NET_NAME}"
+          docker volume create "${VOL_NAME}" \
+            || fail "could not create volume ${VOL_NAME}"
+
+          docker run -d \
+            --name "${REDIS_NAME}" \
+            --network "${NET_NAME}" \
+            --network-alias redis \
+            "${REDIS_IMAGE_ID}" \
+            || fail "redis container start failed"
+
+          redis_ctr_image="$(docker inspect --format '{{.Image}}' "${REDIS_NAME}")"
+          if [ "${redis_ctr_image}" != "${REDIS_IMAGE_ID}" ]; then
+            fail "redis container Image ${redis_ctr_image} != pulled ${REDIS_IMAGE_ID}"
+          fi
+
+          for i in $(seq 1 30); do
+            if docker exec "${REDIS_NAME}" redis-cli ping 2>/dev/null | grep -q PONG; then
+              echo "REDIS_PONG_OK"
+              break
+            fi
+            sleep 1
+            if [ "$i" -eq 30 ]; then
+              fail "Redis health check failed (no host ports published; docker exec only)"
+            fi
+          done
+
+          # Shared CI-only env for candidate image containers (no production values).
+          # Stub QA_DB_* required by integration_ci→qa import; MySQL is NOT started.
+          common_env=(
+            -e DJANGO_SETTINGS_MODULE=nityadharma.settings.integration_ci
+            -e INTEGRATION_CI_RUN=1
+            -e QA_SECRET_KEY=ci-only-image-runtime-verify-not-prod
+            -e QA_DB_ENGINE=django.db.backends.mysql
+            -e QA_DB_NAME=nd_ci_image_runtime
+            -e QA_DB_USER=nd_ci_unused
+            -e QA_DB_PASSWORD=ci-only-stub-mysql-not-prod-unused
+            -e QA_DB_HOST=qa-db.invalid
+            -e QA_DB_PORT=3306
+            -e QA_ALLOWED_DB_HOSTS=qa-db.invalid
+            -e QA_DB_TEST_NAME=test_nd_ci_image_runtime
+            -e INTEGRATION_CI_ALLOWED_REDIS_HOSTS=redis
+            -e INTEGRATION_CI_REDIS_URL=redis://redis:6379/0
+            -e INTEGRATION_CI_REDIS_RESULT_URL=redis://redis:6379/1
+            -e INTEGRATION_CI_EMAIL_FILE_PATH=/tmp/nitya-dharma-integration-mail
+            -e INTEGRATION_CI_DEFAULT_FROM_EMAIL=image-runtime-ci@example.invalid
+            -e INTEGRATION_CI_ADMIN_EMAIL=image-runtime-ops@example.invalid
+            -e INTEGRATION_CI_ADMIN_NOTIFICATION_EMAIL=image-runtime-admin@example.invalid
+            -e LOG_DIR=/tmp/nitya-dharma-ci-logs
+            -e OTP_MODE=mock
+            -e OTP_PROVIDER=mock_sms
+            -e EMAIL_HOST=
+            -e EMAIL_HOST_USER=
+            -e EMAIL_HOST_PASSWORD=
+            -e RESEND_API_KEY=
+            -e REDIS_URL=
+            -e DATABASE_URL=
+            -e MYSQL_URL=
+            -e MSG91_AUTH_KEY=
+            -e SMS_API_KEY=
+            -e ZEPTOMAIL_EMAIL_HOST=
+            -e ZEPTOMAIL_EMAIL_HOST_USER=
+            -e ZEPTOMAIL_EMAIL_HOST_PASSWORD=
+            -e ZEPTOMAIL_DEFAULT_FROM_EMAIL=
+            -e ZEPTOMAIL_ENABLED_FLOWS=
+          )
+
+          # Host-side scripts mounted read-only (avoids YAML-breaking python -c).
+          READY_PY="/tmp/${WORKER_NAME}-ready.py"
+          PUBLISH_PY="/tmp/${PUBLISHER_NAME}-publish.py"
+          WORKER_SAFETY_PY="/tmp/${WORKER_NAME}-safety.py"
+
+          cat > "${WORKER_SAFETY_PY}" <<'PY'
+          from __future__ import annotations
+
+          import os
+          from urllib.parse import urlparse
+
+          os.environ.setdefault(
+              "DJANGO_SETTINGS_MODULE", "nityadharma.settings.integration_ci"
+          )
+
+          import django
+
+          django.setup()
+
+          from django.conf import settings
+
+          backend = settings.EMAIL_BACKEND
+          if backend != "accounts.tests.ci_email_backend.RecordingFileEmailBackend":
+              raise SystemExit(f"FAIL: EMAIL_BACKEND={backend!r}")
+
+          if settings.ZEPTOMAIL_ENABLED_FLOWS != frozenset():
+              raise SystemExit(
+                  "FAIL: ZEPTOMAIL_ENABLED_FLOWS not empty: "
+                  f"{settings.ZEPTOMAIL_ENABLED_FLOWS!r}"
+              )
+
+          broker = settings.CELERY_BROKER_URL
+          result = settings.CELERY_RESULT_BACKEND
+          if broker != "redis://redis:6379/0":
+              raise SystemExit(f"FAIL: CELERY_BROKER_URL={broker!r}")
+          if result != "redis://redis:6379/1":
+              raise SystemExit(f"FAIL: CELERY_RESULT_BACKEND={result!r}")
+          for url in (broker, result):
+              host = (urlparse(url).hostname or "").strip()
+              if host != "redis":
+                  raise SystemExit(
+                      f"FAIL: unexpected broker/result host {host!r} in {url!r}"
+                  )
+
+          if (getattr(settings, "EMAIL_HOST", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST must be empty")
+          if (getattr(settings, "EMAIL_HOST_USER", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST_USER must be empty")
+          if (getattr(settings, "EMAIL_HOST_PASSWORD", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST_PASSWORD must be empty")
+          if (getattr(settings, "RESEND_API_KEY", "") or "").strip():
+              raise SystemExit("FAIL: RESEND_API_KEY must be empty")
+          if (getattr(settings, "ZEPTOMAIL_EMAIL_HOST_PASSWORD", "") or "").strip():
+              raise SystemExit("FAIL: ZEPTOMAIL_EMAIL_HOST_PASSWORD must be empty")
+          if (getattr(settings, "ZEPTOMAIL_EMAIL_HOST", "") or "").strip():
+              raise SystemExit("FAIL: ZEPTOMAIL_EMAIL_HOST must be empty")
+
+          print("WORKER_EMAIL_SAFETY_OK")
+          PY
+          sed -i 's/^          //' "${WORKER_SAFETY_PY}"
+
+          cat > "${READY_PY}" <<'PY'
+          from nityadharma.celery import app
+          import core.tasks  # noqa: F401
+
+          replies = app.control.inspect(timeout=2.0).ping() or {}
+          names = sorted(replies)
+          print("PING_NAMES", names)
+          assert any(n.startswith("img-verify-worker@") for n in names), names
+          print("WORKER_PING_OK")
+          PY
+          # Strip the YAML-preserving leading indent from the heredoc body.
+          sed -i 's/^          //' "${READY_PY}"
+
+          cat > "${PUBLISH_PY}" <<'PY'
+          from __future__ import annotations
+
+          import os
+          import uuid
+          from urllib.parse import urlparse
+
+          os.environ.setdefault(
+              "DJANGO_SETTINGS_MODULE", "nityadharma.settings.integration_ci"
+          )
+
+          import django
+
+          django.setup()
+
+          from django.conf import settings
+
+          # Resolved-settings safeguards — abort before publishing on any failure.
+          backend = settings.EMAIL_BACKEND
+          if backend != "accounts.tests.ci_email_backend.RecordingFileEmailBackend":
+              raise SystemExit(f"FAIL: EMAIL_BACKEND={backend!r}")
+
+          if settings.ZEPTOMAIL_ENABLED_FLOWS != frozenset():
+              raise SystemExit(
+                  "FAIL: ZEPTOMAIL_ENABLED_FLOWS not empty: "
+                  f"{settings.ZEPTOMAIL_ENABLED_FLOWS!r}"
+              )
+
+          broker = settings.CELERY_BROKER_URL
+          result = settings.CELERY_RESULT_BACKEND
+          if broker != "redis://redis:6379/0":
+              raise SystemExit(f"FAIL: CELERY_BROKER_URL={broker!r}")
+          if result != "redis://redis:6379/1":
+              raise SystemExit(f"FAIL: CELERY_RESULT_BACKEND={result!r}")
+          for url in (broker, result):
+              host = (urlparse(url).hostname or "").strip()
+              if host != "redis":
+                  raise SystemExit(
+                      f"FAIL: unexpected broker/result host {host!r} in {url!r}"
+                  )
+
+          if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", True):
+              raise SystemExit("FAIL: CELERY_TASK_ALWAYS_EAGER must be False")
+
+          if (getattr(settings, "EMAIL_HOST", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST must be empty")
+          if (getattr(settings, "EMAIL_HOST_USER", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST_USER must be empty")
+          if (getattr(settings, "EMAIL_HOST_PASSWORD", "") or "").strip():
+              raise SystemExit("FAIL: EMAIL_HOST_PASSWORD must be empty")
+          if (getattr(settings, "RESEND_API_KEY", "") or "").strip():
+              raise SystemExit("FAIL: RESEND_API_KEY must be empty")
+          if (getattr(settings, "ZEPTOMAIL_EMAIL_HOST_PASSWORD", "") or "").strip():
+              raise SystemExit("FAIL: ZEPTOMAIL_EMAIL_HOST_PASSWORD must be empty")
+          if (getattr(settings, "ZEPTOMAIL_EMAIL_HOST", "") or "").strip():
+              raise SystemExit("FAIL: ZEPTOMAIL_EMAIL_HOST must be empty")
+
+          from accounts.tests.ci_email_backend import (
+              email_root,
+              make_corr_token,
+              wait_for_worker_execution,
+          )
+          from core.tasks_email import send_email_task
+
+          root = email_root()
+          (root / "_executed").mkdir(exist_ok=True)
+          (root / "_fail").mkdir(exist_ok=True)
+          (root / "_attempts").mkdir(exist_ok=True)
+
+          assert send_email_task.name == "core.send_email_task"
+
+          corr_v = uuid.uuid4().hex[:16]
+          corr_l = uuid.uuid4().hex[:16]
+          token_v = make_corr_token(corr_v)
+          token_l = make_corr_token(corr_l)
+
+          # A) verification flow
+          async_v = send_email_task.delay(
+              f"Image runtime verify {token_v}",
+              f"Verification body marker {token_v}",
+              settings.DEFAULT_FROM_EMAIL,
+              [f"verify-{token_v}@example.test"],
+              flow="verification",
+          )
+          if not async_v.id:
+              raise SystemExit("FAIL: verification task did not return an id")
+          print(f"VERIFICATION_TASK_ID={async_v.id}")
+
+          # B) legacy no-flow argument (omit flow=)
+          async_l = send_email_task.delay(
+              f"Image runtime legacy {token_l}",
+              f"Legacy body marker {token_l}",
+              settings.DEFAULT_FROM_EMAIL,
+              [f"legacy-{token_l}@example.test"],
+          )
+          if not async_l.id:
+              raise SystemExit("FAIL: legacy task did not return an id")
+          print(f"LEGACY_TASK_ID={async_l.id}")
+
+          print("EXACTLY_ONCE_NOT_CLAIMED")
+
+          result_v = wait_for_worker_execution(
+              corr_v, timeout_seconds=90.0, min_messages=1
+          )
+          sidecar_v = result_v["sidecar"]
+          if sidecar_v.get("role") != "worker":
+              raise SystemExit(f"FAIL: verification sidecar role={sidecar_v!r}")
+          if result_v["message_count"] < 1:
+              raise SystemExit("FAIL: verification recorded message_count < 1")
+          print(
+              "VERIFICATION_OK "
+              f"corr={corr_v} messages={result_v['message_count']} "
+              f"sidecar_role={sidecar_v.get('role')} "
+              f"sidecar_pid={sidecar_v.get('pid')}"
+          )
+
+          result_l = wait_for_worker_execution(
+              corr_l, timeout_seconds=90.0, min_messages=1
+          )
+          sidecar_l = result_l["sidecar"]
+          if sidecar_l.get("role") != "worker":
+              raise SystemExit(f"FAIL: legacy sidecar role={sidecar_l!r}")
+          if result_l["message_count"] < 1:
+              raise SystemExit("FAIL: legacy recorded message_count < 1")
+          print(
+              "LEGACY_OK "
+              f"corr={corr_l} messages={result_l['message_count']} "
+              f"sidecar_role={sidecar_l.get('role')} "
+              f"sidecar_pid={sidecar_l.get('pid')}"
+          )
+
+          print("IMAGE_RUNTIME_VERIFY_PASSED")
+          print("AT_LEAST_ONCE_EVIDENCE_ONLY")
+          PY
+          sed -i 's/^          //' "${PUBLISH_PY}"
+
+          # Worker: exact image ID, consumes default+emails (route key mismatch preserved).
+          docker run -d \
+            --name "${WORKER_NAME}" \
+            --network "${NET_NAME}" \
+            -v "${VOL_NAME}:/tmp/nitya-dharma-integration-mail" \
+            -v "${WORKER_SAFETY_PY}:/tmp/worker_safety.py:ro" \
+            "${common_env[@]}" \
+            -e INTEGRATION_CI_EMAIL_ROLE=worker \
+            --entrypoint celery \
+            "${EXPECTED_IMAGE_ID}" \
+            -A nityadharma worker \
+            --loglevel=info \
+            --pool=solo \
+            -Q default,emails \
+            --hostname=img-verify-worker@%h \
+            || fail "worker container start failed"
+
+          worker_image="$(docker inspect --format '{{.Image}}' "${WORKER_NAME}")"
+          if [ "${worker_image}" != "${EXPECTED_IMAGE_ID}" ]; then
+            fail "worker Image ${worker_image} != expected ${EXPECTED_IMAGE_ID}"
+          fi
+
+          # Worker-side email safety — abort before task publishing if unsafe.
+          docker exec "${WORKER_NAME}" python /tmp/worker_safety.py \
+            || fail "worker email safety checks failed"
+          echo "WORKER_EMAIL_SAFETY_OK" >> "$GITHUB_STEP_SUMMARY"
+
+          # Wait for worker readiness via Celery inspect (same image ID, role=test).
+          # Track every readiness container name for explicit cleanup (no --rm wildcards).
+          : > "${WORKER_LOG}"
+          ready=0
+          for i in $(seq 1 60); do
+            ready_name="${PUBLISHER_NAME}-ready-${i}"
+            READY_NAMES+=("${ready_name}")
+            set +e
+            docker run \
+              --name "${ready_name}" \
+              --network "${NET_NAME}" \
+              -v "${READY_PY}:/tmp/ready.py:ro" \
+              "${common_env[@]}" \
+              -e INTEGRATION_CI_EMAIL_ROLE=test \
+              --entrypoint python \
+              "${EXPECTED_IMAGE_ID}" \
+              /tmp/ready.py >> "${WORKER_LOG}" 2>&1
+            ready_ec=$?
+            set -e
+            if [ "${ready_ec}" -eq 0 ]; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "${ready}" -ne 1 ]; then
+            fail "worker readiness ping failed"
+          fi
+          echo "WORKER_READY_OK" >> "$GITHUB_STEP_SUMMARY"
+
+          # Publisher: create (no auto-delete), inspect Image Id, then start attached.
+          # Gunicorn HTTP testing intentionally omitted (non-gating / out of scope).
+          docker create \
+            --name "${PUBLISHER_NAME}" \
+            --network "${NET_NAME}" \
+            -v "${VOL_NAME}:/tmp/nitya-dharma-integration-mail" \
+            -v "${PUBLISH_PY}:/tmp/publish.py:ro" \
+            "${common_env[@]}" \
+            -e INTEGRATION_CI_EMAIL_ROLE=test \
+            --entrypoint python \
+            "${EXPECTED_IMAGE_ID}" \
+            /tmp/publish.py \
+            || fail "publisher container create failed"
+
+          publisher_image="$(docker inspect --format '{{.Image}}' "${PUBLISHER_NAME}")"
+          if [ "${publisher_image}" != "${EXPECTED_IMAGE_ID}" ]; then
+            fail "publisher Image ${publisher_image} != expected ${EXPECTED_IMAGE_ID}"
+          fi
+          echo "PUBLISHER_IMAGE_OK=${publisher_image}" >> "$GITHUB_STEP_SUMMARY"
+
+          set +e
+          docker start -a "${PUBLISHER_NAME}" | tee "${PUBLISHER_LOG}"
+          pub_status=${PIPESTATUS[0]}
+          set -e
+          if [ "${pub_status}" -ne 0 ]; then
+            fail "publisher verification script failed (exit ${pub_status})"
+          fi
+
+          # Worker log evidence that tasks were received (best-effort; sidecars are authoritative).
+          docker logs "${WORKER_NAME}" 2>&1 | tee -a "${WORKER_LOG}" | tail -n 80 || true
+          if ! grep -Eq "core\.send_email_task|received|succeeded|Task" "${WORKER_LOG}"; then
+            echo "WARN: worker log lacked clear task markers; sidecars remain authoritative." >&2
+          fi
+
+          {
+            echo "### Runtime verification"
+            echo "- Network: ${NET_NAME} (--internal)"
+            echo "- Redis: ${REDIS_NAME} (no host ports; image Id ${REDIS_IMAGE_ID})"
+            echo "- Worker Image: ${worker_image}"
+            echo "- Publisher Image: ${publisher_image}"
+            echo "- Queues: default,emails (route key mismatch preserved; routes unchanged)"
+            echo "- EMAIL_BACKEND: RecordingFileEmailBackend (worker + publisher verified)"
+            echo "- ZEPTOMAIL_ENABLED_FLOWS: empty"
+            echo "- MySQL: not started (stub QA_DB_HOST=qa-db.invalid)"
+            echo "- Gunicorn HTTP: omitted"
+            echo "- Exactly-once: NOT claimed (acks_late + autoretry)"
+            echo "- Result: IMAGE_RUNTIME_VERIFY_PASSED"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Capture publisher evidence lines into summary without secrets.
+          grep -E '^(VERIFICATION_|LEGACY_|EXACTLY_ONCE|IMAGE_RUNTIME|AT_LEAST_ONCE)' "${PUBLISHER_LOG}" \
+            >> "$GITHUB_STEP_SUMMARY" || true
+
+          STATUS=0
