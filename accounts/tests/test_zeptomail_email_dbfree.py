@@ -9,12 +9,14 @@ Expert/bureau recipient behavior matches current main (no ADMIN_NOTIFICATION_EMA
 from __future__ import annotations
 
 import inspect
+from contextlib import nullcontext
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.core import mail
-from django.test import SimpleTestCase, override_settings
+from django.http import HttpResponse
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 
 def _pandit_admin_recipients():
@@ -135,6 +137,124 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         self.assertIn('"Set Your Password"', src)
         self.assertIn("FLOW_EXPERT_SET_PASSWORD", src)
         self.assertIn("[email]", src)
+
+    @override_settings(
+        DEFAULT_FROM_EMAIL="noreply@example.test",
+        SITE_URL="http://127.0.0.1:8000",
+        ZEPTOMAIL_ENABLED_FLOWS=frozenset(),
+    )
+    @patch(
+        "otp_verification.registration.session.consume_phone_verified_session"
+    )
+    @patch(
+        "otp_verification.registration.session.phone_verified_matches_registration",
+        return_value=False,
+    )
+    @patch(
+        "otp_verification.registration.factory.is_registration_otp_required",
+        return_value=False,
+    )
+    @patch("accounts.phone_utils.phone_already_registered", return_value=False)
+    @patch(
+        "accounts.phone_utils.normalize_phone_number",
+        side_effect=lambda phone: phone,
+    )
+    @patch("services.views_expert_ui.transaction.atomic", return_value=nullcontext())
+    @patch("services.views_expert_ui.ExpertSocialLink.objects.create")
+    @patch("services.views_expert_ui.ExpertProfile.objects")
+    @patch("services.views_expert_ui.User.objects")
+    @patch("services.views_expert_ui.ExpertService.objects")
+    @patch(
+        "services.views_expert_ui.primary_expert_type",
+        return_value="astrologer",
+    )
+    @patch("services.views_expert_ui.resolve_active_services_by_ids")
+    @patch("services.views_expert_ui.render", return_value=HttpResponse(b"ok"))
+    @patch("services.views_expert_ui.queue_or_send_transactional_email")
+    def test_expert_register_set_password_enqueues_real_view_path(
+        self,
+        mock_queue,
+        mock_render,
+        mock_resolve_services,
+        _mock_primary_type,
+        mock_expert_service_objects,
+        mock_user_objects,
+        mock_expert_profile_objects,
+        _mock_social_create,
+        _mock_atomic,
+        _mock_normalize_phone,
+        _mock_phone_registered,
+        _mock_otp_required,
+        _mock_phone_verified_match,
+        _mock_consume_verified,
+    ):
+        """
+        Drive expert_register_page (real view) with ORM/OTP mocked so the
+        FLOW_EXPERT_SET_PASSWORD queue_or_send_transactional_email call site runs.
+        """
+        from core.email_providers import FLOW_EXPERT_SET_PASSWORD
+        from services.views_expert_ui import expert_register_page
+
+        service = SimpleNamespace(
+            id=7, slug="astrology", name="Astrology", display_order=1
+        )
+        mock_resolve_services.return_value = [service]
+        mock_expert_service_objects.filter.return_value.order_by.return_value = [
+            service
+        ]
+        mock_expert_profile_objects.filter.return_value.first.return_value = None
+        mock_user_objects.filter.return_value.first.return_value = None
+        created_user = SimpleNamespace(email="expert-set@example.test", pk=42)
+        mock_user_objects.create_user.return_value = created_user
+        created_expert = MagicMock()
+        mock_expert_profile_objects.create.return_value = created_expert
+
+        factory = RequestFactory()
+        request = factory.post(
+            "/services/expert/register/",
+            data={
+                "name": "Expert SetPwd",
+                "email": "expert-set@example.test",
+                "password": "SecurePass1!",
+                "confirm_password": "SecurePass1!",
+                "phone": "9876543210",
+                "experience_years": "5",
+                "description": "DB-free expert set-password enqueue coverage",
+                "services": ["7"],
+                "social_links[]": ["https://example.test/expert"],
+                "skip_phone_verification": "1",
+            },
+        )
+        # messages framework unused on the success path exercised here.
+        request.session = {}
+
+        response = expert_register_page(request)
+        self.assertEqual(response.status_code, 200)
+        mock_user_objects.create_user.assert_called_once()
+        mock_render.assert_called()
+
+        set_password_calls = [
+            call
+            for call in mock_queue.call_args_list
+            if call.args and call.args[0] == FLOW_EXPERT_SET_PASSWORD
+        ]
+        self.assertEqual(
+            len(set_password_calls),
+            1,
+            msg=f"expected one expert_set_password enqueue; got {mock_queue.call_args_list!r}",
+        )
+        args, kwargs = set_password_calls[0]
+        self.assertEqual(args[0], FLOW_EXPERT_SET_PASSWORD)
+        self.assertEqual(args[0], "expert_set_password")
+        self.assertEqual(args[1], "Set Your Password")
+        self.assertIn("Your expert account has been created.", args[2])
+        self.assertIn("Please reset your password here:", args[2])
+        # URL name accounts:password_reset → path password-reset/ (hyphen).
+        self.assertIn("/accounts/password-reset/", args[2])
+        self.assertIn("http://127.0.0.1:8000", args[2])
+        self.assertEqual(args[3], "noreply@example.test")
+        self.assertEqual(args[4], ["expert-set@example.test"])
+        self.assertTrue(kwargs.get("fail_silently"))
 
     def test_expert_approval_helper_shared_by_single_and_bulk(self):
         import dashboards.views as dashboards_views

@@ -390,3 +390,87 @@ class TaskBackwardCompatTests(SimpleTestCase):
         self.assertEqual(getattr(dj_settings, "RESEND_API_KEY", ""), "")
         self.assertEqual(dj_settings.EMAIL_HOST, "smtp.gmail.com")
         self.assertEqual(dj_settings.ZEPTOMAIL_ENABLED_FLOWS, frozenset())
+
+
+class NineFlowZeptoMailSendTests(SimpleTestCase):
+    """
+    Parameterized allowlist → ZeptoMail SMTP mock for every KNOWN_FLOWS id.
+
+    Uses send_for_flow (real resolve + send_via_provider). Does not replace
+    empty-allowlist / incomplete-config / dual-send / Resend tests above.
+    """
+
+    databases = set()
+
+    def test_known_flows_registry_is_exactly_nine_approved(self):
+        approved = frozenset(
+            {
+                "verification",
+                "password_reset",
+                "password_change",
+                "pandit_admin",
+                "legacy_password_reset",
+                "expert_set_password",
+                "expert_admin",
+                "expert_approval",
+                "bureau_approval",
+            }
+        )
+        self.assertEqual(KNOWN_FLOWS, approved)
+
+    @patch("core.email_providers.get_connection")
+    @patch("core.email_providers.send_mail", return_value=1)
+    def test_each_allowlisted_flow_uses_zeptomail_smtp_once(
+        self, mock_send, mock_conn
+    ):
+        conn = MagicMock(name="zeptomail_smtp_connection")
+        mock_conn.return_value = conn
+        gmail_from = "gmail-user@example.test"
+
+        self.assertEqual(len(KNOWN_FLOWS), 9)
+        for flow in sorted(KNOWN_FLOWS):
+            with self.subTest(flow=flow):
+                mock_send.reset_mock()
+                mock_conn.reset_mock()
+                mock_conn.return_value = conn
+
+                recipient = f"{flow}@example.test"
+                subject = f"Subject for {flow}"
+                message = f"Body for {flow} recipient-check"
+
+                with override_settings(
+                    **_ZEPTO_COMPLETE,
+                    ZEPTOMAIL_ENABLED_FLOWS=frozenset({flow}),
+                ):
+                    self.assertEqual(
+                        resolve_provider_for_flow(flow), PROVIDER_ZEPTOMAIL
+                    )
+                    sent = send_for_flow(
+                        flow,
+                        subject,
+                        message,
+                        gmail_from,
+                        [recipient],
+                    )
+
+                self.assertEqual(sent, 1)
+                mock_conn.assert_called_once()
+                conn_kwargs = mock_conn.call_args.kwargs
+                self.assertEqual(conn_kwargs["host"], "smtp.zeptomail.in")
+                self.assertEqual(conn_kwargs["username"], "emailapikey")
+                self.assertEqual(
+                    conn_kwargs["password"],
+                    _ZEPTO_COMPLETE["ZEPTOMAIL_EMAIL_HOST_PASSWORD"],
+                )
+                self.assertNotEqual(conn_kwargs["host"], "smtp.gmail.com")
+
+                # Exactly one send_mail; ZeptoMail From + mocked connection.
+                mock_send.assert_called_once()
+                args, kwargs = mock_send.call_args
+                self.assertEqual(args[0], subject)
+                self.assertEqual(args[1], message)
+                self.assertEqual(args[2], "no-reply@nityadharma.com")
+                self.assertEqual(args[3], [recipient])
+                self.assertIs(kwargs.get("connection"), conn)
+                # Default/Gmail path would omit connection= and keep caller From.
+                self.assertNotEqual(args[2], gmail_from)
