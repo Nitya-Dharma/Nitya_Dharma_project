@@ -46,29 +46,25 @@ class ExpertEmailUrlTests(TestCase):
         request.session = SessionStore()
         return request
 
-    @patch("services.views_expert_ui.send_mail")
-    def test_registration_email_uses_site_url_password_reset_path(self, mock_send_mail):
+    @patch("services.views_expert_ui.queue_or_send_transactional_email")
+    def test_registration_email_uses_site_url_password_reset_path(self, mock_queue):
         request = self._registration_request()
 
         expert_register_page(request)
 
         password_reset_calls = [
             call
-            for call in mock_send_mail.call_args_list
-            if call.kwargs.get("subject") == "Set Your Password"
-            or (call.args and call.args[0] == "Set Your Password")
+            for call in mock_queue.call_args_list
+            if (len(call.args) > 1 and call.args[1] == "Set Your Password")
         ]
         self.assertEqual(len(password_reset_calls), 1)
-        message = (
-            password_reset_calls[0].kwargs.get("message")
-            or password_reset_calls[0].args[1]
-        )
+        message = password_reset_calls[0].args[2]
         self.assertNotIn("127.0.0.1", message)
         self.assertNotIn("localhost", message)
         self.assertIn(f"{TEST_SITE_URL}/accounts/password-reset/", message)
 
-    @patch("dashboards.views.send_mail")
-    def test_approval_email_uses_site_url_login_and_dashboard_paths(self, mock_send_mail):
+    @patch("dashboards.views.queue_or_send_transactional_email")
+    def test_approval_email_uses_site_url_login_and_dashboard_paths(self, mock_queue):
         admin = User.objects.create_superuser(
             email="expert-email-admin@example.com",
             password="AdminPass123!",
@@ -93,15 +89,11 @@ class ExpertEmailUrlTests(TestCase):
         self.assertEqual(response.status_code, 302)
         approval_calls = [
             call
-            for call in mock_send_mail.call_args_list
-            if call.kwargs.get("subject") == "Your Expert Profile is Approved"
-            or (call.args and call.args[0] == "Your Expert Profile is Approved")
+            for call in mock_queue.call_args_list
+            if (len(call.args) > 1 and call.args[1] == "Your Expert Profile is Approved")
         ]
         self.assertEqual(len(approval_calls), 1)
-        message = (
-            approval_calls[0].kwargs.get("message")
-            or approval_calls[0].args[1]
-        )
+        message = approval_calls[0].args[2]
         self.assertNotIn("127.0.0.1", message)
         self.assertNotIn("localhost", message)
         self.assertIn(f"{TEST_SITE_URL}/accounts/login/", message)

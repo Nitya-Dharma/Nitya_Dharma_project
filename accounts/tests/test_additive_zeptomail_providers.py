@@ -14,7 +14,16 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import SimpleTestCase, override_settings
 
 from core.email_providers import (
+    FLOW_BUREAU_APPROVAL,
+    FLOW_EXPERT_ADMIN,
+    FLOW_EXPERT_APPROVAL,
+    FLOW_EXPERT_SET_PASSWORD,
+    FLOW_LEGACY_PASSWORD_RESET,
+    FLOW_PANDIT_ADMIN,
+    FLOW_PASSWORD_CHANGE,
+    FLOW_PASSWORD_RESET,
     FLOW_VERIFICATION,
+    KNOWN_FLOWS,
     PROVIDER_DEFAULT,
     PROVIDER_ZEPTOMAIL,
     queue_or_send_transactional_email,
@@ -39,6 +48,41 @@ _ZEPTO_COMPLETE = dict(
     ZEPTOMAIL_DEFAULT_FROM_EMAIL="no-reply@nityadharma.com",
     ZEPTOMAIL_EMAIL_TIMEOUT=10,
 )
+
+
+class KnownFlowsRegistryTests(SimpleTestCase):
+    databases = set()
+
+    def test_original_five_flow_identifiers_unchanged(self):
+        self.assertEqual(FLOW_VERIFICATION, "verification")
+        self.assertEqual(FLOW_PASSWORD_RESET, "password_reset")
+        self.assertEqual(FLOW_PASSWORD_CHANGE, "password_change")
+        self.assertEqual(FLOW_PANDIT_ADMIN, "pandit_admin")
+        self.assertEqual(FLOW_LEGACY_PASSWORD_RESET, "legacy_password_reset")
+        for flow_id in (
+            FLOW_VERIFICATION,
+            FLOW_PASSWORD_RESET,
+            FLOW_PASSWORD_CHANGE,
+            FLOW_PANDIT_ADMIN,
+            FLOW_LEGACY_PASSWORD_RESET,
+        ):
+            self.assertIn(flow_id, KNOWN_FLOWS)
+
+    def test_four_new_flow_identifiers_registered(self):
+        self.assertEqual(FLOW_EXPERT_SET_PASSWORD, "expert_set_password")
+        self.assertEqual(FLOW_EXPERT_ADMIN, "expert_admin")
+        self.assertEqual(FLOW_EXPERT_APPROVAL, "expert_approval")
+        self.assertEqual(FLOW_BUREAU_APPROVAL, "bureau_approval")
+        for flow_id in (
+            FLOW_EXPERT_SET_PASSWORD,
+            FLOW_EXPERT_ADMIN,
+            FLOW_EXPERT_APPROVAL,
+            FLOW_BUREAU_APPROVAL,
+        ):
+            self.assertIn(flow_id, KNOWN_FLOWS)
+
+    def test_known_flows_count(self):
+        self.assertEqual(len(KNOWN_FLOWS), 9)
 
 
 class ParseAllowlistTests(SimpleTestCase):
@@ -72,6 +116,19 @@ class ResolveProviderTests(SimpleTestCase):
     def test_unauthorized_flow_cannot_resolve_to_zeptomail(self):
         self.assertEqual(resolve_provider_for_flow("expert_registration"), PROVIDER_DEFAULT)
         self.assertEqual(resolve_provider_for_flow("bureau_approval"), PROVIDER_DEFAULT)
+
+    def test_new_flows_default_when_allowlist_empty(self):
+        self.assertEqual(resolve_provider_for_flow(FLOW_EXPERT_SET_PASSWORD), PROVIDER_DEFAULT)
+        self.assertEqual(resolve_provider_for_flow(FLOW_EXPERT_ADMIN), PROVIDER_DEFAULT)
+        self.assertEqual(resolve_provider_for_flow(FLOW_EXPERT_APPROVAL), PROVIDER_DEFAULT)
+        self.assertEqual(resolve_provider_for_flow(FLOW_BUREAU_APPROVAL), PROVIDER_DEFAULT)
+
+    @override_settings(ZEPTOMAIL_ENABLED_FLOWS=frozenset({"expert_approval", "bureau_approval"}))
+    def test_new_allowlisted_flows_select_zeptomail(self):
+        self.assertEqual(resolve_provider_for_flow(FLOW_EXPERT_APPROVAL), PROVIDER_ZEPTOMAIL)
+        self.assertEqual(resolve_provider_for_flow(FLOW_BUREAU_APPROVAL), PROVIDER_ZEPTOMAIL)
+        self.assertEqual(resolve_provider_for_flow(FLOW_EXPERT_ADMIN), PROVIDER_DEFAULT)
+        self.assertEqual(resolve_provider_for_flow(FLOW_VERIFICATION), PROVIDER_DEFAULT)
 
 
 class SendViaProviderTests(SimpleTestCase):

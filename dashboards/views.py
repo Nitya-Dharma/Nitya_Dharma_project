@@ -1,7 +1,6 @@
 import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -15,6 +14,10 @@ from accounts.decorators import pandit_required, admin_required
 from referrals.models import ReferralLink
 from services.views_expert_ui import get_expert_by_user
 from core.models import ExpertInquiry, ExpertService
+from core.email_providers import (
+    FLOW_EXPERT_APPROVAL,
+    queue_or_send_transactional_email,
+)
 from services.expert_service_selection import (
     ExpertServiceSelectionError,
     primary_expert_type,
@@ -39,6 +42,26 @@ def _absolute_site_url(view_name, *args, **kwargs):
     if not relative_path.startswith("/"):
         relative_path = "/" + relative_path
     return f"{site_url}{relative_path}"
+
+
+def _send_expert_approval_email(expert):
+    """Shared expert approval email for single and bulk approve actions."""
+    if not getattr(expert, "email", None):
+        return
+    queue_or_send_transactional_email(
+        FLOW_EXPERT_APPROVAL,
+        "Your Expert Profile is Approved",
+        (
+            "Congratulations! Your expert profile is now approved and live.\n\n"
+            "You can now log in and manage your profile.\n\n"
+            f"Login here: {_absolute_site_url('accounts:login')}\n"
+            f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
+            "Thank you for joining Nitya Dharma."
+        ),
+        settings.DEFAULT_FROM_EMAIL,
+        [expert.email],
+        fail_silently=True,
+    )
 
 
 @login_required
@@ -1506,20 +1529,7 @@ def super_admin_experts(request):
             expert.save()
 
             try:
-                if expert.email:
-                    send_mail(
-                        subject="Your Expert Profile is Approved",
-                        message=(
-                            "Congratulations! Your expert profile is now approved and live.\n\n"
-                            "You can now log in and manage your profile.\n\n"
-                            f"Login here: {_absolute_site_url('accounts:login')}\n"
-                            f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
-                            "Thank you for joining Nitya Dharma."
-                        ),
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[expert.email],
-                        fail_silently=True,
-                    )
+                _send_expert_approval_email(expert)
             except Exception:
                 pass
         elif action == "verify":
@@ -1645,20 +1655,7 @@ def bulk_approve_experts(request):
         expert.save()
 
         try:
-            if expert.email:
-                send_mail(
-                    subject="Your Expert Profile is Approved",
-                    message=(
-                        "Congratulations! Your expert profile is now approved and live.\n\n"
-                        "You can now log in and manage your profile.\n\n"
-                        f"Login here: {_absolute_site_url('accounts:login')}\n"
-                        f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
-                        "Thank you for joining Nitya Dharma."
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[expert.email],
-                    fail_silently=True,
-                )
+            _send_expert_approval_email(expert)
         except Exception:
             pass
 

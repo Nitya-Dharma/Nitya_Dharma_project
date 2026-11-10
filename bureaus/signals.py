@@ -1,6 +1,10 @@
-from django.core.mail import send_mail
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+
+from core.email_providers import (
+    FLOW_BUREAU_APPROVAL,
+    queue_or_send_transactional_email,
+)
 
 from .models import BureauProfile
 
@@ -25,7 +29,8 @@ You can now log in and access your dashboard.
 Regards,
 Nitya Dharma Team
 """
-    send_mail(
+    queue_or_send_transactional_email(
+        FLOW_BUREAU_APPROVAL,
         subject,
         message,
         None,

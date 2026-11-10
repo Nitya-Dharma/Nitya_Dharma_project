@@ -24,17 +24,21 @@ def _pandit_admin_recipients():
 
 
 def _invoke_expert_admin_alert(name, phone, normalized_type):
-    """Invoke expert admin alert using the same send_mail import as the view."""
-    from services.views_expert_ui import send_mail as expert_send_mail
+    """Invoke expert admin alert using the same queue helper as the view."""
+    from core.email_providers import (
+        FLOW_EXPERT_ADMIN,
+        queue_or_send_transactional_email,
+    )
 
-    expert_send_mail(
-        subject="New Expert Registration",
-        message=(
+    queue_or_send_transactional_email(
+        FLOW_EXPERT_ADMIN,
+        "New Expert Registration",
+        (
             f"A new expert has registered.\n\n"
             f"Name: {name}\nPhone: {phone}\nType: {normalized_type}"
         ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[settings.DEFAULT_FROM_EMAIL],
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.DEFAULT_FROM_EMAIL],
         fail_silently=True,
     )
 
@@ -100,31 +104,83 @@ class ZeptoMailEmailDbFreeTests(SimpleTestCase):
         pandit_src = inspect.getsource(pandit_register)
         self.assertIn("New Expert Registration", expert_src)
         self.assertIn("Set Your Password", expert_src)
-        self.assertIn("recipient_list=[email]", expert_src)
-        self.assertIn("recipient_list=[settings.DEFAULT_FROM_EMAIL]", expert_src)
+        self.assertIn("FLOW_EXPERT_SET_PASSWORD", expert_src)
+        self.assertIn("FLOW_EXPERT_ADMIN", expert_src)
+        self.assertIn("queue_or_send_transactional_email", expert_src)
+        self.assertIn("[settings.DEFAULT_FROM_EMAIL]", expert_src)
         self.assertNotIn("ADMIN_NOTIFICATION_EMAIL", expert_src)
         self.assertIn("ADMINS", pandit_src)
         self.assertIn("[Nitya Dharma] New Pandit registration", pandit_src)
         self.assertIn("queue_or_send_transactional_email", pandit_src)
         self.assertNotIn("ADMIN_NOTIFICATION_EMAIL", pandit_src)
 
-    @patch("services.views_expert_ui.send_mail")
-    def test_expert_admin_uses_default_from(self, mock_send):
+    @patch("core.email_providers.queue_or_send_transactional_email")
+    def test_expert_admin_uses_default_from(self, mock_queue):
+        from core.email_providers import FLOW_EXPERT_ADMIN
+
         _invoke_expert_admin_alert("Ada", "9999999999", "astrologer")
-        mock_send.assert_called_once()
-        kwargs = mock_send.call_args.kwargs
-        self.assertEqual(kwargs["subject"], "New Expert Registration")
-        self.assertIn("Ada", kwargs["message"])
-        self.assertEqual(kwargs["from_email"], "noreply@example.test")
-        self.assertEqual(kwargs["recipient_list"], ["noreply@example.test"])
-        self.assertTrue(kwargs["fail_silently"])
+        mock_queue.assert_called_once()
+        args, kwargs = mock_queue.call_args
+        self.assertEqual(args[0], FLOW_EXPERT_ADMIN)
+        self.assertEqual(args[1], "New Expert Registration")
+        self.assertIn("Ada", args[2])
+        self.assertEqual(args[3], "noreply@example.test")
+        self.assertEqual(args[4], ["noreply@example.test"])
+        self.assertTrue(kwargs.get("fail_silently"))
 
     def test_expert_password_email_targets_expert_address_in_source(self):
         from services.views_expert_ui import expert_register_page
 
         src = inspect.getsource(expert_register_page)
-        self.assertIn('subject="Set Your Password"', src)
-        self.assertIn("recipient_list=[email]", src)
+        self.assertIn('"Set Your Password"', src)
+        self.assertIn("FLOW_EXPERT_SET_PASSWORD", src)
+        self.assertIn("[email]", src)
+
+    def test_expert_approval_helper_shared_by_single_and_bulk(self):
+        import dashboards.views as dashboards_views
+
+        self.assertIn(
+            "_send_expert_approval_email",
+            inspect.getsource(dashboards_views),
+        )
+        # Both approve paths must call the shared helper (not inline send_mail).
+        single_src = inspect.getsource(dashboards_views.super_admin_experts)
+        bulk_src = inspect.getsource(dashboards_views.bulk_approve_experts)
+        self.assertIn("_send_expert_approval_email(expert)", single_src)
+        self.assertIn("_send_expert_approval_email(expert)", bulk_src)
+        self.assertNotIn("send_mail(", single_src)
+        self.assertNotIn("send_mail(", bulk_src)
+
+    @patch("dashboards.views.queue_or_send_transactional_email")
+    def test_expert_approval_helper_preserves_urls_and_fail_silently(self, mock_queue):
+        from core.email_providers import FLOW_EXPERT_APPROVAL
+        from dashboards.views import _send_expert_approval_email
+
+        expert = SimpleNamespace(email="expert-approve@example.test")
+        with override_settings(
+            SITE_URL="https://experts.example.com",
+            DEFAULT_FROM_EMAIL="noreply@example.test",
+        ):
+            _send_expert_approval_email(expert)
+
+        mock_queue.assert_called_once()
+        args, kwargs = mock_queue.call_args
+        self.assertEqual(args[0], FLOW_EXPERT_APPROVAL)
+        self.assertEqual(args[1], "Your Expert Profile is Approved")
+        self.assertIn("https://experts.example.com/accounts/login/", args[2])
+        self.assertIn("https://experts.example.com/dashboard/expert/", args[2])
+        self.assertNotIn("127.0.0.1", args[2])
+        self.assertEqual(args[3], "noreply@example.test")
+        self.assertEqual(args[4], ["expert-approve@example.test"])
+        self.assertTrue(kwargs.get("fail_silently"))
+
+    @patch("dashboards.views.queue_or_send_transactional_email")
+    def test_expert_approval_helper_skips_missing_email(self, mock_queue):
+        from dashboards.views import _send_expert_approval_email
+
+        _send_expert_approval_email(SimpleNamespace(email=""))
+        _send_expert_approval_email(SimpleNamespace(email=None))
+        mock_queue.assert_not_called()
 
     @patch("core.tasks_email.send_email_task.delay")
     def test_pandit_admin_uses_admins(self, mock_delay):

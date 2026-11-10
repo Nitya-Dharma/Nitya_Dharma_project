@@ -28,6 +28,10 @@ FLOW_PASSWORD_RESET = "password_reset"
 FLOW_PASSWORD_CHANGE = "password_change"
 FLOW_PANDIT_ADMIN = "pandit_admin"
 FLOW_LEGACY_PASSWORD_RESET = "legacy_password_reset"
+FLOW_EXPERT_SET_PASSWORD = "expert_set_password"
+FLOW_EXPERT_ADMIN = "expert_admin"
+FLOW_EXPERT_APPROVAL = "expert_approval"
+FLOW_BUREAU_APPROVAL = "bureau_approval"
 
 KNOWN_FLOWS = frozenset(
     {
@@ -36,6 +40,10 @@ KNOWN_FLOWS = frozenset(
         FLOW_PASSWORD_CHANGE,
         FLOW_PANDIT_ADMIN,
         FLOW_LEGACY_PASSWORD_RESET,
+        FLOW_EXPERT_SET_PASSWORD,
+        FLOW_EXPERT_ADMIN,
+        FLOW_EXPERT_APPROVAL,
+        FLOW_BUREAU_APPROVAL,
     }
 )
 
