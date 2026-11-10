@@ -309,6 +309,7 @@ jobs:
             -e ZEPTOMAIL_EMAIL_HOST_PASSWORD=
             -e ZEPTOMAIL_DEFAULT_FROM_EMAIL=
             -e ZEPTOMAIL_ENABLED_FLOWS=
+            -e PYTHONPATH=/app
           )
 
           # Host-side scripts mounted read-only (avoids YAML-breaking python -c).
@@ -544,7 +545,8 @@ jobs:
           fi
 
           # Worker-side email safety — abort before task publishing if unsafe.
-          docker exec "${WORKER_NAME}" python /tmp/worker_safety.py \
+          # -w /app: scripts live under /tmp (sys.path[0]=/tmp); app package is under WORKDIR /app.
+          docker exec -w /app "${WORKER_NAME}" python /tmp/worker_safety.py \
             || fail "worker email safety checks failed"
           echo "WORKER_EMAIL_SAFETY_OK" >> "$GITHUB_STEP_SUMMARY"
 
@@ -558,6 +560,7 @@ jobs:
             set +e
             docker run \
               --name "${ready_name}" \
+              -w /app \
               --network "${NET_NAME}" \
               -v "${READY_PY}:/tmp/ready.py:ro" \
               "${common_env[@]}" \
@@ -582,6 +585,7 @@ jobs:
           # Gunicorn HTTP testing intentionally omitted (non-gating / out of scope).
           docker create \
             --name "${PUBLISHER_NAME}" \
+            -w /app \
             --network "${NET_NAME}" \
             -v "${VOL_NAME}:/tmp/nitya-dharma-integration-mail" \
             -v "${PUBLISH_PY}:/tmp/publish.py:ro" \
