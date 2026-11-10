@@ -1,13 +1,13 @@
-# Manual-only CI: disposable MySQL 8 QA for selected ZeptoMail-related app paths.
-# Preserves the separate DB-free workflow unchanged.
+# Manual-only CI: disposable MySQL 8 QA for restored migrations + selected
+# ZeptoMail-related app paths. Preserves the separate DB-free workflow unchanged.
 #
 # Safety:
 # - No production/Hostinger credentials or hosts.
 # - QA host must be the ephemeral service alias "mysql" (never localhost).
 # - Locmem email + mock OTP; no real SMTP/SMS/ZeptoMail.
-# - Django TestCase runner creates/destroys a disposable test database on the
-#   same MySQL service (see QA_DB_TEST_NAME). Do not point this job at any
-#   durable database.
+# - Explicit migrate/showmigrations/--check on disposable QA_DB_NAME (nd_ci_qa).
+# - Django TestCase runner separately creates/destroys QA_DB_TEST_NAME on the
+#   same MySQL service. Do not point this job at any durable database.
 #
 # Creating this file does not authorize running the workflow.
 
@@ -127,6 +127,90 @@ jobs:
           pip install -r requirements.txt
           # Pinned feature snapshot predates main's requests>=2.31.0 declaration.
           pip install 'requests>=2.31.0'
+
+      - name: Explicit restored-migration QA on disposable MySQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Discover the four restored migration modules from the checkout tree.
+          # Path prefixes only; exact filenames come from glob (one match each).
+          declare -a RESTORED_FILES=()
+          for pattern in \
+            "branding/migrations/0002_"*.py \
+            "masterdata/migrations/0002_"*.py \
+            "pages/migrations/0004_"*.py \
+            "profiles/migrations/0009_"*.py
+          do
+            # shellcheck disable=SC2206
+            matches=( ${pattern} )
+            if [ "${#matches[@]}" -ne 1 ] || [ ! -f "${matches[0]}" ]; then
+              echo "FAIL: expected exactly one restored migration for pattern ${pattern}" >&2
+              printf ' matches: %s\n' "${matches[@]-}" >&2
+              exit 1
+            fi
+            RESTORED_FILES+=("${matches[0]}")
+          done
+          test "${#RESTORED_FILES[@]}" -eq 4
+          echo "RESTORED_MIGRATION_FILES_DISCOVERED:"
+          printf ' - %s\n' "${RESTORED_FILES[@]}"
+          RESTORED_MIGRATION_FILES="$(printf '%s\n' "${RESTORED_FILES[@]}")"
+          export RESTORED_MIGRATION_FILES
+
+          # 1) Plan against disposable QA_DB_NAME (nd_ci_qa) — full output in Actions log.
+          python manage.py migrate --plan
+
+          # 2) Apply for real (no --fake / --fake-initial).
+          python manage.py migrate --noinput
+
+          # 3) Show status for the four apps (Actions log).
+          python manage.py showmigrations branding masterdata pages profiles \
+            | tee /tmp/zeptomail-restored-showmigrations.txt
+
+          # 4) Assert each discovered restored migration is marked applied [X].
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import pathlib
+          import re
+          import sys
+
+          show_path = pathlib.Path("/tmp/zeptomail-restored-showmigrations.txt")
+          show = show_path.read_text(encoding="utf-8")
+          files = [pathlib.Path(p) for p in os.environ["RESTORED_MIGRATION_FILES"].splitlines() if p.strip()]
+          if len(files) != 4:
+              raise SystemExit(f"FAIL: expected 4 restored files, got {len(files)}: {files}")
+
+          missing: list[str] = []
+          for path in files:
+              if not path.is_file():
+                  raise SystemExit(f"FAIL: restored migration missing on disk: {path}")
+              app = path.parts[0]
+              stem = path.stem
+              applied = re.search(rf"(?m)^\s*\[X\]\s+{re.escape(stem)}\s*$", show)
+              if applied is None:
+                  missing.append(f"{app}.{stem} (file={path})")
+
+          if missing:
+              print("FAIL: restored migrations not marked [X]:", file=sys.stderr)
+              for item in missing:
+                  print(f" - {item}", file=sys.stderr)
+              print("--- showmigrations output ---", file=sys.stderr)
+              print(show, file=sys.stderr)
+              raise SystemExit(1)
+
+          print("RESTORED_MIGRATIONS_APPLIED_OK")
+          for path in files:
+              print(f" [X] {path.parts[0]}.{path.stem}")
+          PY
+
+          # 5) Fail if unapplied migrations remain.
+          python manage.py migrate --check
+
+          # 6) Fail if model state would require new migrations.
+          python manage.py makemigrations --check --dry-run
+
+          echo "EXPLICIT_RESTORED_MIGRATION_QA_OK"
 
       - name: Run selected Django TestCase modules on disposable MySQL
         shell: bash
