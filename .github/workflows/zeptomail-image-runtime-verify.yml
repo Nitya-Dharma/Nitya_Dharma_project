@@ -5,7 +5,7 @@
 # then runs publisher + Celery worker from the SAME image ID.
 #
 # Image ID, archive SHA-256, and artifact run id MUST come from the image-build
-# job outputs/summary — never invent them. Source SHA is fixed to 7282691.
+# job outputs/summary — never invent them. Source SHA is fixed to 41c60c8.
 #
 # Does NOT rebuild the image, push a registry, deploy, start MySQL, use
 # production DB/Redis/SMTP/ZeptoMail/Resend/Gmail credentials, or claim
@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 45
 
     env:
-      EXPECTED_SOURCE_SHA: 72826912f0e7fe48d57015f4eeedeb8e81422bb6
+      EXPECTED_SOURCE_SHA: 41c60c873714f090f6581a061ee7abee71c3fd0f
       EXPECTED_ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id }}
       EXPECTED_ARTIFACT_NAME: zeptomail-7282691-image
       EXPECTED_ARTIFACT_ID: ${{ inputs.artifact_id }}

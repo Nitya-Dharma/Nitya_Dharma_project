@@ -1,7 +1,7 @@
 # Manual-only: build and verify ZeptoMail app image off-production.
 # Retains a private Actions artifact (docker save + SHA-256). No registry push.
 # Does NOT deploy, migrate, or use production credentials/DB/Redis.
-# Source pin: 7282691 (ZeptoMail + restored migrations + Python/runtime pins).
+# Source pin: 41c60c8 (ZeptoMail + restored migrations + Python/runtime pins + candidate workflows).
 
 name: ZeptoMail image build (DB-free, private artifact)
 
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout approved source commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 72826912f0e7fe48d57015f4eeedeb8e81422bb6
+          ref: 41c60c873714f090f6581a061ee7abee71c3fd0f
           persist-credentials: false
 
       - name: Verify checked-out source
@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          expected="72826912f0e7fe48d57015f4eeedeb8e81422bb6"
+          expected="41c60c873714f090f6581a061ee7abee71c3fd0f"
           test "$actual" = "$expected"
           echo "SOURCE_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
           test -f Dockerfile
@@ -379,7 +379,7 @@ jobs:
 
           {
             echo "### Isolated image verification"
-            echo "- Source commit: 72826912f0e7fe48d57015f4eeedeb8e81422bb6"
+            echo "- Source commit: 41c60c873714f090f6581a061ee7abee71c3fd0f"
             echo "- Image tag: nitya-dharma:zeptomail-7282691"
             echo "- Image ID: $image_id"
             echo "- Archive file: $archive"
@@ -394,7 +394,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "IMAGE_ID=$image_id" | tee image-build-meta.txt
-          echo "SOURCE_SHA=72826912f0e7fe48d57015f4eeedeb8e81422bb6" >> image-build-meta.txt
+          echo "SOURCE_SHA=41c60c873714f090f6581a061ee7abee71c3fd0f" >> image-build-meta.txt
           echo "IMAGE_TAG=nitya-dharma:zeptomail-7282691" >> image-build-meta.txt
           echo "ARCHIVE_SHA256=$archive_sha256" >> image-build-meta.txt
           ls -lh "$archive" "$checksum_file" image-id.txt image-build-meta.txt
