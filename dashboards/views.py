@@ -1,7 +1,6 @@
 import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -14,6 +13,7 @@ from django.core.exceptions import PermissionDenied
 from accounts.decorators import pandit_required, admin_required
 from referrals.models import ReferralLink
 from services.views_expert_ui import get_expert_by_user
+from dashboards.expert_governance import approve_expert_profile
 from core.models import ExpertInquiry, ExpertService
 from services.expert_service_selection import (
     ExpertServiceSelectionError,
@@ -1502,26 +1502,8 @@ def super_admin_experts(request):
         expert = get_object_or_404(ExpertProfile, id=expert_id)
 
         if action == "approve":
-            expert.is_active = True
-            expert.save()
-
-            try:
-                if expert.email:
-                    send_mail(
-                        subject="Your Expert Profile is Approved",
-                        message=(
-                            "Congratulations! Your expert profile is now approved and live.\n\n"
-                            "You can now log in and manage your profile.\n\n"
-                            f"Login here: {_absolute_site_url('accounts:login')}\n"
-                            f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
-                            "Thank you for joining Nitya Dharma."
-                        ),
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[expert.email],
-                        fail_silently=True,
-                    )
-            except Exception:
-                pass
+            # Preserve prior single-approve behavior via shared governance helper.
+            approve_expert_profile(expert, skip_if_active=False)
         elif action == "verify":
             expert.is_verified = True
             expert.save()
@@ -1639,30 +1621,8 @@ def bulk_approve_experts(request):
     # Match super_admin_experts single "approve" action: is_active only (not is_verified); optional email.
     approved_count = 0
     for expert in experts:
-        if expert.is_active:
-            continue
-        expert.is_active = True
-        expert.save()
-
-        try:
-            if expert.email:
-                send_mail(
-                    subject="Your Expert Profile is Approved",
-                    message=(
-                        "Congratulations! Your expert profile is now approved and live.\n\n"
-                        "You can now log in and manage your profile.\n\n"
-                        f"Login here: {_absolute_site_url('accounts:login')}\n"
-                        f"Expert Dashboard: {_absolute_site_url('module5_dashboards:expert_dashboard')}\n\n"
-                        "Thank you for joining Nitya Dharma."
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[expert.email],
-                    fail_silently=True,
-                )
-        except Exception:
-            pass
-
-        approved_count += 1
+        if approve_expert_profile(expert, skip_if_active=True):
+            approved_count += 1
 
     messages.success(request, f"{approved_count} expert(s) approved successfully.")
     return _redirect_back()

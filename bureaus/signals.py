@@ -1,8 +1,12 @@
-from django.core.mail import send_mail
+import logging
+
+from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from .models import BureauProfile
+
+logger = logging.getLogger(__name__)
 
 
 def _is_bureau_email_eligible(profile):
@@ -25,13 +29,27 @@ You can now log in and access your dashboard.
 Regards,
 Nitya Dharma Team
 """
-    send_mail(
-        subject,
-        message,
-        None,
-        [user_email],
-        fail_silently=True,
-    )
+    try:
+        from django.conf import settings
+
+        from core.email_providers import (
+            FLOW_BUREAU_APPROVAL,
+            queue_or_send_transactional_email,
+        )
+
+        queue_or_send_transactional_email(
+            FLOW_BUREAU_APPROVAL,
+            subject,
+            message,
+            getattr(settings, "DEFAULT_FROM_EMAIL", None),
+            [user_email],
+            fail_silently=True,
+        )
+    except Exception as exc:
+        logger.error(
+            "Bureau approval email enqueue failed error_type=%s",
+            type(exc).__name__,
+        )
 
 
 @receiver(pre_save, sender=BureauProfile)
@@ -55,4 +73,4 @@ def send_email_on_approval(sender, instance, created, **kwargs):
     current_is_eligible = _is_bureau_email_eligible(instance)
 
     if not getattr(instance, "_previous_is_eligible", False) and current_is_eligible:
-        trigger_email(instance)
+        transaction.on_commit(lambda: trigger_email(instance))

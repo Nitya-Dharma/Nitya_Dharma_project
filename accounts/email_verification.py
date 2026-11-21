@@ -86,9 +86,9 @@ def create_email_verification(user, sent_by=None):
                 logger.warning(f"[EMAIL DEBUG] ========================================")
                 logger.warning(f"[EMAIL DEBUG] STEP 7: Runtime Email Backend Check")
                 logger.warning(f"[EMAIL DEBUG] EMAIL_BACKEND: {email_backend}")
-                logger.warning(f"[EMAIL DEBUG] EMAIL_HOST_USER: {email_host_user}")
+                logger.debug("[EMAIL DEBUG] Email backend username configured")
                 logger.warning(f"[EMAIL DEBUG] EMAIL_HOST_PASSWORD: {'SET' if email_host_password else 'NOT SET'}")
-                logger.warning(f"[EMAIL DEBUG] DEFAULT_FROM_EMAIL: {getattr(settings, 'DEFAULT_FROM_EMAIL', 'NOT SET')}")
+                logger.debug("[EMAIL DEBUG] Default sender configuration checked")
                 
                 # Verify SMTP backend is active
                 if 'console' in email_backend:
@@ -99,13 +99,12 @@ def create_email_verification(user, sent_by=None):
                 else:
                     logger.error(f"[EMAIL DEBUG] ⚠️ Unknown email backend: {email_backend}")
                 
-                logger.warning(f"[EMAIL DEBUG] User: {user.email}")
-                logger.warning(f"[EMAIL DEBUG] User ID: {user.id}")
+                logger.debug("[EMAIL DEBUG] Verification user identified")
+                logger.debug("[EMAIL DEBUG] Verification user record checked")
                 logger.warning(f"[EMAIL DEBUG] User is_active: {user.is_active}")
                 logger.warning(f"[EMAIL DEBUG] User email_verified: {user.email_verified}")
-                logger.warning(f"[EMAIL DEBUG] Token ID: {verification_token.id}")
-                logger.warning(f"[EMAIL DEBUG] Token public_id: {verification_token.public_id}")
-                logger.warning(f"[EMAIL DEBUG] Token: {verification_token.token[:20]}...")
+                logger.debug("[EMAIL DEBUG] Verification token created")
+                logger.debug("[EMAIL DEBUG] Verification token reference recorded")
                 logger.warning(f"[EMAIL DEBUG] Token expires_at: {verification_token.expires_at}")
                 
                 # Send verification email in a background thread so the HTTP request returns
@@ -113,7 +112,7 @@ def create_email_verification(user, sent_by=None):
                 def _send_in_thread():
                     try:
                         send_verification_email(user, verification_token)
-                        logger.info(f"Verification email sent to {user.email}")
+                        logger.info("Verification email send attempt completed")
                         # TASK 9: Log audit event (after email is sent)
                         try:
                             from analytics.audit_events import log_audit_event
@@ -130,22 +129,25 @@ def create_email_verification(user, sent_by=None):
                             pass
                     except Exception as email_error:
                         logger.error(
-                            f"Verification email failed for {user.email}: {type(email_error).__name__}: {email_error}",
-                            exc_info=True,
+                            "Email verification delivery failed",
+                            extra={"error_type": type(email_error).__name__},
                         )
 
                 thread = threading.Thread(target=_send_in_thread, daemon=True)
                 thread.start()
-                logger.warning(f"[EMAIL DEBUG] Email send started in background for {user.email}")
+                logger.info("[EMAIL DEBUG] Email background thread started")
             
             # Schedule email to be sent after transaction commits
             transaction.on_commit(send_email_after_commit)
             
-            logger.info(f"Email verification token created for user {user.email} (token: {verification_token.public_id})")
+            logger.info("Email verification token created")
             return verification_token
             
     except Exception as e:
-        logger.error(f"Error creating email verification token for user {user.email}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification token creation failed",
+            extra={"error_type": type(e).__name__},
+        )
         raise
 
 
@@ -161,7 +163,7 @@ def send_verification_email(user, verification_token):
     """
     # STEP 5: Email Field Validation - Ensure we use saved user.email field
     if not user or not hasattr(user, 'email') or not user.email:
-        logger.error(f"[EMAIL DEBUG] Invalid user or missing email field. User: {user}")
+        logger.error("[EMAIL DEBUG] Invalid user or missing email field")
         raise ValidationError("User email is required for sending verification email")
     
     # Ensure user is saved and email comes from database field, not form data
@@ -174,7 +176,7 @@ def send_verification_email(user, verification_token):
             logger.error(f"[EMAIL DEBUG] Invalid verification token - token is None or empty")
             raise ValidationError("Invalid verification token for email sending")
         
-        logger.warning(f"[EMAIL DEBUG] Building verification URL for token: {verification_token.token[:20]}...")
+        logger.warning("Email verification URL construction started")
         
         # Build absolute URL using SITE_URL from settings (FIXED: Use SITE_URL directly)
         try:
@@ -209,15 +211,17 @@ def send_verification_email(user, verification_token):
             # Build absolute URL (FIXED: Simple concatenation)
             verification_url = f"{site_url}{relative_path}"
             
-            logger.warning(f"[EMAIL DEBUG] SITE_URL: {site_url}")
-            logger.warning(f"[EMAIL DEBUG] Relative path: {relative_path}")
-            logger.warning(f"[EMAIL DEBUG] Verification URL built: {verification_url}")
+            logger.debug("[EMAIL DEBUG] Verification site URL resolved")
+            logger.warning("Email verification URL constructed")
             
         except Exception as url_error:
-            logger.error(f"[EMAIL DEBUG] Error building verification URL: {url_error}", exc_info=True)
+            logger.error(
+                "Email verification URL construction failed",
+                extra={"error_type": type(url_error).__name__},
+            )
             # Final fallback: use relative URL (user will need to copy-paste)
             verification_url = f'/accounts/verify-email/{verification_token.token}/'
-            logger.warning(f"[EMAIL DEBUG] Using fallback relative URL: {verification_url}")
+            logger.warning("Email verification URL fallback constructed")
         
         # Email subject
         subject = 'Verify your email address - Nitya Dharma'
@@ -252,23 +256,23 @@ Nitya Dharma Team
         logger.warning(f"[EMAIL DEBUG] EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'NOT SET')}")
         logger.warning(f"[EMAIL DEBUG] EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'NOT SET')}")
         logger.warning(f"[EMAIL DEBUG] EMAIL_USE_TLS: {getattr(settings, 'EMAIL_USE_TLS', 'NOT SET')}")
-        logger.warning(f"[EMAIL DEBUG] EMAIL_HOST_USER: {email_host_user}")
+        logger.debug("[EMAIL DEBUG] Email backend username configured")
         logger.warning(f"[EMAIL DEBUG] EMAIL_HOST_PASSWORD: {'SET' if getattr(settings, 'EMAIL_HOST_PASSWORD', '') else 'NOT SET'}")
-        logger.warning(f"[EMAIL DEBUG] DEFAULT_FROM_EMAIL: {from_email}")
+        logger.debug("[EMAIL DEBUG] Default sender configuration checked")
         
         # TASK 2: Delivery-safe logging - log FROM/TO addresses
-        logger.info(f"[EMAIL DELIVERY] FROM={from_email} TO={user_email} BACKEND={settings.EMAIL_BACKEND}")
+        logger.info("[EMAIL DELIVERY] Transactional email backend selected: %s", settings.EMAIL_BACKEND)
         
         # TASK 2: Warn if FROM != EMAIL_HOST_USER (Gmail will drop)
         if email_host_user and from_email != email_host_user:
             logger.error(f"[EMAIL DELIVERY] ⚠️ WARNING: FROM address mismatch!")
-            logger.error(f"[EMAIL DELIVERY] FROM={from_email} != EMAIL_HOST_USER={email_host_user}")
+            logger.error("[EMAIL DELIVERY] Configured sender does not match SMTP username")
             logger.error(f"[EMAIL DELIVERY] Gmail will silently drop this email!")
         
         logger.warning(f"[EMAIL DEBUG] ========================================")
         logger.warning(f"[EMAIL DEBUG] About to call send_mail()")
-        logger.warning(f"[EMAIL DEBUG] Recipient: {user_email}")
-        logger.warning(f"[EMAIL DEBUG] From: {from_email}")
+        logger.warning("[EMAIL DEBUG] Recipient: <redacted>")
+        logger.debug("[EMAIL DEBUG] Sender configuration checked")
         logger.warning(f"[EMAIL DEBUG] Subject: {subject}")
         
         # Validate email address format before sending
@@ -276,49 +280,52 @@ Nitya Dharma Team
         from django.core.exceptions import ValidationError as DjangoValidationError
         try:
             validate_email(user_email)
-            logger.warning(f"[EMAIL DEBUG] Email address format is valid: {user_email}")
+            logger.warning("[EMAIL DEBUG] Email address format is valid")
         except DjangoValidationError as email_validation_error:
-            logger.error(f"[EMAIL DEBUG] Invalid email address format: {user_email} - {email_validation_error}")
+            logger.error("[EMAIL DEBUG] Invalid email address format", extra={"error_type": type(email_validation_error).__name__})
             raise ValidationError(f"Invalid email address format: {user_email}")
         
-        # Send email
-        logger.warning(f"[EMAIL DEBUG] Calling send_mail() NOW...")
+        # Send email via transactional provider (ZeptoMail when allowlisted).
+        # Never log verification tokens or token-bearing URLs.
+        logger.warning("[EMAIL DEBUG] Calling transactional email send NOW...")
         try:
-            # TASK 2: Use from_email variable (already set above)
-            try:
-                # NOTE:
-                # If Redis is UP but Celery worker is DOWN,
-                # tasks will queue and NOT execute immediately.
-                # This is expected Celery behavior.
-                from core.tasks_email import send_email_task
+            from core.email_providers import (
+                FLOW_VERIFICATION,
+                queue_or_send_transactional_email,
+            )
 
-                send_email_task.delay(subject, message, from_email, [user_email])
-                result = 1
-            except Exception:
-                result = send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=from_email,  # Use verified from_email
-                    recipient_list=[user_email],  # Use saved field
-                    fail_silently=False,  # Raise exception on failure
-                )
-            # TASK 2: Log delivery data (result is number of emails sent, typically 1)
-            logger.warning(f"[EMAIL DEBUG] ✓ send_mail() completed successfully for {user_email}")
-            logger.warning(f"[EMAIL DEBUG] send_mail() returned: {result} (1 = success)")
-            logger.info(f"[EMAIL DELIVERY] ✓ Email sent: FROM={from_email} TO={user_email} RESULT={result}")
-            logger.warning(f"[EMAIL DEBUG] Email should arrive at: {user_email}")
-            logger.info(f"Verification email sent to {user_email}")
+            result = queue_or_send_transactional_email(
+                FLOW_VERIFICATION,
+                subject,
+                message,
+                from_email,
+                [user_email],
+                fail_silently=False,
+            )
+            logger.warning(
+                "[EMAIL DEBUG] verification send completed result=%s",
+                result,
+            )
+            logger.info(
+                "Verification email queued/sent result=%s backend=%s",
+                result,
+                getattr(settings, "EMAIL_BACKEND", ""),
+            )
         except Exception as send_error:
-            logger.error(f"[EMAIL DEBUG] ✗ send_mail() FAILED for {user_email}")
-            logger.error(f"[EMAIL DEBUG] Error type: {type(send_error).__name__}")
-            logger.error(f"[EMAIL DEBUG] Error message: {str(send_error)}")
+            logger.error(
+                "Email verification send failed",
+                extra={"error_type": type(send_error).__name__},
+            )
             raise  # Re-raise to ensure error is visible
         
     except Exception as e:
         logger.error(f"[EMAIL DEBUG] ========================================")
         logger.error(f"[EMAIL DEBUG] CRITICAL: Email sending FAILED")
         logger.error(f"[EMAIL DEBUG] ========================================")
-        logger.error(f"[EMAIL DEBUG] Error sending verification email to {user_email}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification send failed",
+            extra={"error_type": type(e).__name__},
+        )
         # Check email backend and warn if using console
         # Use module-level settings import (already imported at top of file)
         email_backend = getattr(settings, 'EMAIL_BACKEND', 'unknown')
@@ -468,13 +475,18 @@ def verify_email(token):
                 pass
             
             logger.info(
-                f"Email verified for user {user.email} (token: {verification_token.public_id}) - "
-                f"Role: {user.role}, Status: {user.status} (unchanged by verification)"
+                "Email verified for user %s. Role: %s, Status: %s (unchanged by verification)",
+                user.email,
+                user.role,
+                user.status,
             )
             return user
             
     except Exception as e:
-        logger.error(f"Error verifying email token {token}: {str(e)}", exc_info=True)
+        logger.error(
+            "Email verification failed",
+            extra={"error_type": type(e).__name__},
+        )
         raise
 
 

@@ -131,6 +131,7 @@ Time: {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
             # If Redis is UP but Celery worker is DOWN,
             # tasks will queue and NOT execute immediately.
             # This is expected Celery behavior.
+            from core.email_providers import FLOW_PASSWORD_CHANGE
             from core.tasks_email import send_email_task
 
             send_email_task.delay(
@@ -138,6 +139,7 @@ Time: {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
                 message,
                 settings.DEFAULT_FROM_EMAIL,
                 [user.email],
+                flow=FLOW_PASSWORD_CHANGE,
             )
         except Exception:
             django_send_mail(
@@ -206,9 +208,16 @@ If you didn't request this password reset, please ignore this email.
             # If Redis is UP but Celery worker is DOWN,
             # tasks will queue and NOT execute immediately.
             # This is expected Celery behavior.
+            from core.email_providers import FLOW_PASSWORD_RESET
             from core.tasks_email import send_email_task
 
-            send_email_task.delay(subject, message, from_email, [to_email])
+            send_email_task.delay(
+                subject,
+                message,
+                from_email,
+                [to_email],
+                flow=FLOW_PASSWORD_RESET,
+            )
         except Exception:
             django_send_mail(
                 subject=subject,

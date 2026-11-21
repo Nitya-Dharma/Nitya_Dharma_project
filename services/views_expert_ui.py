@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.conf import settings
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -18,6 +17,11 @@ from .expert_service_selection import (
     service_slugs,
 )
 from .models import ExpertBookingIntent, ExpertSocialLink
+from core.email_providers import (
+    FLOW_EXPERT_ADMIN,
+    FLOW_EXPERT_SET_PASSWORD,
+    queue_or_send_transactional_email,
+)
 
 User = get_user_model()
 
@@ -262,15 +266,16 @@ def expert_register_page(request):
                             )
                             if user:
                                 try:
-                                    send_mail(
-                                        subject="Set Your Password",
-                                        message=(
+                                    queue_or_send_transactional_email(
+                                        FLOW_EXPERT_SET_PASSWORD,
+                                        "Set Your Password",
+                                        (
                                             "Your expert account has been created.\n\n"
                                             "Please reset your password here:\n"
                                             f"{_absolute_site_url('accounts:password_reset')}"
                                         ),
-                                        from_email=settings.DEFAULT_FROM_EMAIL,
-                                        recipient_list=[email],
+                                        settings.DEFAULT_FROM_EMAIL,
+                                        [email],
                                         fail_silently=True,
                                     )
                                 except Exception:
@@ -293,13 +298,17 @@ def expert_register_page(request):
                         ExpertSocialLink.objects.create(expert=expert, url=link)
 
                 try:
-                    send_mail(
-                        subject="New Expert Registration",
-                        message=f"A new expert has registered.\n\nName: {name}\nPhone: {phone}\nType: {normalized_type}",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                        fail_silently=True,
-                    )
+                    admins = getattr(settings, "ADMINS", ()) or ()
+                    recipient_list = [email for _, email in admins if email]
+                    if recipient_list:
+                        queue_or_send_transactional_email(
+                            FLOW_EXPERT_ADMIN,
+                            "New Expert Registration",
+                            f"A new expert has registered.\n\nName: {name}\nPhone: {phone}\nType: {normalized_type}",
+                            settings.DEFAULT_FROM_EMAIL,
+                            recipient_list,
+                            fail_silently=True,
+                        )
                 except Exception:
                     pass
 

@@ -13,6 +13,19 @@ from kombu import Exchange, Queue
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+from ._zeptomail_env import (
+    DEFAULT_RELEASE_ZEPTOMAIL_ENABLED_FLOWS,
+    parse_zeptomail_enabled_flows,
+)
+
+# Unset uses the release default. An explicit empty value is the Gmail rollback.
+ZEPTOMAIL_ENABLED_FLOWS = parse_zeptomail_enabled_flows(
+    os.environ.get(
+        "ZEPTOMAIL_ENABLED_FLOWS",
+        DEFAULT_RELEASE_ZEPTOMAIL_ENABLED_FLOWS,
+    )
+)
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -197,7 +210,7 @@ CELERY_TASK_QUEUES = (
     Queue('analytics', Exchange('analytics', type='direct'), routing_key='analytics'),
 )
 CELERY_TASK_ROUTES = {
-    'core.tasks_email.send_email_task': {'queue': 'emails'},
+    'core.send_email_task': {'queue': 'emails'},
     'notifications.tasks.send_notification_task': {'queue': 'default'},
     'analytics.tasks.log_analytics_task': {'queue': 'analytics'},
 }
