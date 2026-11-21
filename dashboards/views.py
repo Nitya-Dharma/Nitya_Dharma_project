@@ -860,12 +860,12 @@ def dashboard_super_admin(request):
     }
     pending_bureaus = list(
         BureauProfile.objects.filter(is_approved=False)
-        .only("id", "bureau_name", "city", "public_id")
+        .only("id", "bureau_name", "city", "public_id", "is_email_verified", "is_active")
         .order_by("-created_at", "-id")
     )
     approved_bureaus = list(
         BureauProfile.objects.filter(is_approved=True)
-        .only("id", "bureau_name", "city", "public_id", "is_active")
+        .only("id", "bureau_name", "city", "public_id", "is_active", "is_email_verified")
         .order_by("-created_at", "-id")
     )
     

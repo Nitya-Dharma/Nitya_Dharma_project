@@ -4,7 +4,8 @@ Advanced Page Review System Models.
 Additional models for helpful voting and detailed reporting for temple/page reviews.
 """
 
-from django.db import models
+from django.contrib.auth import get_user_model
+from django.db import models, router, transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from .models import PageReview
@@ -169,21 +170,39 @@ class PageReviewReport(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save to update reported_count on review."""
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
-        
-        # Update reported_count on review
-        if is_new:
-            PageReview.objects.filter(id=self.review_id).update(
-                reported_count=models.F('reported_count') + 1
-            )
-            
-            # Auto-hide if reported_count exceeds threshold
-            review = PageReview.objects.get(id=self.review_id)
-            if review.reported_count >= 5:
-                review.is_hidden = True
-                review.visibility_state = PageReview.HIDDEN
-                review.save(update_fields=['is_hidden', 'visibility_state'])
+        using = kwargs.get("using")
+        if using is None:
+            using = router.db_for_write(self.__class__, instance=self)
+        with transaction.atomic(using=using):
+            is_new = self.pk is None
+            if is_new:
+                reviewer_id = (
+                    PageReview.objects.using(using)
+                    .filter(pk=self.review_id)
+                    .values_list("user_id", flat=True)
+                    .get()
+                )
+                if reviewer_id is not None:
+                    get_user_model().objects.using(using).select_for_update().get(
+                        pk=reviewer_id
+                    )
+            super().save(*args, **kwargs)
+
+            # Update reported_count on review
+            if is_new:
+                PageReview.objects.using(using).filter(id=self.review_id).update(
+                    reported_count=models.F('reported_count') + 1
+                )
+
+                # Auto-hide if reported_count exceeds threshold
+                review = PageReview.objects.using(using).get(id=self.review_id)
+                if review.reported_count >= 5:
+                    review.is_hidden = True
+                    review.visibility_state = PageReview.HIDDEN
+                    review.save(
+                        update_fields=['is_hidden', 'visibility_state'],
+                        using=using,
+                    )
 
 
 

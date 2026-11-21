@@ -568,10 +568,10 @@ def approve_bureau(request, public_id):
     if not request.user.is_superuser:
         raise Http404("Page not found")
 
+    from .bureau_governance import approve_bureau_profile
+
     bureau = get_object_or_404(BureauProfile, public_id=public_id)
-    if not bureau.is_approved:
-        bureau.is_approved = True
-        bureau.save(update_fields=["is_approved"])
+    approve_bureau_profile(bureau)
     return redirect("/dashboard/super-admin/?tab=bureaus")
 
 
@@ -582,13 +582,13 @@ def activate_bureau(request, public_id):
     if not request.user.is_superuser:
         raise Http404("Page not found")
 
+    from .bureau_governance import activate_bureau_profile
+
     bureau = get_object_or_404(BureauProfile, public_id=public_id)
     # Activation requires prior approval; never imply-approve.
     if not bureau.is_approved:
         raise Http404("Page not found")
-    if not bureau.is_active:
-        bureau.is_active = True
-        bureau.save(update_fields=["is_active"])
+    activate_bureau_profile(bureau)
     return redirect("/dashboard/super-admin/?tab=bureaus")
 
 

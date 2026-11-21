@@ -17,7 +17,8 @@ Architecture:
 # Import PageAccessRequest so Django can discover it
 from .models_access_request import PageAccessRequest
 
-from django.db import models
+from django.contrib.auth import get_user_model
+from django.db import connections, models, router, transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
@@ -1184,7 +1185,9 @@ class PageReview(models.Model):
                 name='unique_user_page_review',
             ),
         ]
-    
+
+    DUPLICATE_REVIEW_MESSAGE = "You have already submitted a review for this page."
+
     def _get_reviewer_display_name(self, reviewer_user):
         """Get display name for reviewer."""
         if reviewer_user.username:
@@ -1193,20 +1196,49 @@ class PageReview(models.Model):
             return reviewer_user.get_full_name()
         else:
             return reviewer_user.email
-    
+
+    def _reject_duplicate_user_page_review(self, using=None):
+        """
+        Reject a second review for the same user and page.
+
+        Lock the reviewer and matching review rows only when this write
+        connection is already inside a transaction. NULL reviewers are exempt.
+        """
+        if not self.user_id:
+            return
+        if using is None:
+            using = router.db_for_write(self.__class__, instance=self)
+        clash = (
+            PageReview.objects.using(using)
+            .filter(page_id=self.page_id, user_id=self.user_id)
+        )
+        if self.pk:
+            clash = clash.exclude(pk=self.pk)
+        if connections[using].in_atomic_block:
+            get_user_model().objects.using(using).select_for_update().get(pk=self.user_id)
+            clash = clash.select_for_update()
+        if clash.exists():
+            raise ValidationError(self.DUPLICATE_REVIEW_MESSAGE)
+
     def save(self, *args, **kwargs):
         """
         Auto-generate public_id if not set.
         TASK 9: Capture reviewer display name for immutable attribution.
         """
-        if not self.public_id:
-            self.public_id = generate_public_id()
-        
-        # TASK 9: Capture reviewer display name if not set
-        if self.user and not self.reviewer_display_name:
-            self.reviewer_display_name = self._get_reviewer_display_name(self.user)
-        
-        super().save(*args, **kwargs)
+        using = kwargs.get("using")
+        if using is None:
+            using = router.db_for_write(self.__class__, instance=self)
+        with transaction.atomic(using=using):
+            if not self.public_id:
+                self.public_id = generate_public_id()
+
+            self._reject_duplicate_user_page_review(using=using)
+
+            # TASK 9: Capture reviewer display name if not set
+            if self.user and not self.reviewer_display_name:
+                self.reviewer_display_name = self._get_reviewer_display_name(self.user)
+
+            super().save(*args, **kwargs)
     
     def delete(self, using=None, keep_parents=False):
         """
@@ -1231,6 +1263,8 @@ class PageReview(models.Model):
         # User cannot review their own page
         if self.page and self.user and self.page.created_by == self.user:
             raise ValidationError("You cannot review your own page.")
+
+        self._reject_duplicate_user_page_review()
     
     def __str__(self):
         reviewer_name = self.reviewer_display_name or (self.user.email if self.user else "Deleted User")
