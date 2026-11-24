@@ -1,23 +1,30 @@
-
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Page Not Found - Nitya Dharma{% endblock %}
 
 {% block extra_css %}
-    
+<link rel="stylesheet" href="{% static 'css/error_pages_premium.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1 class="display-1">404</h1>
-            <h2 class="h3 mb-4">Page Not Found</h2>
-            <p class="text-muted mb-4">The page you're looking for doesn't exist.</p>
-            <a href="{% url 'core:home' %}" class="btn btn-primary">Go to Home</a>
+<section class="nd-error-page" aria-labelledby="nd-error-404-heading">
+    <div class="nd-error-shell">
+        <div class="nd-error-card">
+            <div class="nd-error-header">
+                <div class="nd-error-mark" aria-hidden="true">N</div>
+                <p class="nd-error-code">404</p>
+                <p class="nd-error-header-title">Nitya Dharma</p>
+            </div>
+            <div class="nd-error-body">
+                <div class="nd-error-icon" aria-hidden="true"><i class="bi bi-search"></i></div>
+                <h1 class="nd-error-heading" id="nd-error-404-heading">Page Not Found</h1>
+                <p class="nd-error-copy">The page you're looking for doesn't exist.</p>
+                <div class="nd-error-actions">
+                    <a href="{% url 'core:home' %}" class="nd-error-btn-primary">Go to Home</a>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
-

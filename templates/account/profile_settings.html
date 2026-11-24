@@ -5,46 +5,7 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
-    <link rel="stylesheet" href="{% static 'css/end_user_ui.css' %}">
-    <style>
-        /* Override account-content for profile page - Force styles to show */
-        .account-content .user-profile-page {
-            background: #F9FAF7 !important;
-            padding: 2rem !important;
-            margin: -2rem !important;
-            border-radius: 0.5rem !important;
-        }
-        
-        .account-content .profile-header {
-            background: linear-gradient(135deg, #3F4E4F, #7D8F8A) !important;
-            color: #fff !important;
-            padding: 32px !important;
-            border-radius: 16px !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
-            margin-bottom: 24px !important;
-        }
-        
-        .account-content .profile-header h1 {
-            color: #fff !important;
-            font-size: 26px !important;
-            font-weight: 600 !important;
-        }
-        
-        .account-content .profile-header-subtitle {
-            color: rgba(255,255,255,0.85) !important;
-        }
-        
-        .account-content .btn-primary {
-            background-color: #C84B31 !important;
-            color: #fff !important;
-            border: none !important;
-        }
-        
-        .account-content .btn-primary:hover {
-            background-color: #A63A25 !important;
-        }
-    </style>
+    {# Profile page previously pulled end_user_ui terracotta/green overrides; premium account CSS owns presentation. #}
 {% endblock %}
 
 {% block account_content %}
@@ -65,25 +26,37 @@
             <div class="col-lg-4">
                 <div class="premium-card border-accent p-4">
                     <div class="text-center mb-3">
-<img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}"
+<img src="{% if account_picture_url %}{{ account_picture_url }}{% endif %}"
                              alt="Profile Picture"
                              id="previewImg"
-                             class="rounded-circle img-fluid nd-profile-preview-100 {% if not user.profile_picture %}d-none{% endif %}"
+                             class="rounded-circle img-fluid nd-profile-preview-100 {% if not account_picture_url %}d-none{% endif %}"
                              loading="lazy"
                              decoding="async">
-                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto nd-profile-placeholder-100 {% if user.profile_picture %}d-none{% endif %}" 
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto nd-profile-placeholder-100 {% if account_picture_url %}d-none{% endif %}" 
                              id="placeholderImg">
                             <i class="bi bi-person-fill text-white display-4"></i>
                         </div>
                     </div>
                     <h5 class="fw-bold mb-1 text-center">
-                        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}
+                        {{ account_summary_name|default:user.email }}
                     </h5>
                     <p class="text-muted small mb-3 text-center">{{ user.email }}</p>
                     {% if user.is_active %}
                         <span class="badge bg-success d-block text-center">Active Account</span>
                     {% else %}
                         <span class="badge bg-secondary d-block text-center">Inactive Account</span>
+                    {% endif %}
+                    {% if related_profile and related_profile.name %}
+                      <div class="mt-3 pt-3 border-top text-start">
+                        <p class="small text-muted mb-1">{{ related_profile.label }}</p>
+                        <p class="fw-semibold mb-1">{{ related_profile.name }}</p>
+                        <p class="small text-muted mb-2">{{ related_profile.type_label }}</p>
+                        {% if related_profile.edit_url %}
+                          <a href="{{ related_profile.edit_url }}" class="btn btn-sm btn-outline-secondary w-100">
+                            {{ related_profile.edit_label }}
+                          </a>
+                        {% endif %}
+                      </div>
                     {% endif %}
                 </div>
             </div>
@@ -111,13 +84,13 @@
                         <h6 class="fw-semibold mb-3">Profile Picture</h6>
                             <div class="d-flex align-items-center">
                             <div class="position-relative">
-<img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}"
+<img src="{% if account_picture_url %}{{ account_picture_url }}{% endif %}"
                                      alt="Profile Picture"
                                      id="previewImgForm"
-                                     class="rounded-circle img-fluid nd-profile-preview-80 {% if not user.profile_picture %}d-none{% endif %}"
+                                     class="rounded-circle img-fluid nd-profile-preview-80 {% if not account_picture_url %}d-none{% endif %}"
                                      loading="lazy"
                                      decoding="async">
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center nd-profile-placeholder-80 {% if user.profile_picture %}d-none{% endif %}" 
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center nd-profile-placeholder-80 {% if account_picture_url %}d-none{% endif %}" 
                                      id="placeholderImgForm">
                                     <i class="bi bi-person-fill text-white fs-2"></i>
                                 </div>
@@ -135,8 +108,11 @@
                                            onchange="previewImage(this)">
                                     <div id="fileName" class="small text-muted mb-1"></div>
                                     <small class="form-text text-muted d-block">JPG, PNG or GIF. Max size: 2MB</small>
+                                    {% if account_picture_url and not account_picture_owned %}
+                                      <small class="form-text text-muted d-block mt-1">Showing image from your {{ related_profile.label|default:"linked profile" }}. Uploading here saves to your account picture.</small>
+                                    {% endif %}
                                 </div>
-                                {% if user.profile_picture %}
+                                {% if account_picture_owned %}
                                     <div>
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-danger" 
@@ -154,6 +130,11 @@
                     <!-- Personal Information -->
                     <div class="premium-card p-4 mb-4">
                         <h6 class="fw-semibold mb-3">Personal Information</h6>
+                        {% if related_profile.name_prefilled_into_account_fields %}
+                          <p class="small text-muted mb-3">First and last name were prefilled from your {{ related_profile.label }} (“{{ related_profile.name }}”). Saving updates your account name only — not your {{ related_profile.type_label }} profile name.</p>
+                        {% elif related_profile and related_profile.kind == 'bureau' and not form_first_name and not form_last_name %}
+                          <p class="small text-muted mb-3">Your bureau listing name (“{{ related_profile.name }}”) is managed on <a href="{{ related_profile.edit_url }}">Edit Bureau Profile</a>. Account first/last name are separate personal fields.</p>
+                        {% endif %}
                         
                         <!-- Full Name -->
                         <div class="mb-3">
@@ -162,7 +143,7 @@
                                    class="form-control" 
                                    id="first_name" 
                                    name="first_name" 
-                                   value="{{ user.first_name|default:'' }}"
+                                   value="{{ form_first_name|default:'' }}"
                                    required>
                         </div>
                         
@@ -172,7 +153,7 @@
                                    class="form-control" 
                                    id="last_name" 
                                    name="last_name" 
-                                   value="{{ user.last_name|default:'' }}"
+                                   value="{{ form_last_name|default:'' }}"
                                    required>
                         </div>
                         

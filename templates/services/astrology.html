@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
 Best Astrologers Online | Astrology Consultation Near You
@@ -12,8 +13,13 @@ Connect with verified astrologers for horoscope reading, kundli matching and ast
 astrologer near me, online astrology consultation, kundli matching, horoscope reading
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/expert_services_ui_redesign.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4 text-center">
+<div class="nd-expert-service-page">
+<div class="container mt-4 text-center nd-expert-hero">
   <h1 class="mb-3">
     Online Astrology Consultation with Trusted Experts
   </h1>
@@ -26,6 +32,20 @@ astrologer near me, online astrology consultation, kundli matching, horoscope re
     Our platform connects you with verified experts for accurate guidance.
   </p>
 </div>
+
+<section class="container nd-expert-context" aria-label="Expert Services context">
+  <div class="nd-expert-context-card">
+    <p class="nd-expert-eyebrow">Expert Services</p>
+    <p>Astrology is part of Nitya Dharma’s Expert Services, alongside Numerology and Palmistry. Browse listed astrologers, refine results with the filters on this page, open a profile, and use booking-intent or contact options when they are available on the listing. Nitya Dharma also offers Pandit Services, Temple Information, and Hindu Marriage Bureau listings.</p>
+    <p class="nd-expert-crosslinks">
+      <a href="{% url 'numerology_service' %}">Numerology</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'palmistry_service' %}">Palmistry</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'about_us' %}">About Us</a>
+    </p>
+  </div>
+</section>
 
 {% if ads_in_content %}
     {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
@@ -207,4 +227,5 @@ astrologer near me, online astrology consultation, kundli matching, horoscope re
         <strong>Debug Info:</strong> {{ debug_error }}
     </div>
 {% endif %}
+</div>
 {% endblock %}

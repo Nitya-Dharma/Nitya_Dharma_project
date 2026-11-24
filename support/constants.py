@@ -8,7 +8,9 @@ CONTACT_REASONS = {
         "Temple listing request",
         "Partnership inquiry",
         "Media inquiry",
-        "General inquiry"
+        "General inquiry",
+        "Want to join as Expert",
+        "Want to join as Hindu Marriage Bureau"
     ],
     "end_user": [
         "Issue with booking",

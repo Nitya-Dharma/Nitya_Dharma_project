@@ -1602,13 +1602,31 @@ def profile_settings(request):
     from otp_verification.registration.factory import is_registration_otp_required
     from otp_verification import constants as otp_constants
 
+    from .account_profile_prefill import build_account_profile_prefill
     from .phone_utils import normalize_phone_number, phone_already_registered
 
-    needs_phone_otp = (
-        getattr(request.user, "role", None) == "user"
-        and not getattr(request.user, "is_phone_verified", True)
-        and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
-    )
+    def _profile_settings_context(*, display_phone=None, **extra):
+        raw_phone = str(getattr(request.user, "phone_number", "") or "")
+        computed_display = (
+            raw_phone[2:]
+            if raw_phone.startswith("91") and len(raw_phone) == 12 and raw_phone.isdigit()
+            else raw_phone
+        )
+        needs_otp = (
+            getattr(request.user, "role", None) == "user"
+            and not getattr(request.user, "is_phone_verified", True)
+            and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
+        )
+        ctx = {
+            "user": request.user,
+            "active_tab": "profile",
+            "user_id": request.user.id,
+            "needs_phone_otp": needs_otp,
+            "display_phone": display_phone if display_phone is not None else computed_display,
+        }
+        ctx.update(build_account_profile_prefill(request.user))
+        ctx.update(extra)
+        return ctx
 
     if request.method == 'POST':
         # Get form data
@@ -1618,7 +1636,7 @@ def profile_settings(request):
         whatsapp_number = request.POST.get('whatsapp_number', '').strip()
         delete_picture = request.POST.get('delete_picture', '0') == '1'
         
-        # Update user fields
+        # Update user fields (Account Settings saves User only — not Expert/Bureau/Pandit profiles)
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
@@ -1628,23 +1646,19 @@ def profile_settings(request):
             normalized = normalize_phone_number(phone_number) if phone_number else None
             if phone_number and not normalized:
                 messages.error(request, 'Phone number format is invalid.')
-                return render(request, 'account/profile_settings.html', {
-                    'user': request.user,
-                    'active_tab': 'profile',
-                    'user_id': request.user.id,
-                    'needs_phone_otp': needs_phone_otp,
-                    'display_phone': phone_number,
-                })
+                return render(
+                    request,
+                    'account/profile_settings.html',
+                    _profile_settings_context(display_phone=phone_number),
+                )
             if normalized:
                 if phone_already_registered(normalized, exclude_user_id=user.pk):
                     messages.error(request, 'Phone number already registered')
-                    return render(request, 'account/profile_settings.html', {
-                        'user': request.user,
-                        'active_tab': 'profile',
-                        'user_id': request.user.id,
-                        'needs_phone_otp': needs_phone_otp,
-                        'display_phone': phone_number,
-                    })
+                    return render(
+                        request,
+                        'account/profile_settings.html',
+                        _profile_settings_context(display_phone=phone_number),
+                    )
                 old = normalize_phone_number(str(user.phone_number or ""))
                 if old != normalized:
                     user.is_phone_verified = False
@@ -1674,13 +1688,11 @@ def profile_settings(request):
                 uploaded_file = validated_file  # Use validated file
             except ValidationError as e:
                 messages.error(request, f'File upload validation failed: {str(e)}')
-                user_id = getattr(request, 'user_id', request.user.id)
-                return render(request, 'account/profile_settings.html', {
-                    'user': request.user,
-                    'active_tab': 'profile',
-                    'user_id': user_id,
-                    'needs_phone_otp': needs_phone_otp,
-                })
+                return render(
+                    request,
+                    'account/profile_settings.html',
+                    _profile_settings_context(),
+                )
             
             # Delete old picture if exists
             if user.profile_picture:
@@ -1700,24 +1712,11 @@ def profile_settings(request):
             messages.error(request, f'Error updating profile: {str(e)}')
     
     # GET request - show form
-    raw_phone = str(getattr(request.user, "phone_number", "") or "")
-    display_phone = (
-        raw_phone[2:]
-        if raw_phone.startswith("91") and len(raw_phone) == 12 and raw_phone.isdigit()
-        else raw_phone
+    return render(
+        request,
+        'account/profile_settings.html',
+        _profile_settings_context(),
     )
-    needs_phone_otp = (
-        getattr(request.user, "role", None) == "user"
-        and not getattr(request.user, "is_phone_verified", True)
-        and is_registration_otp_required(otp_constants.FLOW_USER_REGISTRATION)
-    )
-    return render(request, 'account/profile_settings.html', {
-        'user': request.user,
-        'active_tab': 'profile',
-        'user_id': request.user.id,
-        'needs_phone_otp': needs_phone_otp,
-        'display_phone': display_phone,
-    })
 
 
 @login_required

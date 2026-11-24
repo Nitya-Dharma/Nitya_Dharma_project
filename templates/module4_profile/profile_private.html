@@ -14,12 +14,11 @@
 {% endblock %}
 
 {% block extra_css %}
-    
-    
+<link rel="stylesheet" href="{% static 'css/nd_dashboard_premium.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 nd-dash pandit-page">
     
     {% if profile_state or error_message %}
         {% include "module4_profile/profile_states.html" %}

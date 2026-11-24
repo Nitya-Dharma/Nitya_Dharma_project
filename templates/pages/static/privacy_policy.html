@@ -4,6 +4,7 @@
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+<link rel="stylesheet" href="{% static 'css/legal_pages_ui_redesign.css' %}">
 {% endblock %}
 
 {% block extra_head %}
@@ -12,7 +13,7 @@
 
 {% block content %}
 <main>
-    <div class="static-page-container">
+    <div class="static-page-container nd-legal-page">
         <div class="static-page-content">
             <!-- Hero Section -->
             <div class="static-hero-section">
@@ -25,6 +26,17 @@
             <div class="static-content-section">
                 <section class="content-block">
                     <p>At Nitya Dharma, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.</p>
+                </section>
+
+                <section class="content-block legal-scope-note">
+                    <h2>Platform Context</h2>
+                    <p>Nitya Dharma includes Pandit Services, Temple Information pages, Expert Services (astrology, numerology, and palmistry), and Hindu Marriage Bureau listings. The information practices described in this Privacy Policy apply to your use of the platform. For a plain-language overview of those service areas, see <a href="{% url 'about_us' %}">About Us</a>. This note does not change the privacy statements below.</p>
+                    <ul class="legal-scope-list">
+                        <li>Pandit Services</li>
+                        <li>Temple Information</li>
+                        <li>Expert Services</li>
+                        <li>Hindu Marriage Bureau</li>
+                    </ul>
                 </section>
 
                 <section class="content-block">
@@ -113,7 +125,7 @@
                         <li><strong>Portability:</strong> Request transfer of your data to another service</li>
                         <li><strong>Withdrawal of Consent:</strong> Withdraw consent for data processing where applicable</li>
                     </ul>
-                    <p>To exercise these rights, please <a href="{% url 'support:contact_us' %}" style="color: #E11D48;">contact us</a>.</p>
+                    <p>To exercise these rights, please <a href="{% url 'support:contact_us' %}">contact us</a>.</p>
                 </section>
 
                 <section class="content-block">
@@ -133,7 +145,7 @@
 
                 <section class="content-block">
                     <h2>Contact Information</h2>
-                    <p>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please <a href="{% url 'support:contact_us' %}" style="color: #E11D48;">contact us</a>. We will respond to your inquiries promptly.</p>
+                    <p>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please <a href="{% url 'support:contact_us' %}">contact us</a>. We will respond to your inquiries promptly.</p>
                 </section>
             </div>
         </div>

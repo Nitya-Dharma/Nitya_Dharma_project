@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
 {{ bureau.name }} | Hindu Marriage Bureau | Nitya Dharma
@@ -8,146 +9,204 @@
 View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
 {% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/bureau_profile_public.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
+<div class="nd-bureau-profile">
   {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  {% if ads_in_content %}
-    {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
-  {% endif %}
-
-  {% if bureau.cover_image %}
-    <div class="mb-4">
-      <img src="{{ bureau.cover_image }}" class="img-fluid w-100 rounded nd-img-cover-max-h-300" alt="{{ bureau.name }}" loading="lazy" decoding="async">
+    <div class="container pt-3">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="profile-header bg-light p-4 rounded mb-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap">
-          <div class="d-flex align-items-center gap-3">
-            <img src="{{ bureau.profile_image|default:'/static/images/default.png' }}"
-                 class="rounded-circle nd-avatar-80"
-                 alt="{{ bureau.name }}"
-                 loading="lazy"
-                 decoding="async">
+  {% if ads_in_content %}
+    <div class="container pt-2">
+      {% include 'partials/ad_unit.html' with ad=ads_in_content slot='in_content' %}
+    </div>
+  {% endif %}
 
-            <div>
-              <h3 class="mb-1">{{ bureau.name }}</h3>
-              <small class="text-muted">{{ bureau.city }}</small>
+  {# Cover used as controlled hero background (not unconstrained full-size <img>) #}
+  <section class="nd-bp-hero"
+           {% if bureau.cover_image %}style="background-image: url('{{ bureau.cover_image }}');"{% endif %}>
+    <div class="container-fluid px-0">
+      <div class="nd-bp-hero-content">
+        <div class="container-fluid px-3 px-md-4">
+          <div class="nd-bp-hero-info">
+
+            <div class="nd-bp-avatar">
+              {% if bureau.profile_image %}
+                <img src="{{ bureau.profile_image }}"
+                     alt="{{ bureau.name }}"
+                     loading="lazy"
+                     decoding="async"
+                     onerror="this.onerror=null; this.src='{% static 'images/default-avatar.svg' %}';">
+              {% else %}
+                <div class="nd-bp-avatar-fallback" aria-hidden="true">
+                  <i class="bi bi-building"></i>
+                </div>
+              {% endif %}
             </div>
-          </div>
 
-          <div class="d-flex flex-column gap-2 mt-3 mt-md-0">
-            <button type="button" class="btn btn-outline-secondary btn-sm"
-                    onclick="navigator.clipboard.writeText(window.location.href)">
-              Share
-            </button>
-            <a href="#booking" class="btn btn-danger">
-              Send Booking Intent
-            </a>
-            {% if bureau.phone %}
-              <a href="tel:{{ bureau.phone }}" class="btn btn-success btn-sm">
-                Call
+            <div class="nd-bp-hero-details">
+              <span class="nd-bp-hero-type">Hindu Marriage Bureau</span>
+              <h1 class="nd-bp-hero-name">{{ bureau.name }}</h1>
+              <div class="nd-bp-hero-meta">
+                {% if bureau.city %}
+                  <div class="nd-bp-hero-meta-item">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>{{ bureau.city }}</span>
+                  </div>
+                {% endif %}
+                {% if bureau.review_count %}
+                  <div class="nd-bp-hero-meta-item">
+                    <i class="bi bi-star-fill"></i>
+                    <span>{{ bureau.avg_rating }}/5 ({{ bureau.review_count }} review{{ bureau.review_count|pluralize }})</span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="nd-bp-hero-actions">
+              <button type="button"
+                      class="btn btn-outline-light"
+                      onclick="navigator.clipboard.writeText(window.location.href)"
+                      title="Share this profile">
+                <i class="bi bi-share me-1"></i>Share
+              </button>
+              <a href="#booking" class="btn btn-danger">
+                <i class="bi bi-envelope me-1"></i>Send Booking Intent
               </a>
-            {% endif %}
-            {% if bureau.whatsapp_url %}
-              <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ bureau.whatsapp_url|urlencode }}"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="btn btn-success btn-sm">
-                WhatsApp
-              </a>
-            {% endif %}
+              {% if bureau.phone %}
+                <a href="tel:{{ bureau.phone }}" class="btn btn-success">
+                  <i class="bi bi-telephone-fill me-1"></i>Call
+                </a>
+              {% endif %}
+              {% if bureau.whatsapp_url %}
+                <a href="{% url 'ads_analytics:track_whatsapp' %}?redirect={{ bureau.whatsapp_url|urlencode }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn btn-success">
+                  <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                </a>
+              {% endif %}
+            </div>
+
           </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <ul class="nav nav-tabs mb-3" id="bureauTabs">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview" type="button">
-            Overview
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#castes" type="button">
-            Castes
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#contact" type="button">
-            Contact
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews" type="button">
-            Reviews
-          </button>
-        </li>
-      </ul>
+  <div class="nd-bp-tabs">
+    <div class="container-fluid px-0">
+      <div class="container px-3 px-md-4">
+        <ul class="nav nav-tabs border-0" id="bureauTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+              <i class="bi bi-file-text me-2"></i>Overview
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="castes-tab" data-bs-toggle="tab" data-bs-target="#castes" type="button" role="tab">
+              <i class="bi bi-people me-2"></i>Castes
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">
+              <i class="bi bi-telephone me-2"></i>Contact
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+              <i class="bi bi-star me-2"></i>Reviews
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
-      <div class="tab-content">
-        <div class="tab-pane fade show active" id="overview">
-          <h5>About</h5>
-          <p>{{ bureau.description|default:"No description available."|linebreaksbr }}</p>
+  <section class="nd-bp-content">
+    <div class="container">
+      <div class="tab-content" id="bureauTabContent">
+
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+          <div class="nd-bp-card">
+            <h5 class="nd-bp-card__title">About</h5>
+            <p class="mb-0">{{ bureau.description|default:"No description available."|linebreaksbr }}</p>
+          </div>
         </div>
 
-        <div class="tab-pane fade" id="castes">
-          <h5>Castes We Serve</h5>
-          {% if bureau.caste_sections %}
-            {% for section in bureau.caste_sections %}
-              {% if section.values %}
-                <strong>{{ section.category }}</strong>
-                <ul>
-                  {% for caste in section.values %}
-                    {% if caste %}
-                      <li>{{ caste }}</li>
-                    {% endif %}
-                  {% endfor %}
-                </ul>
+        <div class="tab-pane fade" id="castes" role="tabpanel">
+          <div class="nd-bp-card">
+            <h5 class="nd-bp-card__title">Castes We Serve</h5>
+            {% if bureau.caste_sections %}
+              {% for section in bureau.caste_sections %}
+                {% if section.values %}
+                  <div class="nd-bp-caste-block">
+                    <span class="nd-bp-label">{{ section.category }}</span>
+                    <ul>
+                      {% for caste in section.values %}
+                        {% if caste %}
+                          <li>{{ caste }}</li>
+                        {% endif %}
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <div class="nd-bp-empty">No caste data available.</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="contact" role="tabpanel">
+          <div class="nd-bp-card">
+            <h5 class="nd-bp-card__title">Contact</h5>
+            <p class="mb-3">
+              <span class="nd-bp-label">Phone</span>
+              {% if bureau.phone %}
+                <a href="tel:{{ bureau.phone }}">{{ bureau.phone }}</a>
+              {% else %}
+                -
               {% endif %}
-            {% endfor %}
-          {% else %}
-            <p class="text-muted mb-0">No caste data available.</p>
-          {% endif %}
+            </p>
+            <p class="mb-3">
+              <span class="nd-bp-label">WhatsApp</span>
+              {% if bureau.whatsapp %}
+                {{ bureau.whatsapp }}
+              {% else %}
+                -
+              {% endif %}
+            </p>
+            <p class="mb-0">
+              <span class="nd-bp-label">City</span>
+              {{ bureau.city|default:"-" }}
+            </p>
+          </div>
         </div>
 
-        <div class="tab-pane fade" id="contact">
-          <p><strong>Phone:</strong>
-            {% if bureau.phone %}
-              <a href="tel:{{ bureau.phone }}">{{ bureau.phone }}</a>
-            {% else %}
-              -
+        <div class="tab-pane fade" id="reviews" role="tabpanel">
+          <div class="nd-bp-card">
+            <h5 class="nd-bp-card__title">Reviews &amp; Ratings</h5>
+            {% if bureau.review_count %}
+              <p class="text-muted mb-3">
+                Average Rating: <strong>{{ bureau.avg_rating }}</strong>/5
+                ({{ bureau.review_count }} review{{ bureau.review_count|pluralize }})
+              </p>
             {% endif %}
-          </p>
-          <p><strong>WhatsApp:</strong>
-            {% if bureau.whatsapp %}
-              {{ bureau.whatsapp }}
-            {% else %}
-              -
-            {% endif %}
-          </p>
-          <p><strong>City:</strong> {{ bureau.city|default:"-" }}</p>
-        </div>
 
-        <div class="tab-pane fade" id="reviews">
-          <h5 class="mb-2">Reviews &amp; Ratings</h5>
-          <p class="text-muted mb-2">
-            Average Rating: <strong>{{ bureau.avg_rating }}</strong>/5
-            ({{ bureau.review_count }} review{{ bureau.review_count|pluralize }})
-          </p>
-
-          {% if bureau.reviews %}
-            <div class="list-group mb-3">
+            {% if bureau.reviews %}
               {% for review in bureau.reviews %}
-                <div class="list-group-item">
+                <div class="nd-bp-review-item">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <strong>{{ review.rating }}/5</strong>
                     <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
@@ -157,44 +216,45 @@ View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
                   {% endif %}
                 </div>
               {% endfor %}
-            </div>
-          {% else %}
-            <p class="text-muted mb-3">No reviews yet.</p>
-          {% endif %}
+            {% else %}
+              <div class="nd-bp-empty mb-3">No reviews yet.</div>
+            {% endif %}
 
-          {% if user.is_authenticated %}
-            <form method="post" action="{% url 'bureaus:bureau_review' bureau.public_id %}" class="row g-2">
-              {% csrf_token %}
-              <div class="col-md-3">
-                <select name="rating" class="form-select" required>
-                  <option value="">Select rating</option>
-                  <option value="5">5 - Excellent</option>
-                  <option value="4">4 - Good</option>
-                  <option value="3">3 - Average</option>
-                  <option value="2">2 - Poor</option>
-                  <option value="1">1 - Very Poor</option>
-                </select>
-              </div>
-              <div class="col-md-9">
-                <textarea name="review_text" class="form-control" rows="2" maxlength="2000" placeholder="Write your review (optional)"></textarea>
-              </div>
-              <div class="col-12">
-                <button type="submit" class="btn btn-outline-primary">Submit Review</button>
-              </div>
-            </form>
-          {% else %}
-            <p class="text-muted mb-0">
-              <a href="{% url 'accounts:login' %}?next={% url 'bureaus:bureau_detail' bureau.public_id %}">Log in</a>
-              to submit a review.
-            </p>
-          {% endif %}
+            {% if user.is_authenticated %}
+              <form method="post" action="{% url 'bureaus:bureau_review' bureau.public_id %}" class="row g-2 mt-2">
+                {% csrf_token %}
+                <div class="col-md-3">
+                  <select name="rating" class="form-select" required>
+                    <option value="">Select rating</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Very Poor</option>
+                  </select>
+                </div>
+                <div class="col-md-9">
+                  <textarea name="review_text" class="form-control" rows="2" maxlength="2000" placeholder="Write your review (optional)"></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-outline-primary">Submit Review</button>
+                </div>
+              </form>
+            {% else %}
+              <p class="text-muted mb-0 mt-2">
+                <a href="{% url 'accounts:login' %}?next={% url 'bureaus:bureau_detail' bureau.public_id %}">Log in</a>
+                to submit a review.
+              </p>
+            {% endif %}
+          </div>
         </div>
+
       </div>
 
       {% url 'bureaus:bureau_detail' bureau.public_id as bureau_detail_url %}
 
-      <div id="booking" class="mt-4">
-        <h5 class="mb-2">Send Booking Request</h5>
+      <div id="booking" class="mt-4 nd-bp-card">
+        <h5 class="nd-bp-card__title">Send Booking Request</h5>
         {% if user.is_authenticated %}
           {% if has_active_intent %}
             <div class="alert alert-info mb-0" role="alert">
@@ -250,6 +310,6 @@ View profile of {{ bureau.name }}, a Hindu marriage bureau in {{ bureau.city }}.
         {% endif %}
       </div>
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

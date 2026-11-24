@@ -109,6 +109,7 @@ def deactivate_pandit_with_custodianship(pandit, deactivated_by, reason=None):
         raise ValidationError("Only Super Admin can deactivate Pandits/Admins with custodianship.")
     
     with transaction.atomic():
+        User.objects.select_for_update().get(pk=pandit.pk)
         custodianships = {}
         messages = []
         

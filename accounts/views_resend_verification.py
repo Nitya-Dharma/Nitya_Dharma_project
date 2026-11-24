@@ -5,6 +5,7 @@ TASK 3: Email Verification Resend View
 """
 
 import logging
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,11 +16,27 @@ from .models import User
 from .services import (
     resend_verification_email,
     VerificationAlreadyCompleted,
-    CooldownNotElapsed
+    CooldownNotElapsed,
+    RESEND_UNAUTHORIZED,
+)
+from .services_email_verification_authority import (
+    authoritative_verification_token,
+    can_resend_verification,
 )
 from .utils import is_admin, is_pandit
 
 logger = logging.getLogger(__name__)
+
+PERMISSION_DENIED = (
+    "You do not have permission to resend verification email for this account."
+)
+
+
+def _validation_text(exc):
+    messages_list = getattr(exc, "messages", None)
+    if messages_list:
+        return " ".join(str(message) for message in messages_list)
+    return str(exc)
 
 
 @login_required
@@ -32,9 +49,11 @@ def resend_pandit_verification(request, pandit_public_id):
     TASK 3: Email Verification Resend View
     
     Authorization:
-    - Pandit → can resend for self only
-    - Admin Pandit → can resend for Pandits they oversee
-    - Super Admin → can resend for any Pandit
+    - Pandit → own account only, and self-service does not record a sender
+    - Admin Pandit → may establish a null sender, or resend while that same sender is active
+    - A different Admin Pandit cannot take over an existing or inactive sender
+    - Super Admin → may resend, including after the original sender is inactive,
+      without replacing an existing sender
     
     Args:
         request: HTTP request object
@@ -47,29 +66,14 @@ def resend_pandit_verification(request, pandit_public_id):
         # Resolve Pandit by public_id
         target_pandit = get_object_or_404(User, public_id=pandit_public_id, role='pandit')
         
-        # Authorization checks
         requester = request.user
-        
-        # Case 1: Pandit requesting for self
-        if is_pandit(requester) and requester.id == target_pandit.id:
-            # Self-service: allowed
-            pass
-        # Case 2: Admin Pandit requesting for another Pandit
-        elif is_admin(requester) and not requester.is_superuser:
-            # Admin Pandit can resend for any Pandit (they oversee all Pandits)
-            # No additional check needed - Admin Pandit has global Pandit management access
-            pass
-        # Case 3: Super Admin requesting for any Pandit
-        elif requester.is_superuser:
-            # Super Admin can resend for any Pandit
-            pass
-        else:
-            # Unauthorized: Pandit trying to resend for another Pandit
-            messages.error(
-                request,
-                'You do not have permission to resend verification email for this account.'
-            )
-            # Redirect based on role
+        current_token = authoritative_verification_token(target_pandit)
+        if not can_resend_verification(
+            current_token,
+            requester,
+            target_user=target_pandit,
+        ):
+            messages.error(request, PERMISSION_DENIED)
             if is_pandit(requester):
                 return redirect('module5_dashboards:dashboard_pandit')
             elif is_admin(requester):
@@ -106,14 +110,20 @@ def resend_pandit_verification(request, pandit_public_id):
                 request,
                 str(e)
             )
-        except Exception as e:
+        except ValidationError as exc:
+            text = _validation_text(exc)
+            if text == RESEND_UNAUTHORIZED:
+                messages.error(request, PERMISSION_DENIED)
+            else:
+                messages.error(request, text)
+        except Exception as exc:
             logger.error(
-                f"Error resending verification email for {target_pandit.email}: {str(e)}",
-                exc_info=True
+                "Error resending Pandit verification email",
+                extra={"error_type": type(exc).__name__},
             )
             messages.error(
                 request,
-                f'Failed to send verification email: {str(e)}'
+                "Failed to send verification email. Please try again later."
             )
         
         # Redirect based on requester role
@@ -132,10 +142,10 @@ def resend_pandit_verification(request, pandit_public_id):
     except User.DoesNotExist:
         messages.error(request, 'Pandit account not found.')
         return redirect('core:home')
-    except Exception as e:
+    except Exception as exc:
         logger.error(
-            f"Unexpected error in resend_pandit_verification: {str(e)}",
-            exc_info=True
+            "Unexpected error in resend_pandit_verification",
+            extra={"error_type": type(exc).__name__},
         )
         messages.error(request, 'An unexpected error occurred. Please try again.')
         return redirect('core:home')

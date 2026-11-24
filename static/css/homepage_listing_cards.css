@@ -1,0 +1,402 @@
+/* =========================================================
+   Nitya Dharma — Homepage listing cards (premium)
+   Scoped to #nd-home-page only. Presentation only.
+   ========================================================= */
+
+#nd-home-page {
+  --hc-wine: #881337;
+  --hc-dark-wine: #BE123C;
+  --hc-rose: #E11D48;
+  --hc-ivory: #FFFCFD;
+  --hc-pale: #FFF1F4;
+  --hc-text: #211A2B;
+  --hc-muted: #716977;
+  --hc-border: #E1E4EA;
+  --hc-radius: 16px;
+  --hc-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+}
+
+#nd-home-page .nd-home-listings {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+#nd-home-page .nd-home-listings__title {
+  color: var(--hc-text);
+  font-family: var(--hc-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0;
+}
+
+/*
+  Grid capacity (all five listing sections) via CSS Grid:
+  - <768px: 1 / row
+  - ≥768px: 2 / row
+  - ≥992px: 3 / row
+  - ≥1440px: 4 / row
+  Cards always start from the LEFT (no centre alignment).
+  CSS Grid avoids flex percentage rounding wrap at exact widths.
+*/
+#nd-home-page .nd-home-listings__grid.row,
+#nd-home-page .nd-home-listings__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 1.25rem;
+  row-gap: 1.5rem;
+  margin-left: 0;
+  margin-right: 0;
+  --bs-gutter-x: 0;
+  --bs-gutter-y: 0;
+  justify-content: start;
+  justify-items: stretch;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  #nd-home-page .nd-home-listings__grid.row,
+  #nd-home-page .nd-home-listings__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 992px) {
+  #nd-home-page .nd-home-listings__grid.row,
+  #nd-home-page .nd-home-listings__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  #nd-home-page .nd-home-listings__grid.row,
+  #nd-home-page .nd-home-listings__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+#nd-home-page .nd-home-listings__grid > .nd-home-card-col {
+  display: flex;
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  flex: none;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 0;
+  justify-self: stretch;
+}
+
+/* Shared card shell */
+#nd-home-page .nd-home-card,
+#nd-home-page .listing-card-cinematic.premium-card,
+#nd-home-page .nd-bureau-card {
+  width: 100%;
+  background: var(--hc-ivory);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius);
+  box-shadow: 0 8px 24px rgba(33, 26, 43, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+#nd-home-page .nd-home-card:hover,
+#nd-home-page .listing-card-cinematic.premium-card:hover,
+#nd-home-page .nd-bureau-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(136, 19, 55, 0.12);
+  border-color: rgba(225, 29, 72, 0.28);
+}
+
+#nd-home-page .nd-home-card:focus-within,
+#nd-home-page .listing-card-cinematic.premium-card:focus-within,
+#nd-home-page .nd-bureau-card:focus-within {
+  outline: 2px solid var(--hc-rose);
+  outline-offset: 2px;
+}
+
+#nd-home-page .nd-home-card .card-body,
+#nd-home-page .listing-card-cinematic .card-body,
+#nd-home-page .nd-bureau-card .card-body {
+  padding: 1.25rem 1.1rem 1.1rem !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Avatar */
+#nd-home-page .nd-home-card__avatar,
+#nd-home-page .listing-card-cinematic .pandit-avatar {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 0.85rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--hc-pale);
+  background: linear-gradient(145deg, var(--hc-pale), #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(136, 19, 55, 0.08);
+}
+
+#nd-home-page .nd-home-card__avatar img,
+#nd-home-page .listing-card-cinematic .pandit-avatar img,
+#nd-home-page .listing-card-cinematic .profile-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+#nd-home-page .nd-home-card__avatar-fallback,
+#nd-home-page .listing-card-cinematic .pandit-avatar.bg-secondary {
+  background: linear-gradient(145deg, var(--hc-wine), var(--hc-dark-wine)) !important;
+  border-color: var(--hc-pale) !important;
+}
+
+#nd-home-page .nd-home-card__avatar-fallback i,
+#nd-home-page .listing-card-cinematic .pandit-avatar.bg-secondary i {
+  font-size: 2.25rem !important;
+  color: #fff !important;
+}
+
+/* Bureau card media — fixed height; profile logo contain, cover fallback cover. */
+#nd-home-page .nd-bureau-card .nd-bureau-card__media {
+  height: 160px;
+  min-height: 160px;
+  flex-shrink: 0;
+  background: var(--hc-pale);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#nd-home-page .nd-bureau-card .nd-bureau-card__media img {
+  width: 100%;
+  height: 100%;
+  max-height: 160px;
+  object-position: center;
+  display: block;
+}
+
+/* Priority 1 / placeholder: profile logo or default */
+#nd-home-page .nd-bureau-card .nd-bureau-card__logo {
+  object-fit: contain;
+}
+
+/* Priority 2: cover image when profile missing/fails */
+#nd-home-page .nd-bureau-card .nd-bureau-card__cover {
+  object-fit: cover;
+}
+
+/* Typography */
+#nd-home-page .nd-home-card__name,
+#nd-home-page .listing-card-cinematic .card-title-link,
+#nd-home-page .listing-card-cinematic h6,
+#nd-home-page .nd-bureau-card .card-title {
+  color: var(--hc-text) !important;
+  font-family: var(--hc-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem !important;
+}
+
+#nd-home-page .nd-home-card__name:hover,
+#nd-home-page .listing-card-cinematic .card-title-link:hover {
+  color: var(--hc-wine) !important;
+}
+
+#nd-home-page .nd-home-card__category {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hc-wine);
+  background: var(--hc-pale);
+  border: 1px solid rgba(225, 29, 72, 0.18);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  margin-bottom: 0.55rem;
+}
+
+#nd-home-page .nd-home-card__meta,
+#nd-home-page .listing-card-cinematic .text-muted,
+#nd-home-page .nd-bureau-card .text-muted {
+  color: var(--hc-muted) !important;
+  font-size: 0.875rem;
+}
+
+#nd-home-page .nd-home-card__chips,
+#nd-home-page .listing-card-cinematic .pooja-tags .d-flex {
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+#nd-home-page .nd-home-card__chip,
+#nd-home-page .listing-card-cinematic .pooja-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--hc-text);
+  background: #fff;
+  border: 1px solid var(--hc-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+}
+
+#nd-home-page .nd-home-card__badge-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--hc-wine);
+  background: var(--hc-pale);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+/* Actions */
+#nd-home-page .nd-home-card__actions,
+#nd-home-page .listing-card-cinematic .mt-auto,
+#nd-home-page .nd-bureau-card .mt-auto {
+  margin-top: auto !important;
+  padding-top: 0.75rem;
+}
+
+#nd-home-page .nd-home-card__actions .btn,
+#nd-home-page .listing-card-cinematic .mt-auto .btn,
+#nd-home-page .nd-bureau-card .mt-auto .btn {
+  min-height: 42px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#nd-home-page .nd-home-card__actions .btn-primary,
+#nd-home-page .nd-home-card__actions .btn-view-profile,
+#nd-home-page .listing-card-cinematic .btn-view-profile,
+#nd-home-page .listing-card-cinematic .btn-primary,
+#nd-home-page .nd-bureau-card .btn-primary {
+  background: var(--hc-wine) !important;
+  border-color: var(--hc-wine) !important;
+  color: #fff !important;
+}
+
+#nd-home-page .nd-home-card__actions .btn-primary:hover,
+#nd-home-page .nd-home-card__actions .btn-view-profile:hover,
+#nd-home-page .listing-card-cinematic .btn-view-profile:hover,
+#nd-home-page .nd-bureau-card .btn-primary:hover {
+  background: var(--hc-dark-wine) !important;
+  border-color: var(--hc-dark-wine) !important;
+}
+
+#nd-home-page .nd-bureau-card .nd-bureau-card__contact-row {
+  width: 100%;
+}
+
+#nd-home-page .nd-bureau-card .nd-bureau-card__contact-row .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#nd-home-page .nd-home-card__actions .btn-danger,
+#nd-home-page .listing-card-cinematic .btn-danger,
+#nd-home-page .nd-bureau-card .btn-danger {
+  background: var(--hc-rose) !important;
+  border-color: var(--hc-rose) !important;
+}
+
+#nd-home-page .nd-home-card__actions .btn-danger:hover,
+#nd-home-page .listing-card-cinematic .btn-danger:hover,
+#nd-home-page .nd-bureau-card .btn-danger:hover {
+  background: var(--hc-dark-wine) !important;
+  border-color: var(--hc-dark-wine) !important;
+}
+
+#nd-home-page .nd-home-card__actions .btn:focus-visible,
+#nd-home-page .listing-card-cinematic .btn:focus-visible,
+#nd-home-page .nd-bureau-card .btn:focus-visible {
+  outline: 2px solid var(--hc-wine);
+  outline-offset: 2px;
+}
+
+#nd-home-page .nd-home-listings .btn-danger.px-4,
+#nd-home-page .nd-home-listings .btn-primary {
+  border-radius: 999px;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+#nd-home-page .sample-listings-section .btn-primary {
+  background: var(--hc-wine);
+  border-color: var(--hc-wine);
+}
+
+/* Compact typography/spacing when four columns are active */
+@media (min-width: 1440px) {
+  #nd-home-page .nd-home-card .card-body,
+  #nd-home-page .listing-card-cinematic .card-body,
+  #nd-home-page .nd-bureau-card .card-body {
+    padding: 1.05rem 0.9rem 0.95rem !important;
+  }
+
+  #nd-home-page .nd-home-card__avatar,
+  #nd-home-page .listing-card-cinematic .pandit-avatar {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 0.65rem;
+  }
+
+  #nd-home-page .nd-home-card__avatar-fallback i,
+  #nd-home-page .listing-card-cinematic .pandit-avatar.bg-secondary i {
+    font-size: 1.85rem !important;
+  }
+
+  #nd-home-page .nd-bureau-card .nd-bureau-card__media {
+    height: 132px;
+    min-height: 132px;
+  }
+
+  #nd-home-page .nd-bureau-card .nd-bureau-card__media img {
+    max-height: 132px;
+  }
+
+  #nd-home-page .nd-home-card__name,
+  #nd-home-page .listing-card-cinematic .card-title-link,
+  #nd-home-page .listing-card-cinematic h6,
+  #nd-home-page .nd-bureau-card .card-title {
+    font-size: 1.02rem;
+  }
+
+  #nd-home-page .nd-home-card__category {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  #nd-home-page .nd-home-card__actions .btn,
+  #nd-home-page .listing-card-cinematic .mt-auto .btn,
+  #nd-home-page .nd-bureau-card .mt-auto .btn {
+    min-height: 38px;
+    font-size: 0.8rem;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  #nd-home-page .nd-home-card__avatar,
+  #nd-home-page .listing-card-cinematic .pandit-avatar {
+    width: 76px;
+    height: 76px;
+  }
+}

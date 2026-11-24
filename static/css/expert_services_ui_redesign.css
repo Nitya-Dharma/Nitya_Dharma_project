@@ -1,0 +1,365 @@
+/* =========================================================
+   Nitya Dharma — Expert service pages UI redesign
+   Astrology / Numerology / Palmistry listing pages.
+   Scoped to .nd-expert-service-page only.
+   Presentation only — no form/JS/destination changes.
+   ========================================================= */
+
+.nd-expert-service-page {
+  --ex-rose: #E11D48;
+  --ex-deep-rose: #BE123C;
+  --ex-wine: #881337;
+  --ex-pale: #FFF1F4;
+  --ex-ivory: #FFFCFD;
+  --ex-white: #FFFFFF;
+  --ex-text: #211A2B;
+  --ex-muted: #716977;
+  --ex-border: #E1E4EA;
+  --ex-gold: #B89A65;
+  --ex-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --ex-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(225, 29, 72, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 8%, rgba(184, 154, 101, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, var(--ex-pale) 0%, #F8F4F6 42%, #F3EEF1 100%);
+  font-family: var(--ex-sans);
+  color: var(--ex-text);
+  padding-bottom: 3rem;
+  min-height: calc(100vh - 200px);
+}
+
+/* Hero */
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type,
+.nd-expert-service-page .nd-expert-hero {
+  background:
+    linear-gradient(165deg, rgba(74, 21, 48, 0.96) 0%, var(--ex-wine) 48%, #3B1028 100%);
+  max-width: none !important;
+  width: 100%;
+  margin: 0 0 1.5rem !important;
+  padding: 3.25rem 1.25rem 2.85rem !important;
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 18px 40px rgba(136, 19, 55, 0.18);
+  position: relative;
+}
+
+.nd-expert-service-page .nd-expert-hero::after,
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(12rem, 40%);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ex-gold), transparent);
+}
+
+.nd-expert-service-page .nd-expert-hero h1,
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type h1 {
+  color: var(--ex-ivory) !important;
+  font-family: var(--ex-serif) !important;
+  font-size: clamp(1.7rem, 3vw, 2.35rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.65rem !important;
+}
+
+.nd-expert-service-page .nd-expert-hero h2,
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type h2 {
+  color: rgba(255, 249, 245, 0.95) !important;
+  font-family: var(--ex-serif) !important;
+  font-size: clamp(1.15rem, 2vw, 1.35rem) !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+.nd-expert-service-page .nd-expert-hero p,
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type p {
+  color: rgba(255, 249, 245, 0.84) !important;
+  max-width: 40rem;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  line-height: 1.65;
+}
+
+.nd-expert-service-page > .container.mt-4.text-center:first-of-type p.text-muted {
+  color: rgba(184, 154, 101, 0.95) !important;
+}
+
+/* Expert Services context */
+.nd-expert-service-page .nd-expert-context {
+  margin-bottom: 1.5rem;
+}
+
+.nd-expert-service-page .nd-expert-context-card {
+  background: var(--ex-white);
+  border: 1px solid rgba(184, 154, 101, 0.32);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 10px 24px rgba(136, 19, 55, 0.05);
+}
+
+.nd-expert-service-page .nd-expert-eyebrow {
+  color: var(--ex-wine) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem !important;
+}
+
+.nd-expert-service-page .nd-expert-context-card p {
+  color: var(--ex-muted);
+  margin-bottom: 0.55rem;
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.nd-expert-service-page .nd-expert-crosslinks {
+  margin-bottom: 0 !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: center;
+}
+
+.nd-expert-service-page .nd-expert-crosslinks a {
+  color: var(--ex-rose) !important;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(225, 29, 72, 0.35);
+}
+
+.nd-expert-service-page .nd-expert-crosslinks a:hover {
+  color: var(--ex-deep-rose) !important;
+}
+
+/* Featured */
+.nd-expert-service-page .premium-card {
+  background: var(--ex-white) !important;
+  border: 1px solid rgba(225, 29, 72, 0.1) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 20px rgba(136, 19, 55, 0.06) !important;
+}
+
+.nd-expert-service-page .premium-card h5 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+}
+
+.nd-expert-service-page .badge.bg-success {
+  background: rgba(225, 29, 72, 0.12) !important;
+  color: var(--ex-wine) !important;
+}
+
+/* Filter form */
+.nd-expert-service-page form.container .card {
+  background: var(--ex-white) !important;
+  border: 1px solid rgba(225, 29, 72, 0.1) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 28px rgba(136, 19, 55, 0.06) !important;
+}
+
+.nd-expert-service-page form.container .card h5 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+  font-weight: 700 !important;
+}
+
+.nd-expert-service-page .form-control,
+.nd-expert-service-page .form-select {
+  border: 1px solid var(--ex-border) !important;
+  border-radius: 12px !important;
+  background: var(--ex-ivory) !important;
+  color: var(--ex-text) !important;
+  min-height: 44px;
+}
+
+.nd-expert-service-page .form-control:focus,
+.nd-expert-service-page .form-select:focus {
+  border-color: var(--ex-rose) !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12) !important;
+}
+
+.nd-expert-service-page .btn-danger {
+  background: linear-gradient(165deg, var(--ex-rose), var(--ex-deep-rose)) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 650 !important;
+  box-shadow: 0 8px 16px rgba(225, 29, 72, 0.22);
+}
+
+.nd-expert-service-page .btn-danger:hover {
+  background: linear-gradient(165deg, var(--ex-deep-rose), var(--ex-wine)) !important;
+}
+
+.nd-expert-service-page .btn-outline-secondary {
+  border: 1.5px solid rgba(136, 19, 55, 0.22) !important;
+  color: var(--ex-wine) !important;
+  border-radius: 999px !important;
+  background: var(--ex-white) !important;
+  font-weight: 600 !important;
+}
+
+.nd-expert-service-page .btn-outline-secondary:hover {
+  background: var(--ex-pale) !important;
+  border-color: var(--ex-rose) !important;
+  color: var(--ex-rose) !important;
+}
+
+.nd-expert-service-page .btn-outline-danger {
+  border: 1.5px solid rgba(225, 29, 72, 0.45) !important;
+  color: var(--ex-rose) !important;
+  border-radius: 12px !important;
+  background: var(--ex-white) !important;
+  font-weight: 650 !important;
+}
+
+.nd-expert-service-page .btn-outline-danger:hover {
+  background: var(--ex-pale) !important;
+  color: var(--ex-wine) !important;
+  border-color: var(--ex-wine) !important;
+}
+
+.nd-expert-service-page .btn-success {
+  border-radius: 12px !important;
+  font-weight: 650 !important;
+}
+
+/* Section headings */
+.nd-expert-service-page h2.container,
+.nd-expert-service-page h2.mt-4,
+.nd-expert-service-page h2.mt-5,
+.nd-expert-service-page .container > h3 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+  font-weight: 700 !important;
+}
+
+.nd-expert-service-page .container.mb-4 h3,
+.nd-expert-service-page .container.mt-4 h3 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+}
+
+/* Expert listing cards */
+.nd-expert-service-page .card.h-100 {
+  background: var(--ex-white) !important;
+  border: 1px solid rgba(225, 29, 72, 0.1) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 26px rgba(136, 19, 55, 0.06) !important;
+  overflow: hidden;
+}
+
+.nd-expert-service-page .card.h-100 .card-title {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+  font-weight: 700 !important;
+}
+
+.nd-expert-service-page .card.h-100 .text-muted {
+  color: var(--ex-muted) !important;
+}
+
+.nd-expert-service-page .card.h-100 .badge.bg-light {
+  background: var(--ex-pale) !important;
+  color: var(--ex-text) !important;
+  border-color: rgba(225, 29, 72, 0.12) !important;
+}
+
+/* Trust section */
+.nd-expert-service-page .trust-section {
+  background: transparent !important;
+  padding-top: 1.5rem !important;
+}
+
+.nd-expert-service-page .trust-section .bg-white {
+  background: var(--ex-white) !important;
+  border: 1px solid rgba(225, 29, 72, 0.08);
+  border-radius: 16px !important;
+  box-shadow: 0 10px 24px rgba(136, 19, 55, 0.05);
+}
+
+.nd-expert-service-page .trust-section h3,
+.nd-expert-service-page .trust-section h5 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+}
+
+.nd-expert-service-page .trust-section .text-danger {
+  color: var(--ex-rose) !important;
+}
+
+.nd-expert-service-page .trust-section .text-muted {
+  color: var(--ex-muted) !important;
+}
+
+/* Explore other services */
+.nd-expert-service-page .mt-5.container h3 {
+  color: var(--ex-wine) !important;
+  font-family: var(--ex-serif) !important;
+}
+
+.nd-expert-service-page .mt-5.container .btn {
+  min-height: 44px;
+}
+
+/* Pagination text */
+.nd-expert-service-page .container.mt-4.text-center > span {
+  color: var(--ex-muted);
+  font-weight: 600;
+}
+
+/* Focus */
+.nd-expert-service-page a:focus-visible,
+.nd-expert-service-page button:focus-visible,
+.nd-expert-service-page input:focus-visible,
+.nd-expert-service-page select:focus-visible {
+  outline: 2px solid var(--ex-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767.98px) {
+  .nd-expert-service-page > .container.mt-4.text-center:first-of-type,
+  .nd-expert-service-page .nd-expert-hero {
+    padding: 2.4rem 1rem 2.2rem !important;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .nd-expert-service-page form.container .card {
+    padding: 1.1rem !important;
+  }
+
+  .nd-expert-service-page form.container .text-end {
+    text-align: stretch !important;
+  }
+
+  .nd-expert-service-page form.container .btn-danger {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .nd-expert-service-page .container.mb-3.text-end {
+    text-align: left !important;
+  }
+
+  .nd-expert-service-page .d-flex.flex-wrap.gap-2 .btn,
+  .nd-expert-service-page .d-flex.flex-wrap.gap-3 .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 400px) {
+  .nd-expert-service-page > .container.mt-4.text-center:first-of-type h1 {
+    font-size: 1.45rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-expert-service-page *,
+  .nd-expert-service-page *::before,
+  .nd-expert-service-page *::after {
+    transition: none !important;
+  }
+}

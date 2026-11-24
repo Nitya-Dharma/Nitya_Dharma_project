@@ -3,25 +3,33 @@
 
 {% block title %}Offline - Nitya Dharma{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error_pages_premium.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6 text-center">
-            <div class="mb-4">
-                <i class="bi bi-wifi-off display-4 text-secondary" aria-hidden="true"></i>
+<section class="nd-error-page" aria-labelledby="nd-error-offline-heading">
+    <div class="nd-error-shell">
+        <div class="nd-error-card">
+            <div class="nd-error-header">
+                <div class="nd-error-mark" aria-hidden="true">N</div>
+                <p class="nd-error-header-title" style="margin-top:0.35rem;">Connection</p>
             </div>
-            <h1 class="h2 mb-3">You're offline</h1>
-            <p class="text-secondary mb-4">
-                This page isn't available right now. Check your connection and try again.
-                Previously viewed search results may still be available from cache.
-            </p>
-            <button type="button" class="btn btn-primary" onclick="window.location.reload();">
-                <i class="bi bi-arrow-clockwise me-1"></i> Try again
-            </button>
-            <div class="mt-4">
-                <a href="{% url 'core:home' %}" class="btn btn-outline-secondary">Go to home</a>
+            <div class="nd-error-body">
+                <div class="nd-error-icon" aria-hidden="true"><i class="bi bi-wifi-off"></i></div>
+                <h1 class="nd-error-heading" id="nd-error-offline-heading">You're offline</h1>
+                <p class="nd-error-copy">
+                    This page isn't available right now. Check your connection and try again.
+                    Previously viewed search results may still be available from cache.
+                </p>
+                <div class="nd-error-actions">
+                    <button type="button" class="nd-error-btn-primary" onclick="window.location.reload();">
+                        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Try again
+                    </button>
+                    <a href="{% url 'core:home' %}" class="nd-error-btn-secondary">Go to home</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

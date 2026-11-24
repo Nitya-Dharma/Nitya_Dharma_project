@@ -19,6 +19,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/temple_pages_ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/temple_page_premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/follow_system.css' %}">
     <link rel="stylesheet" href="{% static 'css/gallery_upload.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui_hidden.css' %}">
@@ -191,107 +192,101 @@
 {% endblock %}
 
 {% block content %}
-<div class="temple-page">
+<div class="temple-page nd-temple-page" id="nd-temple-page">
     <!-- Status Banner -->
     {% if show_banner %}
     <div class="container mt-4">
-        <div class="temple-section-card" style="background: #FEF3C7; border-left: 4px solid #F59E0B;">
+        <div class="temple-section-card nd-tp-banner">
             <i class="bi bi-exclamation-triangle me-2"></i>
             <strong>{{ banner_message }}</strong>
         </div>
     </div>
     {% endif %}
 
-    <div class="container py-5">
-        <!-- Cover Image Banner -->
-        <div class="temple-cover-banner cover-image">
+    <div class="container nd-tp-hero-shell">
+        <!-- Premium hero: cover + identity (cover and profile images kept distinct) -->
+        <div class="nd-tp-hero temple-cover-banner cover-image">
             {% if page.cover_image %}
-                <picture>
-                    <img src="{{ page.cover_image.url }}" alt="{{ page.title }} Cover" class="img-fluid" loading="lazy" decoding="async">
-                </picture>
+                <img src="{{ page.cover_image.url }}" alt="{{ page.title }} Cover" class="nd-tp-hero-cover" loading="lazy" decoding="async">
             {% else %}
-                <div class="temple-cover-placeholder">
+                <div class="temple-cover-placeholder" aria-hidden="true">
                     <i class="bi bi-building"></i>
                 </div>
             {% endif %}
-        </div>
+            <div class="nd-tp-hero-overlay" aria-hidden="true"></div>
+            <div class="nd-tp-hero-body">
+                <div class="nd-tp-identity">
+                    {% if page.profile_image %}
+                        <img src="{{ page.profile_image.url }}" alt="{{ page.title }} Profile" class="temple-profile-avatar" loading="lazy" decoding="async">
+                    {% else %}
+                        <div class="temple-profile-avatar-placeholder" aria-hidden="true">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    {% endif %}
 
-        <!-- Hero Section (Temple Header) -->
-        <div class="temple-hero">
-            <div class="d-flex align-items-start gap-3 mb-3">
-                <!-- Profile Avatar -->
-                {% if page.profile_image %}
-                    <picture>
-                        <img src="{{ page.profile_image.url }}" alt="{{ page.title }} Profile" class="temple-profile-avatar img-fluid" loading="lazy" decoding="async">
-                    </picture>
-                {% else %}
-                    <div class="temple-profile-avatar-placeholder">
-                        <i class="bi bi-building"></i>
-                    </div>
-                {% endif %}
-                
-                <div class="flex-grow-1">
-                    <h1 class="temple-hero-title">{{ page.title }}</h1>
-                    <div class="temple-hero-meta">
-                        {% if page.address %}
-                        <div class="temple-hero-meta-item">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            <span>{{ page.address }}</span>
+                    <div class="nd-tp-identity-text">
+                        <h1 class="temple-hero-title">{{ page.title }}</h1>
+                        <div class="temple-hero-meta">
+                            {% if page.address %}
+                            <div class="temple-hero-meta-item">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span>{{ page.address }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="temple-hero-meta-item">
+                                <i class="bi bi-tag-fill"></i>
+                                <span>{{ page.get_page_type_display }}</span>
+                            </div>
+                            {% if page.status %}
+                            <span class="temple-status-badge temple-status-{% if page.status == 'ACTIVE' %}active{% elif page.status == 'DEACTIVATED' %}deactivated{% else %}invisible{% endif %}">
+                                {{ page.get_status_display }}
+                            </span>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                        <div class="temple-hero-meta-item">
-                            <i class="bi bi-tag-fill"></i>
-                            <span>{{ page.get_page_type_display }}</span>
-                        </div>
-                        {% if page.status %}
-                        <span class="temple-status-badge temple-status-{% if page.status == 'ACTIVE' %}active{% elif page.status == 'DEACTIVATED' %}deactivated{% else %}invisible{% endif %}">
-                            {{ page.get_status_display }}
-                        </span>
-                        {% endif %}
                     </div>
                 </div>
-            </div>
-            
-            <!-- Follow Button (all authenticated users can follow) -->
-            {% if user.is_authenticated %}
-            <div class="follow-button-container mt-3">
-                <button class="follow-btn {% if is_following %}following{% else %}not-following{% endif %}" 
-                        data-entity-type="temple" 
-                        data-entity-public-id="{{ page.public_id }}"
-                        type="button">
-                    <span class="follow-text">{% if is_following %}Following{% else %}Follow{% endif %}</span>
-                </button>
-                <span class="follower-count">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
-            </div>
-            {% else %}
-            <div class="follow-button-container mt-3">
-                <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="btn btn-outline-primary" title="Login to follow">
-                    Follow
-                </a>
-                <span class="follower-count">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
-            </div>
-            {% endif %}
-            
-            <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
-                <button type="button"
-                        class="btn btn-outline-primary share-trigger"
-                        data-share-url="{{ request.build_absolute_uri }}"
-                        data-share-title="{{ page.title }} - Nitya Dharma"
-                        data-entity-type="temple"
-                        data-entity-id="{{ page.public_id }}"
-                        title="Share this page">
-                    <i class="bi bi-share me-1"></i>Share
-                </button>
-            {% if can_edit %}
-                <a href="{% url 'pages:page_edit' slug=page.slug %}" class="temple-btn-primary">
-                    <i class="bi bi-pencil"></i>Edit Page
-                </a>
-                {% if can_manage_moderators %}
-                <a href="{% url 'pages:manage_moderators' page_public_id=page.public_id %}" class="temple-btn-secondary">
-                    <i class="bi bi-people"></i>Manage Moderators
-                </a>
-                {% endif %}
-                {% endif %}
+
+                <div class="nd-tp-actions">
+                    <!-- Follow Button (all authenticated users can follow) -->
+                    {% if user.is_authenticated %}
+                    <div class="follow-button-container">
+                        <button class="follow-btn {% if is_following %}following{% else %}not-following{% endif %}"
+                                data-entity-type="temple"
+                                data-entity-public-id="{{ page.public_id }}"
+                                type="button">
+                            <span class="follow-text">{% if is_following %}Following{% else %}Follow{% endif %}</span>
+                        </button>
+                        <span class="follower-count">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
+                    </div>
+                    {% else %}
+                    <div class="follow-button-container">
+                        <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="btn btn-outline-primary" title="Login to follow">
+                            Follow
+                        </a>
+                        <span class="follower-count">{% if follower_count > 0 %}({{ follower_count }} follower{{ follower_count|pluralize }}){% endif %}</span>
+                    </div>
+                    {% endif %}
+
+                    <button type="button"
+                            class="btn btn-outline-primary share-trigger"
+                            data-share-url="{{ request.build_absolute_uri }}"
+                            data-share-title="{{ page.title }} - Nitya Dharma"
+                            data-entity-type="temple"
+                            data-entity-id="{{ page.public_id }}"
+                            title="Share this page">
+                        <i class="bi bi-share me-1"></i>Share
+                    </button>
+                    {% if can_edit %}
+                    <a href="{% url 'pages:page_edit' slug=page.slug %}" class="temple-btn-primary">
+                        <i class="bi bi-pencil"></i>Edit Page
+                    </a>
+                    {% if can_manage_moderators %}
+                    <a href="{% url 'pages:manage_moderators' page_public_id=page.public_id %}" class="temple-btn-secondary">
+                        <i class="bi bi-people"></i>Manage Moderators
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -343,7 +338,7 @@
     {% endif %}
 
     <!-- Page Content -->
-    <div class="container mt-4">
+    <div class="container nd-tp-body mt-4">
         <!-- Navigation Tabs -->
         <ul class="nav temple-nav-tabs" id="pageTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -440,19 +435,18 @@
                         </div>
                     </div>
                     
-                    <!-- About Temple Section -->
+                    <!-- About Temple Section (uses existing page.description; page.content is not a Page field) -->
                     <div class="temple-section-card">
                         <h3 class="temple-section-title">
                             <i class="bi bi-info-circle"></i>About Temple
                         </h3>
-                        {% if page.content %}
-    <div class="temple-section-content">
-        {{ page.content|safe }}
-    </div>
-{% else %}
-    <p class="temple-section-content">No content available.</p>
-{% endif %}
-                            <p class="temple-section-content">No description available for this page.</p>
+                        {% if page.description %}
+                        <div class="temple-section-content">
+                            {{ page.description|linebreaks }}
+                        </div>
+                        {% else %}
+                        <p class="temple-section-content">No description available for this page.</p>
+                        {% endif %}
                     </div>
                     
                     {% if page.address %}

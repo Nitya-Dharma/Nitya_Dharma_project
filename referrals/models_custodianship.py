@@ -5,7 +5,7 @@ When a Pandit who has referred others is deactivated, this model tracks
 who manages the referral chain (custodian) while preserving the original
 referrer identity for historical accuracy.
 """
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from core.public_id import generate_public_id
@@ -141,17 +141,18 @@ class ReferralCustodian(models.Model):
         Returns:
             ReferralCustodian instance
         """
-        # Deactivate any existing custodianships
-        cls.objects.filter(
-            original_referrer=referrer,
-            status=cls.STATUS_ACTIVE
-        ).update(status=cls.STATUS_RELEASED)
-        
-        # Create new custodianship
-        return cls.objects.create(
-            original_referrer=referrer,
-            custodian=custodian,
-            reason=reason,
-            status=cls.STATUS_ACTIVE
-        )
+        with transaction.atomic():
+            User.objects.select_for_update().get(pk=referrer.pk)
+            # Release active custodianships. Released history stays in place.
+            cls.objects.filter(
+                original_referrer=referrer,
+                status=cls.STATUS_ACTIVE
+            ).update(status=cls.STATUS_RELEASED)
+
+            return cls.objects.create(
+                original_referrer=referrer,
+                custodian=custodian,
+                reason=reason,
+                status=cls.STATUS_ACTIVE
+            )
 

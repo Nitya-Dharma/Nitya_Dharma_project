@@ -6,6 +6,8 @@ TASK 22: Booking Intents Sent by Deactivated User
 """
 
 import logging
+from typing import Optional
+
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model

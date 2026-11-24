@@ -5,11 +5,12 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nd_dashboard_premium.css' %}">
     {% block super_admin_css %}{% endblock %}
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container {% block dashboard_page_class %}pandit-page{% endblock %}">
+<div class="dashboard-container nd-dash {% block dashboard_page_class %}pandit-page{% endblock %}">
     <!-- PART 3: Premium Super Admin Layout Structure -->
     <section class="admin-section">
         <div class="container-fluid">
@@ -35,9 +36,18 @@
 
             <div class="row g-4">
                 <!-- PART 4: Super Admin Sidebar -->
-                <div class="col-12 col-lg-2 dashboard-sidebar {% block sidebar_class %}admin-sidebar{% endblock %}">
+                <div class="col-12 col-lg-3 col-xl-2 dashboard-sidebar {% block sidebar_class %}admin-sidebar{% endblock %}">
                     <div class="{% block sidebar_wrapper_class %}admin-card{% endblock %}">
                         <div class="p-3">
+                            {% block dashboard_sidebar_brand %}
+                            <div class="nd-dash-sidebar-brand">
+                                <span class="nd-dash-sidebar-brand__mark" aria-hidden="true"><i class="bi bi-flower1"></i></span>
+                                <span>
+                                    <span class="nd-dash-sidebar-brand__text">Nitya Dharma</span>
+                                    <span class="nd-dash-sidebar-brand__sub">{% block dashboard_sidebar_label %}Dashboard{% endblock %}</span>
+                                </span>
+                            </div>
+                            {% endblock %}
                             {% if ads.dashboard_sidebar %}
                             <div class="dashboard-ad-sidebar mb-3">
                                 {% include 'partials/ad_unit.html' with ad=ads.dashboard_sidebar slot='dashboard_sidebar' %}
@@ -54,7 +64,7 @@
                 </div>
 
                 <!-- Main Content -->
-                <div class="col-12 col-lg-10 dashboard-main" role="main" aria-label="Dashboard main content">
+                <div class="col-12 col-lg-9 col-xl-10 dashboard-main" role="main" aria-label="Dashboard main content">
                     {% if ads.dashboard_top %}
                     <div class="dashboard-ad-top text-center my-3">
                         {% include 'partials/ad_unit.html' with ad=ads.dashboard_top slot='dashboard_top' %}
@@ -64,7 +74,8 @@
                         {% include "module5_dashboards/dashboard_states.html" with state_type="error" error_message=dashboard_error %}
                     {% elif dashboard_loading %}
                         {% include "module5_dashboards/dashboard_states.html" with state_type="loading" %}
-                    {% elif not dashboard_has_data %}
+                    {% elif dashboard_has_data == False %}
+                        {# Explicit False only — missing flag must not hide owner dashboards (e.g. Pandit). #}
                         {% include "module5_dashboards/dashboard_states.html" with state_type="empty" %}
                     {% else %}
                         {% block dashboard_content %}{% endblock %}

@@ -1,0 +1,514 @@
+/* ==========================================================================
+   Nitya Dharma — Unified Premium Dashboard UI
+   Scoped to owner dashboards only (.nd-dash / .pandit-page / related shells).
+   Does not target public profiles, homepage, login, or registration.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap");
+
+:root {
+  --nd-rose: #E11D48;
+  --nd-deep-rose: #BE123C;
+  --nd-wine: #881337;
+  --nd-pale: #FFF1F4;
+  --nd-ivory: #FFFCFD;
+  --nd-white: #FFFFFF;
+  --nd-text: #211A2B;
+  --nd-muted: #716977;
+  --nd-border: #E1E4EA;
+  --nd-shadow: 0 10px 28px rgba(136, 19, 55, 0.08);
+  --nd-shadow-sm: 0 4px 14px rgba(33, 26, 43, 0.06);
+  --nd-radius: 16px;
+  --nd-radius-sm: 12px;
+  --nd-serif: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --nd-sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---- Shell ---- */
+.nd-dash.dashboard-container,
+.dashboard-container.pandit-page.nd-dash,
+.pandit-profile-edit.nd-dash,
+.nd-booking-inbox.nd-dash,
+.nd-account.nd-dash {
+  background:
+    radial-gradient(1200px 420px at 0% -10%, rgba(225, 29, 72, 0.08), transparent 55%),
+    radial-gradient(900px 360px at 100% 0%, rgba(136, 19, 55, 0.06), transparent 50%),
+    var(--nd-ivory);
+  min-height: 100vh;
+  color: var(--nd-text);
+  font-family: var(--nd-sans);
+}
+
+.nd-dash .admin-section {
+  background: transparent;
+  padding: 1.75rem 0 2.5rem;
+  min-height: auto;
+  display: block;
+  align-items: stretch;
+}
+
+.nd-dash .dashboard-header h1,
+.nd-dash .dashboard-header .h2,
+.nd-dash .dashboard-header .h3,
+.nd-booking-inbox.nd-dash #inbox-heading,
+.nd-account.nd-dash .account-header h1,
+.pandit-profile-edit.nd-dash h1,
+.pandit-profile-edit.nd-dash .h3 {
+  font-family: var(--nd-serif);
+  color: var(--nd-wine);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.nd-dash .dashboard-header .text-muted,
+.nd-dash .muted,
+.nd-dash .text-muted {
+  color: var(--nd-muted) !important;
+}
+
+/* ---- Sidebar ---- */
+.nd-dash .dashboard-sidebar .admin-card,
+.nd-dash .dashboard-sidebar .card {
+  background: linear-gradient(180deg, var(--nd-white) 0%, var(--nd-pale) 140%);
+  border: 1px solid var(--nd-border);
+  border-radius: var(--nd-radius);
+  box-shadow: var(--nd-shadow-sm);
+  overflow: hidden;
+}
+
+.nd-dash .nd-dash-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.25rem 1rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid var(--nd-border);
+}
+
+.nd-dash .nd-dash-sidebar-brand__mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, var(--nd-rose), var(--nd-wine));
+  color: #fff;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.nd-dash .nd-dash-sidebar-brand__text {
+  font-family: var(--nd-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--nd-wine);
+  line-height: 1.2;
+}
+
+.nd-dash .nd-dash-sidebar-brand__sub {
+  display: block;
+  font-family: var(--nd-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--nd-muted);
+  margin-top: 0.15rem;
+}
+
+.nd-dash .dashboard-sidebar .nav-link {
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  color: var(--nd-text);
+  border-radius: 10px;
+  margin-bottom: 0.3rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  font-weight: 500;
+  font-size: 0.92rem;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.nd-dash .dashboard-sidebar .nav-link i {
+  width: 1.25rem;
+  text-align: center;
+  color: var(--nd-muted);
+}
+
+.nd-dash .dashboard-sidebar .nav-link:hover {
+  background: var(--nd-pale);
+  color: var(--nd-wine);
+  border-color: rgba(225, 29, 72, 0.15);
+}
+
+.nd-dash .dashboard-sidebar .nav-link:hover i {
+  color: var(--nd-rose);
+}
+
+.nd-dash .dashboard-sidebar .nav-link.active {
+  background: linear-gradient(90deg, rgba(225, 29, 72, 0.12), rgba(255, 241, 244, 0.65));
+  border-color: rgba(225, 29, 72, 0.22);
+  border-left: 3px solid var(--nd-rose);
+  color: var(--nd-wine);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.nd-dash .dashboard-sidebar .nav-link.active i {
+  color: var(--nd-rose);
+}
+
+.nd-dash .dashboard-sidebar .badge {
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+/* ---- Cards / panels ---- */
+.nd-dash .premium-card,
+.nd-dash .dashboard-card,
+.nd-dash .admin-card:not(.dashboard-sidebar .admin-card),
+.nd-dash .card,
+.pandit-profile-edit.nd-dash .premium-card,
+.pandit-profile-edit.nd-dash .card,
+.nd-booking-inbox.nd-dash .list-group-item,
+.nd-account.nd-dash .account-sidebar,
+.nd-account.nd-dash .card {
+  background: var(--nd-white);
+  border: 1px solid var(--nd-border);
+  border-radius: var(--nd-radius);
+  box-shadow: var(--nd-shadow-sm);
+}
+
+.nd-dash .premium-card,
+.pandit-profile-edit.nd-dash .premium-card {
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.nd-dash .premium-card:hover,
+.pandit-profile-edit.nd-dash .premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nd-shadow);
+  border-color: rgba(225, 29, 72, 0.25);
+}
+
+.nd-dash .border-accent,
+.nd-dash .premium-card.border-accent {
+  border-left: 4px solid var(--nd-rose);
+}
+
+.nd-dash .metric-card,
+.nd-dash .nd-stat-card {
+  background: var(--nd-white);
+  border: 1px solid var(--nd-border);
+  border-radius: var(--nd-radius-sm);
+  padding: 1.25rem 1.35rem;
+  height: 100%;
+  box-shadow: var(--nd-shadow-sm);
+}
+
+.nd-dash .metric-value,
+.nd-dash .nd-stat-card h4 {
+  font-family: var(--nd-serif);
+  color: var(--nd-wine);
+  font-weight: 700;
+}
+
+.nd-dash .metric-label,
+.nd-dash .nd-stat-card h6 {
+  color: var(--nd-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.nd-dash .metric-card i,
+.nd-dash .nd-stat-card i {
+  color: var(--nd-rose);
+}
+
+/* ---- Tabs ---- */
+.nd-dash .nav-tabs {
+  border-bottom: 1px solid var(--nd-border);
+  gap: 0.25rem;
+}
+
+.nd-dash .nav-tabs .nav-link {
+  color: var(--nd-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 10px 10px 0 0;
+  padding: 0.7rem 1.1rem;
+  font-weight: 600;
+}
+
+.nd-dash .nav-tabs .nav-link:hover {
+  color: var(--nd-wine);
+  background: var(--nd-pale);
+}
+
+.nd-dash .nav-tabs .nav-link.active {
+  color: var(--nd-rose);
+  background: transparent;
+  border-bottom-color: var(--nd-rose);
+}
+
+/* ---- Forms ---- */
+.nd-dash .form-label,
+.pandit-profile-edit.nd-dash .form-label,
+.nd-account.nd-dash .form-label {
+  font-weight: 600;
+  color: var(--nd-text);
+  margin-bottom: 0.4rem;
+}
+
+.nd-dash .form-control,
+.nd-dash .form-select,
+.pandit-profile-edit.nd-dash .form-control,
+.pandit-profile-edit.nd-dash .form-select,
+.nd-account.nd-dash .form-control,
+.nd-account.nd-dash .form-select {
+  border-radius: var(--nd-radius-sm);
+  min-height: 44px;
+  border: 1px solid var(--nd-border);
+  background: var(--nd-white);
+  color: var(--nd-text);
+}
+
+.nd-dash .form-control:focus,
+.nd-dash .form-select:focus,
+.pandit-profile-edit.nd-dash .form-control:focus,
+.pandit-profile-edit.nd-dash .form-select:focus,
+.nd-account.nd-dash .form-control:focus,
+.nd-account.nd-dash .form-select:focus {
+  border-color: var(--nd-rose);
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+.nd-dash .form-check-input:checked {
+  background-color: var(--nd-rose);
+  border-color: var(--nd-rose);
+}
+
+/* ---- Buttons ---- */
+.nd-dash .btn,
+.pandit-profile-edit.nd-dash .btn,
+.nd-booking-inbox.nd-dash .btn,
+.nd-account.nd-dash .btn {
+  border-radius: 10px;
+  font-weight: 600;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nd-dash .btn-primary,
+.nd-dash .btn-danger,
+.pandit-profile-edit.nd-dash .btn-primary,
+.pandit-profile-edit.nd-dash .btn-danger,
+.nd-booking-inbox.nd-dash .btn-primary,
+.nd-account.nd-dash .btn-primary {
+  background: linear-gradient(135deg, var(--nd-rose), var(--nd-deep-rose));
+  border-color: var(--nd-deep-rose);
+  color: #fff;
+}
+
+.nd-dash .btn-primary:hover,
+.nd-dash .btn-danger:hover,
+.pandit-profile-edit.nd-dash .btn-primary:hover,
+.pandit-profile-edit.nd-dash .btn-danger:hover {
+  background: linear-gradient(135deg, var(--nd-deep-rose), var(--nd-wine));
+  border-color: var(--nd-wine);
+  color: #fff;
+}
+
+.nd-dash .btn-outline-secondary,
+.pandit-profile-edit.nd-dash .btn-outline-secondary {
+  border-color: var(--nd-border);
+  color: var(--nd-text);
+  background: var(--nd-white);
+}
+
+.nd-dash .btn-outline-secondary:hover {
+  background: var(--nd-pale);
+  border-color: rgba(225, 29, 72, 0.35);
+  color: var(--nd-wine);
+}
+
+/* ---- Alerts / empty / badges ---- */
+.nd-dash .alert {
+  border-radius: var(--nd-radius-sm);
+  border: 1px solid var(--nd-border);
+}
+
+.nd-dash .nd-empty-state,
+.nd-dash .dashboard-empty,
+.nd-booking-inbox.nd-dash .alert-info {
+  background: var(--nd-pale);
+  border: 1px dashed rgba(225, 29, 72, 0.28);
+  border-radius: var(--nd-radius);
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  color: var(--nd-muted);
+}
+
+.nd-dash .badge.bg-danger {
+  background-color: var(--nd-rose) !important;
+}
+
+.nd-dash .badge.bg-success {
+  background-color: #15803d !important;
+}
+
+/* ---- Tables / lists ---- */
+.nd-dash .table {
+  --bs-table-bg: transparent;
+  color: var(--nd-text);
+}
+
+.nd-dash .table thead th {
+  color: var(--nd-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom-color: var(--nd-border);
+  font-weight: 700;
+}
+
+.nd-dash .table td {
+  border-color: var(--nd-border);
+  vertical-align: middle;
+}
+
+.nd-booking-inbox.nd-dash .list-group-item {
+  margin-bottom: 0.75rem;
+  padding: 1.15rem 1.25rem;
+}
+
+.nd-booking-inbox.nd-dash .list-group {
+  gap: 0;
+}
+
+/* ---- Account shell ---- */
+.nd-account.nd-dash .account-container {
+  max-width: 1100px;
+}
+
+.nd-account.nd-dash .account-sidebar {
+  background: linear-gradient(180deg, var(--nd-white), var(--nd-pale));
+  border: 1px solid var(--nd-border);
+  box-shadow: var(--nd-shadow-sm);
+}
+
+.nd-account.nd-dash .account-nav a {
+  border-radius: 10px;
+  color: var(--nd-text);
+}
+
+.nd-account.nd-dash .account-nav a.active,
+.nd-account.nd-dash .account-nav .active > a {
+  background: rgba(225, 29, 72, 0.1);
+  color: var(--nd-wine);
+  font-weight: 700;
+}
+
+/* ---- Mobile sidebar (existing toggle JS) ---- */
+@media (max-width: 991.98px) {
+  .nd-dash .sidebar-toggle {
+    position: fixed;
+    top: 5.25rem;
+    left: 0.85rem;
+    z-index: 1060; /* above open sidebar so toggle remains usable */
+    background: linear-gradient(135deg, var(--nd-rose), var(--nd-wine));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 1.15rem;
+    box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35);
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .nd-dash .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(33, 26, 43, 0.45);
+    z-index: 1040;
+  }
+
+  .nd-dash .sidebar-overlay.active {
+    display: block;
+  }
+
+  .nd-dash .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(86vw, 300px);
+    height: 100vh;
+    z-index: 1050;
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+    padding: 4.5rem 0.85rem 1.25rem;
+    background: transparent;
+    overflow-y: auto;
+    pointer-events: none;
+  }
+
+  .nd-dash .dashboard-sidebar.active {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .nd-dash .dashboard-sidebar .admin-card {
+    min-height: calc(100vh - 5.5rem);
+    pointer-events: auto;
+  }
+
+  .nd-dash .dashboard-main {
+    padding-top: 0.5rem;
+  }
+
+  .nd-dash .btn,
+  .pandit-profile-edit.nd-dash .btn,
+  .nd-booking-inbox.nd-dash .btn {
+    min-height: 46px;
+  }
+
+  .nd-dash .table-responsive,
+  .nd-dash .table-mobile-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .nd-dash .admin-section {
+    padding: 1.1rem 0 1.75rem;
+  }
+
+  .nd-dash .premium-card,
+  .nd-dash .metric-card {
+    padding: 1rem !important;
+  }
+
+  .nd-dash .dashboard-header h1,
+  .nd-dash .dashboard-header .h2 {
+    font-size: 1.45rem;
+  }
+
+  .nd-dash .nav-tabs .nav-link {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.88rem;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .nd-dash *,
+  .nd-dash *::before,
+  .nd-dash *::after {
+    transition: none !important;
+  }
+}

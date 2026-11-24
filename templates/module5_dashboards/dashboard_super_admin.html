@@ -42,6 +42,11 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link" href="{% url 'module5_dashboards:super_admin_experts' %}">
+            <i class="bi bi-person-badge me-2"></i>Experts
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link" href="#trust" data-bs-toggle="tab" data-bs-target="#trust" onclick="return showDashboardTab('trust', event);">
             <i class="bi bi-shield-check me-2"></i>Trust Overview
         </a>
@@ -403,6 +408,19 @@
                     <div>
                         <strong>{{ b.bureau_name }}</strong><br>
                         <small>{{ b.city|default:"-" }}</small>
+                        <div class="mt-1 d-flex flex-wrap gap-1">
+                            {% if b.is_email_verified %}
+                                <span class="badge bg-success">Email Verified</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Email Not Verified</span>
+                            {% endif %}
+                            <span class="badge bg-warning text-dark">Pending Approval</span>
+                            {% if b.is_active %}
+                                <span class="badge bg-primary">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -430,11 +448,23 @@
                     <div>
                         <strong>{{ b.bureau_name }}</strong><br>
                         <small>{{ b.city|default:"-" }}</small>
+                        <div class="mt-1 d-flex flex-wrap gap-1">
+                            {% if b.is_email_verified %}
+                                <span class="badge bg-success">Email Verified</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Email Not Verified</span>
+                            {% endif %}
+                            <span class="badge bg-success">Approved</span>
+                            {% if b.is_active %}
+                                <span class="badge bg-primary">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
-                        <span class="badge bg-success">Approved</span>
                         {% if b.is_active %}
-                            <span class="badge bg-primary">Active</span>
+                            {# Active badge shown with status badges above; no Activate action. #}
                         {% else %}
                             <form method="POST"
                                   action="{% url 'module5_dashboards:activate_bureau' b.public_id %}">

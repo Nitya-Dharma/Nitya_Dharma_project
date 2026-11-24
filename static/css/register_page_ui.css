@@ -1,0 +1,621 @@
+/* =========================================================
+   Nitya Dharma — Registration page visual redesign
+   Scoped exclusively to #nd-register-page
+   Does not alter login or other auth pages.
+   ========================================================= */
+
+#nd-register-page {
+  --su-red: #E11D48;
+  --su-deep: #BE123C;
+  --su-wine: #881337;
+  --su-pale: #FFF1F4;
+  --su-bg: #F8FAFC;
+  --su-white: #FFFFFF;
+  --su-ink: #211A2B;
+  --su-muted: #716977;
+  --su-border: #E1E4EA;
+  --su-soft-pink: #F1D5DB;
+  --su-label: #4A4350;
+  --su-hint: #7A7480;
+  --su-input-bg: #F9FAFB;
+  --su-placeholder: #9296A2;
+
+  display: block;
+  width: 100%;
+  min-height: 70vh;
+  padding: 34px 14px 42px;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFDFE 100%);
+  color: var(--su-ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  isolation: isolate;
+  align-items: stretch;
+}
+
+#nd-register-page,
+#nd-register-page * {
+  box-sizing: border-box;
+}
+
+#nd-register-page .nd-register-shell {
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+
+#nd-register-page .auth-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #E8E9EF;
+  border-radius: 15px;
+  background: var(--su-white);
+  box-shadow: 0 18px 48px rgba(24, 32, 55, 0.12);
+  transition: none;
+}
+
+#nd-register-page .auth-card:hover {
+  box-shadow: 0 18px 48px rgba(24, 32, 55, 0.12);
+}
+
+/* Header — rose-to-wine gradient */
+#nd-register-page .auth-header {
+  padding: 24px 22px 22px;
+  text-align: center;
+  background: linear-gradient(115deg, #881337 0%, #BE123C 58%, #E11D48 100%);
+  color: #fff;
+}
+
+#nd-register-page .nd-register-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 10px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+#nd-register-page .auth-header h2 {
+  margin: 0;
+  color: #fff !important;
+  font-size: 26px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+}
+
+#nd-register-page .auth-header p {
+  margin: 7px 0 0;
+  color: #FFF1F4 !important;
+  font-size: 12px;
+  opacity: 1;
+}
+
+#nd-register-page .auth-body {
+  padding: 23px 25px 24px;
+}
+
+/* Alerts */
+#nd-register-page .auth-body .alert {
+  border-radius: 7px;
+  border: 1px solid #F4CDD7;
+  background: #FFF5F7;
+  color: var(--su-wine);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  padding: 10px 11px;
+}
+
+#nd-register-page .auth-body .alert-success {
+  border-color: #cfe8d4;
+  background: #f3faf5;
+  color: #1f6b3a;
+}
+
+/* Floating labels → static label-above presentation (fields unchanged) */
+#nd-register-page .auth-body .form-floating {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+#nd-register-page .auth-body .row {
+  --bs-gutter-x: 12px;
+  --bs-gutter-y: 13px;
+  margin-bottom: 13px;
+}
+
+#nd-register-page .auth-body .row > [class*="col-"] {
+  margin-bottom: 0;
+}
+
+#nd-register-page .auth-body > form > .form-floating.mb-3,
+#nd-register-page .auth-body > form > .password-field-wrapper.mb-3 {
+  margin-bottom: 13px !important;
+}
+
+#nd-register-page .auth-body .form-floating > label {
+  order: -1;
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  height: auto !important;
+  margin: 0 0 6px;
+  padding: 0 !important;
+  color: var(--su-label) !important;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 1 !important;
+  pointer-events: none;
+  z-index: auto;
+}
+
+#nd-register-page .auth-body .form-floating > .form-control:focus ~ label,
+#nd-register-page .auth-body .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  transform: none !important;
+  opacity: 1 !important;
+  color: var(--su-label) !important;
+}
+
+#nd-register-page .auth-body .form-floating > .form-control {
+  order: 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 46px;
+  min-height: 46px;
+  margin: 0;
+  padding: 0 12px !important;
+  border: 1px solid var(--su-border) !important;
+  border-radius: 8px !important;
+  background: var(--su-input-bg) !important;
+  color: var(--su-ink) !important;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: normal;
+  box-shadow: none !important;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+#nd-register-page .auth-body .form-floating > .form-control::placeholder {
+  color: transparent;
+  opacity: 0;
+}
+
+#nd-register-page .auth-body .form-floating > .form-control:focus {
+  border-color: var(--su-red) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.09) !important;
+  outline: none;
+  color: var(--su-ink) !important;
+}
+
+#nd-register-page .auth-body .form-floating > .form-control:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 2px;
+}
+
+#nd-register-page .auth-body .form-control.is-invalid {
+  border-color: var(--su-red) !important;
+}
+
+#nd-register-page .auth-body .form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15) !important;
+}
+
+#nd-register-page .auth-body .form-text,
+#nd-register-page .auth-body .password-requirements {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--su-hint);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+#nd-register-page .auth-body .password-requirements small {
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Password toggle — avoid overlapping typed text */
+#nd-register-page .password-field-wrapper {
+  position: relative;
+}
+
+#nd-register-page .password-field-wrapper .form-control.password-input {
+  padding-right: 48px !important;
+}
+
+#nd-register-page .password-field-wrapper .password-toggle {
+  top: auto;
+  bottom: 8px;
+  right: 8px;
+  transform: none;
+  width: auto;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--su-muted);
+  font-size: 14px;
+  z-index: 3;
+}
+
+#nd-register-page .password-field-wrapper.form-floating .password-toggle {
+  top: auto;
+  bottom: 8px;
+  transform: none;
+}
+
+#nd-register-page .password-field-wrapper .password-toggle:hover {
+  background: var(--su-pale);
+  color: var(--su-deep);
+}
+
+#nd-register-page .password-field-wrapper .password-toggle:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 1px;
+}
+
+#nd-register-page .password-field-wrapper .password-toggle:active {
+  transform: none;
+}
+
+/* When form-text / requirements sit under password, keep toggle aligned to input */
+#nd-register-page .password-field-wrapper.form-floating:has(.password-requirements) .password-toggle,
+#nd-register-page .password-field-wrapper.form-floating:has(.form-text) .password-toggle {
+  bottom: calc(8px + 1.5em);
+}
+
+/* Primary CTA */
+#nd-register-page .auth-body .btn-primary-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 11px 15px;
+  border: 1px solid var(--su-red);
+  border-radius: 8px;
+  background: var(--su-red);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+  box-shadow: none;
+  transform: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+#nd-register-page .auth-body .btn-primary-cta:hover:not(:disabled) {
+  background: var(--su-wine);
+  border-color: var(--su-wine);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
+#nd-register-page .auth-body .btn-primary-cta:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 3px;
+}
+
+#nd-register-page .auth-body .btn-primary-cta:active:not(:disabled) {
+  transform: none;
+}
+
+#nd-register-page .auth-body .btn-primary-cta:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#nd-register-page .auth-body .d-grid.mt-4 {
+  margin-top: 15px !important;
+}
+
+/* Helper / Sign In */
+#nd-register-page .auth-body p.auth-helper-text {
+  margin: 17px 0 0;
+  text-align: center;
+  color: #645B68 !important;
+  font-size: 12px;
+}
+
+#nd-register-page .auth-body p.auth-helper-text a,
+#nd-register-page .auth-body p.auth-helper-text a.fw-bold {
+  color: var(--su-deep) !important;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+#nd-register-page .auth-body p.auth-helper-text a:hover {
+  color: var(--su-wine) !important;
+  text-decoration: underline;
+}
+
+/* Expert join block */
+#nd-register-page .nd-register-expert {
+  margin-top: 21px;
+  text-align: center;
+}
+
+#nd-register-page .nd-register-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 15px;
+  color: #8A828D;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#nd-register-page .nd-register-divider::before,
+#nd-register-page .nd-register-divider::after {
+  content: "";
+  display: block;
+  height: 1px;
+  flex: 1;
+  background: #ECE8ED;
+}
+
+#nd-register-page .nd-register-expert-title {
+  margin: 0 0 10px;
+  color: #4B4350;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#nd-register-page .nd-register-expert-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+}
+
+#nd-register-page .nd-register-expert-links .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #F2C4D0 !important;
+  border-radius: 7px;
+  background: #fff !important;
+  color: var(--su-deep) !important;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  box-shadow: none;
+}
+
+#nd-register-page .nd-register-expert-links .btn:hover {
+  background: var(--su-pale) !important;
+  border-color: var(--su-red) !important;
+  color: var(--su-wine) !important;
+}
+
+#nd-register-page .nd-register-expert-links .btn:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 2px;
+}
+
+/* Pandit CTA */
+#nd-register-page .join-pandit-cta {
+  margin-top: 12px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid #F0DCE2 !important;
+  font-size: 12px;
+  color: var(--su-muted);
+}
+
+#nd-register-page .join-pandit-link {
+  color: var(--su-deep);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+#nd-register-page .join-pandit-link:hover {
+  color: var(--su-wine);
+  text-decoration: underline;
+  opacity: 1;
+}
+
+/* About Registration */
+#nd-register-page .auth-info-note {
+  margin-top: 23px;
+  padding: 18px 16px;
+  border: 1px solid #F0DCE2;
+  border-left: 1px solid #F0DCE2;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #FFF8FA 0%, #fff 100%);
+}
+
+#nd-register-page .auth-info-note h6 {
+  margin: 0 0 8px;
+  color: #30232A;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+#nd-register-page .auth-info-note h6 .bi {
+  color: var(--su-deep);
+}
+
+#nd-register-page .auth-info-note p,
+#nd-register-page .auth-info-note ul {
+  margin: 0 0 8px;
+  color: #5E535C;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+#nd-register-page .auth-info-note ul {
+  padding-left: 19px;
+}
+
+#nd-register-page .auth-info-note li::marker {
+  color: var(--su-red);
+  font-weight: 800;
+}
+
+#nd-register-page .auth-info-note hr {
+  margin: 14px 0;
+  border-color: var(--su-soft-pink);
+  opacity: 1;
+}
+
+#nd-register-page .auth-info-note strong {
+  color: #3a2a32;
+}
+
+/* General body links inside card */
+#nd-register-page .auth-body a:not(.btn):not(.join-pandit-link):not(.auth-helper-text a) {
+  color: var(--su-deep);
+}
+
+#nd-register-page .auth-body a:not(.btn):hover {
+  color: var(--su-wine);
+}
+
+/* OTP region inherits readable spacing */
+#nd-register-page #post-register-otp-wrap {
+  margin-bottom: 13px;
+}
+
+#nd-register-page #post-register-proceed .btn-primary-cta {
+  margin-top: 0;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  #nd-register-page {
+    padding: 28px 14px 36px;
+  }
+
+  #nd-register-page .nd-register-shell {
+    width: min(100%, 540px);
+  }
+}
+
+@media (max-width: 768px) {
+  #nd-register-page {
+    padding: 22px 12px 32px;
+  }
+
+  #nd-register-page .auth-card {
+    border-radius: 13px;
+  }
+
+  #nd-register-page .auth-header {
+    padding: 22px 18px 20px;
+  }
+
+  #nd-register-page .auth-header h2 {
+    font-size: 24px;
+  }
+
+  #nd-register-page .auth-body {
+    padding: 20px 18px 22px;
+  }
+
+  #nd-register-page .auth-body .row > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  #nd-register-page {
+    padding: 20px 10px 30px;
+  }
+
+  #nd-register-page .nd-register-shell {
+    width: 100%;
+  }
+
+  #nd-register-page .auth-card {
+    border-radius: 12px;
+  }
+
+  #nd-register-page .auth-header {
+    padding: 21px 16px 19px;
+  }
+
+  #nd-register-page .auth-header h2 {
+    font-size: 24px;
+  }
+
+  #nd-register-page .auth-body {
+    padding: 19px 16px 21px;
+  }
+
+  #nd-register-page .auth-body .form-floating > .form-control {
+    height: 45px;
+    min-height: 45px;
+  }
+
+  #nd-register-page .auth-body .btn-primary-cta {
+    min-height: 46px;
+  }
+
+  #nd-register-page .nd-register-expert-links {
+    gap: 6px;
+  }
+
+  #nd-register-page .nd-register-expert-links .btn {
+    min-height: 36px;
+    padding: 8px 10px;
+  }
+
+  #nd-register-page .auth-info-note {
+    padding: 15px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  #nd-register-page {
+    padding: 16px 8px 26px;
+  }
+
+  #nd-register-page .auth-header h2 {
+    font-size: 22px;
+  }
+
+  #nd-register-page .auth-body {
+    padding: 16px 12px 18px;
+  }
+
+  #nd-register-page .nd-register-expert-links .btn {
+    font-size: 9.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #nd-register-page *,
+  #nd-register-page *::before,
+  #nd-register-page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

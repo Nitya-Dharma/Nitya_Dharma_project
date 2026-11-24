@@ -1,11 +1,10 @@
+{# Availability — existing field only #}
+<div class="availability-summary-section premium-card nd-pp-card p-4 mb-4">
+    <h6 class="fw-semibold nd-pp-card__title mb-3">Availability</h6>
 
-<!-- UNIT 9: Premium Availability Summary -->
-<div class="availability-summary-section premium-card p-4 mb-4">
-    <h6 class="fw-semibold mb-3">Availability</h6>
-    
     {% if pandit.availability_summary %}
         <div class="availability-badge">
-            <span class="badge bg-info text-dark px-3 py-2" style="font-size: 0.875rem;">
+            <span class="badge px-3 py-2" style="font-size: 0.875rem; background: #FFF1F4; color: #881337; border: 1px solid rgba(225,29,72,0.2);">
                 {{ pandit.availability_summary }}
             </span>
         </div>
@@ -13,28 +12,3 @@
         <p class="muted mb-0">Availability information not available.</p>
     {% endif %}
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

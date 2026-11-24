@@ -926,7 +926,11 @@ def submit_review(request, page_public_id):
         
         messages.success(request, "Thank you for your review!")
     except ValidationError as e:
-        messages.error(request, str(e))
+        duplicate_message = PageReview.DUPLICATE_REVIEW_MESSAGE
+        if duplicate_message in e.messages:
+            messages.error(request, duplicate_message)
+        else:
+            messages.error(request, str(e))
     except Exception as e:
         messages.error(request, f"Error submitting review: {str(e)}")
     

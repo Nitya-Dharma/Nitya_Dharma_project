@@ -1,0 +1,66 @@
+{# Additive About Us service-area content. Presentation only; no backend changes. #}
+<section class="content-block about-services-overview" aria-labelledby="about-services-heading">
+    <h2 id="about-services-heading">Our Service Areas</h2>
+    <p>Nitya Dharma brings together four complementary service areas so devotees and families can explore spiritual guidance, temple information, expert consultations, and culturally respectful matrimonial connections in one place.</p>
+    <div class="about-service-grid">
+        <article class="about-service-card">
+            <h3>Pandit Services</h3>
+            <p>Search and explore pandit profiles by location and pooja type, review listing details, and express interest through booking intents so you can coordinate ceremonies directly.</p>
+            <a class="about-service-link" href="{% url 'search_ui:search_results' %}">Find a Pandit</a>
+        </article>
+        <article class="about-service-card">
+            <h3>Temple Information</h3>
+            <p>Browse temple pages to learn about temples, their listings, and related information published on the platform as you plan visits or ceremonies.</p>
+            <a class="about-service-link" href="{% url 'pages:page_list' %}">Browse Temples</a>
+        </article>
+        <article class="about-service-card">
+            <h3>Expert Services</h3>
+            <p>Discover astrology, numerology, and palmistry experts, refine listings with the filters available on the platform, and explore expert profiles for guidance that fits your needs.</p>
+            <a class="about-service-link" href="{% url 'astrology_service' %}">Explore Astrology Experts</a>
+        </article>
+        <article class="about-service-card">
+            <h3>Hindu Marriage Bureau</h3>
+            <p>Find Hindu Marriage Bureau listings by city, caste filters, or keyword, then open a bureau profile to learn more and take the next step in a respectful way.</p>
+            <a class="about-service-link" href="{% url 'bureaus:bureau_list' %}">Find Hindu Marriage Bureaus</a>
+        </article>
+    </div>
+</section>
+
+<section class="content-block about-expert-services" aria-labelledby="about-expert-heading">
+    <h2 id="about-expert-heading">Expert Services</h2>
+    <p>Alongside pandit and temple listings, Nitya Dharma provides a platform to discover experts and explore the consultation services available through the site. Expert categories currently supported on the platform include:</p>
+    <ul>
+        <li><strong>Astrology:</strong> Browse astrologer listings and explore profiles for astrology-related guidance.</li>
+        <li><strong>Numerology:</strong> Discover numerologists listed on the platform and review their public profile details.</li>
+        <li><strong>Palmistry:</strong> Find palmistry experts and explore the information shared on their listings.</li>
+    </ul>
+    <p>You can search and refine expert listings using tools available in the application, such as keyword search, minimum experience, minimum rating, and a verified-only filter where offered. Experts may join through the Expert registration flow; profiles are reviewed by Super Admin before they go live, helping maintain listing quality.</p>
+    <p>From an expert profile, visitors can review the details shared by the expert and use the platform’s existing booking-intent options to express interest. Availability, consultation formats, and fees depend on each individual listing.</p>
+    <p class="about-service-inline-links">
+        <a href="{% url 'astrology_service' %}">Astrology</a>
+        <span aria-hidden="true">·</span>
+        <a href="{% url 'numerology_service' %}">Numerology</a>
+        <span aria-hidden="true">·</span>
+        <a href="{% url 'palmistry_service' %}">Palmistry</a>
+        <span aria-hidden="true">·</span>
+        <a href="{% url 'become_expert' %}">Become an Expert</a>
+    </p>
+</section>
+
+<section class="content-block about-marriage-bureau" aria-labelledby="about-bureau-heading">
+    <h2 id="about-bureau-heading">Hindu Marriage Bureau</h2>
+    <p>Nitya Dharma’s <strong>Hindu Marriage Bureau</strong> service helps individuals and families discover matrimonial connections in a culturally respectful environment by connecting them with listed Hindu Marriage Bureaus on the platform.</p>
+    <p>Through the Hindu Marriage Bureau listings you can:</p>
+    <ul>
+        <li>Browse and search bureau profiles using city, caste filters, and keyword search where available.</li>
+        <li>Open a bureau profile to read the description and other details the bureau has shared.</li>
+        <li>Review ratings and feedback shown on bureau profiles when reviews are present.</li>
+        <li>Send a booking intent or use the contact options displayed on a bureau profile when the bureau has provided them.</li>
+    </ul>
+    <p>Hindu Marriage Bureau owners can register on the platform, complete their profile details, and appear in public listings after the platform’s approval and activation steps. Listing content, contact preferences, and next steps are managed by each bureau. Nitya Dharma provides discovery and connection tools based on the information bureaus publish—it does not replace personal judgment or family decision-making.</p>
+    <p class="about-service-inline-links">
+        <a href="{% url 'bureaus:bureau_list' %}">Browse Hindu Marriage Bureaus</a>
+        <span aria-hidden="true">·</span>
+        <a href="{% url 'search_ui:search_results' %}?type=bureau">Search Hindu Marriage Bureaus</a>
+    </p>
+</section>

@@ -1,0 +1,363 @@
+/* =========================================================
+   Nitya Dharma — Premium navbar UI redesign
+   Scoped to .navbar.navbar-premium (site-wide shared navbar)
+   Complements dark wine homepage hero. Presentation only.
+   Does not change markup, IDs, JS hooks, or destinations.
+   ========================================================= */
+
+.navbar.navbar-premium {
+  /* Theme tokens consumed by existing inline styles + premium CSS */
+  --navbar-bg-theme: #FFF9F5;
+  --text-primary-theme: #3B1028;
+  --accent-theme: #E11D48;
+  --border-color-theme: #F1D5DB;
+  --card-bg-theme: #FFFFFF;
+  --bg-secondary-theme: #FFF1F4;
+  --nd-nav-wine: #3B1028;
+  --nd-nav-burgundy: #641832;
+  --nd-nav-rose: #E11D48;
+  --nd-nav-deep-rose: #BE123C;
+  --nd-nav-gold: #B89A65;
+  --nd-nav-muted: #716977;
+  --nd-nav-ivory: #FFF9F5;
+
+  background-color: var(--navbar-bg-theme) !important;
+  color: var(--text-primary-theme) !important;
+  border-bottom: 1px solid var(--border-color-theme) !important;
+  box-shadow: 0 1px 0 rgba(59, 16, 40, 0.04), 0 8px 24px rgba(59, 16, 40, 0.04);
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  backdrop-filter: saturate(1.05);
+}
+
+.navbar.navbar-premium > .container {
+  color: var(--text-primary-theme) !important;
+  max-width: 1180px;
+  align-items: center;
+}
+
+/* Brand / logo */
+.navbar.navbar-premium .navbar-brand {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+  margin-right: 1.25rem;
+}
+
+.navbar.navbar-premium .navbar-brand:hover {
+  opacity: 1;
+  transform: none;
+}
+
+.navbar.navbar-premium .brand-logo.navbar-logo,
+.navbar.navbar-premium .brand-logo {
+  height: 46px;
+  max-width: 190px;
+  width: auto;
+  object-fit: contain;
+}
+
+.navbar.navbar-premium .navbar-brand:hover .brand-logo {
+  transform: none;
+}
+
+/* Primary nav links */
+.navbar.navbar-premium .navbar-nav.me-auto {
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.navbar.navbar-premium .navbar-nav .nav-link {
+  position: relative;
+  color: var(--nd-nav-wine) !important;
+  font-weight: 550;
+  font-size: 0.935rem;
+  letter-spacing: 0.01em;
+  padding: 0.45rem 0.85rem !important;
+  margin: 0 0.1rem;
+  border-radius: 9px;
+  background: transparent !important;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.navbar.navbar-premium .navbar-nav .nav-link:hover,
+.navbar.navbar-premium .navbar-nav .nav-link:focus-visible,
+.navbar.navbar-premium .poojas-trigger:hover {
+  color: var(--nd-nav-rose) !important;
+  background-color: rgba(225, 29, 72, 0.06) !important;
+}
+
+.navbar.navbar-premium .navbar-nav .nav-link:focus-visible {
+  outline: 2px solid rgba(225, 29, 72, 0.35);
+  outline-offset: 2px;
+}
+
+/* Active — elegant rose underline (replaces competing cinematic styles) */
+.navbar.navbar-premium .nav-item.active > .nav-link,
+.navbar.navbar-premium .navbar-nav .nav-link.active {
+  color: var(--nd-nav-burgundy) !important;
+  font-weight: 650;
+  background: transparent !important;
+}
+
+.navbar.navbar-cinematic .nav-link::after,
+.navbar.navbar-premium .navbar-nav .nav-link.active::after,
+.navbar.navbar-premium .nav-item.active > .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.2rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--nd-nav-rose), var(--nd-nav-gold));
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.navbar.navbar-premium .nav-item.active > .nav-link::after,
+.navbar.navbar-premium .navbar-nav .nav-link.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.navbar.navbar-cinematic .nav-link:hover::after {
+  opacity: 0; /* avoid double underline on hover for non-active */
+}
+
+.navbar.navbar-premium .nav-item.active > .nav-link:hover::after {
+  opacity: 1;
+}
+
+/* Chevrons / icons */
+.navbar.navbar-premium .navbar-nav .nav-link i,
+.navbar.navbar-premium .bi-chevron-down,
+.navbar.navbar-premium .bi-chevron-right {
+  color: var(--nd-nav-muted) !important;
+  transition: color 0.18s ease;
+}
+
+.navbar.navbar-premium .navbar-nav .nav-link:hover i {
+  color: var(--nd-nav-rose) !important;
+}
+
+/* Dropdown menus */
+.navbar.navbar-premium .dropdown-menu {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color-theme);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(59, 16, 40, 0.12);
+  padding: 0.45rem 0;
+  margin-top: 0.55rem !important;
+}
+
+.navbar.navbar-premium .dropdown-item {
+  color: var(--nd-nav-wine) !important;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: 0;
+}
+
+.navbar.navbar-premium .dropdown-item:hover,
+.navbar.navbar-premium .dropdown-item:focus {
+  background: #FFF1F4 !important;
+  color: var(--nd-nav-rose) !important;
+}
+
+.navbar.navbar-premium .dropdown-item i {
+  color: var(--nd-nav-muted) !important;
+}
+
+.navbar.navbar-premium .dropdown-item:hover i {
+  color: var(--nd-nav-rose) !important;
+}
+
+.navbar.navbar-premium .dropdown-divider {
+  border-top-color: var(--border-color-theme);
+  opacity: 1;
+}
+
+.navbar.navbar-premium .pooja-category-header {
+  color: var(--nd-nav-wine) !important;
+  font-weight: 650;
+}
+
+.navbar.navbar-premium .pooja-item i {
+  color: var(--nd-nav-gold) !important;
+}
+
+/* Right cluster — icons & guest Sign In */
+.navbar.navbar-premium .navbar-nav.ms-auto {
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.navbar.navbar-premium .nav-link.nav-icon {
+  color: var(--nd-nav-wine) !important;
+  padding: 0.45rem 0.7rem !important;
+}
+
+.navbar.navbar-premium .nav-link.nav-icon i.bi-bell,
+.navbar.navbar-premium .nav-link.nav-icon i.bi-gear {
+  color: var(--nd-nav-wine) !important;
+  font-size: 1.15rem;
+}
+
+.navbar.navbar-premium .nav-link.nav-icon:hover i {
+  color: var(--nd-nav-rose) !important;
+}
+
+.navbar.navbar-premium .badge {
+  background: var(--nd-nav-rose) !important;
+}
+
+/* Sign In — muted rose fill; slightly deeper hover.
+   Inline markup uses color: var(--accent-theme) !important on the
+   link/icon/span, so white text is achieved by scoping that token. */
+.navbar.navbar-premium .nav-link[href*="login"] {
+  --accent-theme: #FFFFFF;
+  font-weight: 650;
+  padding: 0.45rem 1.1rem !important;
+  border: 1px solid #8F3155 !important;
+  border-radius: 10px;
+  background: #8F3155 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(143, 49, 85, 0.18);
+  transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease, color 200ms ease;
+}
+
+.navbar.navbar-premium .nav-link[href*="login"]:hover,
+.navbar.navbar-premium .nav-link[href*="login"]:active {
+  --accent-theme: #FFFFFF;
+  background: #762442 !important;
+  border-color: #762442 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 16px rgba(118, 36, 66, 0.28);
+  transform: translateY(-1px);
+}
+
+.navbar.navbar-premium .nav-link[href*="login"]:focus-visible {
+  --accent-theme: #FFFFFF;
+  outline: 2px solid #B89A65;
+  outline-offset: 3px;
+  background: #8F3155 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(184, 154, 101, 0.28), 0 4px 12px rgba(143, 49, 85, 0.18);
+}
+
+.navbar.navbar-premium .nav-link[href*="login"]:visited {
+  --accent-theme: #FFFFFF;
+  color: #FFFFFF !important;
+  background: #8F3155 !important;
+}
+
+/* Mobile toggler */
+.navbar.navbar-premium .navbar-toggler {
+  border: 1px solid var(--border-color-theme);
+  border-radius: 10px;
+  padding: 0.4rem 0.65rem;
+  box-shadow: none;
+}
+
+.navbar.navbar-premium .navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
+  border-color: var(--nd-nav-rose);
+}
+
+.navbar.navbar-premium .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2859, 16, 40, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Dark theme: keep readable wine/ivory family without fighting dark-mode fix */
+[data-theme="dark"] .navbar.navbar-premium {
+  --navbar-bg-theme: #2A0F1E;
+  --text-primary-theme: #FFF9F5;
+  --accent-theme: #E11D48;
+  --border-color-theme: rgba(241, 213, 219, 0.22);
+  --card-bg-theme: #351024;
+  --bg-secondary-theme: rgba(225, 29, 72, 0.12);
+  --nd-nav-wine: #FFF9F5;
+  --nd-nav-muted: #EAD5DC;
+}
+
+[data-theme="dark"] .navbar.navbar-premium .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 249, 245, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) {
+  .navbar.navbar-premium .navbar-nav.me-auto .nav-link {
+    padding: 0.42rem 0.65rem !important;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .navbar.navbar-premium {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .navbar.navbar-premium .brand-logo.navbar-logo,
+  .navbar.navbar-premium .brand-logo {
+    height: 40px;
+    max-width: 150px;
+  }
+
+  .navbar.navbar-premium .navbar-collapse {
+    background: var(--navbar-bg-theme);
+    border-top: 1px solid var(--border-color-theme);
+    margin-top: 0.75rem;
+    padding: 0.75rem 0 0.35rem;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 12px 28px rgba(59, 16, 40, 0.08);
+  }
+
+  .navbar.navbar-premium .navbar-nav .nav-link {
+    padding: 0.75rem 1rem !important;
+    min-height: 44px;
+    margin: 0.15rem 0;
+  }
+
+  .navbar.navbar-premium .nav-item.active > .nav-link::after,
+  .navbar.navbar-premium .navbar-nav .nav-link.active::after {
+    left: 1rem;
+    right: auto;
+    width: 28px;
+    bottom: 0.45rem;
+  }
+
+  .navbar.navbar-premium .nav-link[href*="login"] {
+    margin-top: 0.35rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .navbar.navbar-premium .dropdown-menu {
+    box-shadow: none;
+    border: none;
+    background: #FFF1F4;
+    margin-left: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar.navbar-premium .container {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .navbar.navbar-premium .brand-logo.navbar-logo,
+  .navbar.navbar-premium .brand-logo {
+    height: 36px;
+    max-width: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar.navbar-premium *,
+  .navbar.navbar-premium *::before,
+  .navbar.navbar-premium *::after {
+    transition: none !important;
+  }
+}

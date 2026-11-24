@@ -1,0 +1,548 @@
+/* ==========================================================================
+   Nitya Dharma — Temple Public Page Premium UI
+   Scoped to .nd-temple-page only. Presentation only.
+   Does not alter follow/share/edit/moderator behaviour.
+   ========================================================================== */
+
+.nd-temple-page {
+  --tp-rose: #E11D48;
+  --tp-deep: #BE123C;
+  --tp-wine: #881337;
+  --tp-pale: #FFF1F4;
+  --tp-ivory: #FFFCFD;
+  --tp-white: #FFFFFF;
+  --tp-text: #211A2B;
+  --tp-muted: #716977;
+  --tp-border: #E1E4EA;
+  --tp-gold: #B45309;
+  --tp-gold-soft: #FEF3C7;
+  --tp-radius: 16px;
+  --tp-radius-sm: 12px;
+  --tp-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --tp-shadow: 0 10px 28px rgba(33, 26, 43, 0.07);
+  --tp-shadow-lg: 0 18px 40px rgba(136, 19, 55, 0.12);
+
+  background: linear-gradient(180deg, #F8FAFC 0%, var(--tp-ivory) 100%);
+  color: var(--tp-text);
+  min-height: 70vh;
+}
+
+.nd-temple-page *,
+.nd-temple-page *::before,
+.nd-temple-page *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Status banner ---------- */
+.nd-temple-page .nd-tp-banner {
+  border: 1px solid #F5D0A9;
+  border-left: 4px solid #F59E0B;
+  border-radius: var(--tp-radius-sm);
+  background: var(--tp-gold-soft);
+  color: #92400E;
+  padding: 14px 16px;
+  box-shadow: none;
+}
+
+/* ---------- Hero ---------- */
+.nd-temple-page .nd-tp-hero-shell {
+  padding-top: 1.25rem;
+  padding-bottom: 0;
+}
+
+.nd-temple-page .nd-tp-hero {
+  position: relative;
+  min-height: 380px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(225, 29, 72, 0.35), transparent 55%),
+    linear-gradient(145deg, #881337 0%, #BE123C 48%, #9F1239 100%);
+  box-shadow: var(--tp-shadow-lg);
+  margin-bottom: 0;
+}
+
+.nd-temple-page .nd-tp-hero-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.nd-temple-page .nd-tp-hero .temple-cover-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 4rem;
+  border-radius: 0;
+}
+
+.nd-temple-page .nd-tp-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(105deg, rgba(33, 26, 43, 0.78) 0%, rgba(136, 19, 55, 0.48) 50%, rgba(33, 26, 43, 0.58) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.nd-temple-page .nd-tp-hero-body {
+  position: relative;
+  z-index: 2;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.75rem 1.5rem 1.5rem;
+  color: #fff;
+}
+
+.nd-temple-page .nd-tp-identity {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.35rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.nd-temple-page .temple-profile-avatar,
+.nd-temple-page .temple-profile-avatar-placeholder {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  background: linear-gradient(145deg, var(--tp-pale), #fff);
+}
+
+.nd-temple-page .temple-profile-avatar {
+  object-fit: cover;
+  display: block;
+}
+
+.nd-temple-page .temple-profile-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--tp-wine);
+  font-size: 2.4rem;
+}
+
+.nd-temple-page .nd-tp-identity-text {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nd-temple-page .nd-tp-hero .temple-hero-title,
+.nd-temple-page .nd-tp-hero-body h1.temple-hero-title,
+.nd-temple-page h1.temple-hero-title {
+  position: relative;
+  z-index: 3;
+  font-family: var(--tp-serif);
+  font-size: clamp(1.55rem, 2.4vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0 0 0.55rem;
+  color: #FFFFFF !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.65),
+    0 2px 14px rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.nd-temple-page .temple-hero-meta {
+  color: rgba(255, 252, 253, 0.92);
+  font-size: 0.92rem;
+  gap: 0.65rem 1rem;
+}
+
+.nd-temple-page .temple-hero-meta-item {
+  color: inherit;
+}
+
+.nd-temple-page .temple-hero-meta-item i {
+  color: #FDE68A;
+}
+
+.nd-temple-page .temple-status-badge {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.28rem 0.7rem;
+}
+
+.nd-temple-page .temple-status-active {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(167, 243, 208, 0.65);
+  color: #ECFDF5;
+}
+
+.nd-temple-page .temple-status-deactivated {
+  background: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(252, 165, 165, 0.55);
+  color: #FEE2E2;
+}
+
+.nd-temple-page .temple-status-invisible {
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(252, 211, 77, 0.55);
+  color: #FEF3C7;
+}
+
+/* Actions on hero */
+.nd-temple-page .nd-tp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-top: 1.15rem;
+}
+
+.nd-temple-page .follow-button-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0 !important;
+}
+
+.nd-temple-page .follow-button-container .follower-count {
+  color: rgba(255, 252, 253, 0.88);
+  font-size: 0.88rem;
+}
+
+.nd-temple-page .follow-btn {
+  min-height: 42px;
+  padding: 0.55rem 1.15rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.nd-temple-page .follow-btn.following {
+  background: var(--tp-white);
+  color: var(--tp-wine);
+  border-color: var(--tp-white);
+}
+
+.nd-temple-page .follow-btn.not-following:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.nd-temple-page .follow-button-container > a.btn-outline-primary {
+  min-height: 42px;
+  border-radius: 10px;
+  border-color: rgba(255, 255, 255, 0.65);
+  color: #fff;
+  background: transparent;
+  font-weight: 700;
+}
+
+.nd-temple-page .follow-button-container > a.btn-outline-primary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-color: #fff;
+}
+
+.nd-temple-page .share-trigger,
+.nd-temple-page .nd-tp-actions .btn-outline-primary.share-trigger {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  color: #fff;
+  background: transparent;
+  font-weight: 700;
+}
+
+.nd-temple-page .share-trigger:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-color: #fff;
+}
+
+.nd-temple-page .temple-btn-primary {
+  background: var(--tp-rose);
+  border: 1px solid var(--tp-rose);
+  color: #fff;
+  border-radius: 10px;
+  min-height: 42px;
+  height: auto;
+  padding: 0.55rem 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.nd-temple-page .temple-btn-primary:hover {
+  background: var(--tp-wine);
+  border-color: var(--tp-wine);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
+.nd-temple-page .temple-btn-secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #fff !important;
+  border-radius: 10px;
+  min-height: 42px;
+  height: auto;
+  padding: 0.55rem 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nd-temple-page .temple-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff !important;
+  transform: none;
+}
+
+/* Content cards below hero — secondary buttons use dark/rose contrast */
+.nd-temple-page .temple-section-card .temple-btn-secondary,
+.nd-temple-page .pinned-posts-section .temple-btn-secondary {
+  background: var(--tp-wine);
+  border-color: var(--tp-wine);
+  color: #fff !important;
+}
+
+.nd-temple-page .temple-section-card .temple-btn-primary,
+.nd-temple-page .temple-empty-state .temple-btn-primary {
+  background: var(--tp-rose);
+  border-color: var(--tp-rose);
+}
+
+/* ---------- Body sections ---------- */
+.nd-temple-page .nd-tp-body {
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.nd-temple-page .temple-section-card {
+  background: var(--tp-white);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius);
+  padding: 1.35rem 1.4rem;
+  margin-bottom: 1.15rem;
+  box-shadow: var(--tp-shadow);
+}
+
+.nd-temple-page .temple-section-title {
+  color: var(--tp-text);
+  font-family: var(--tp-serif);
+  font-weight: 700;
+  font-size: 1.15rem;
+  gap: 0.45rem;
+}
+
+.nd-temple-page .temple-section-title i {
+  color: var(--tp-rose);
+}
+
+.nd-temple-page .temple-section-content {
+  color: var(--tp-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.nd-temple-page .temple-badge {
+  background: var(--tp-pale);
+  border: 1px solid #F9C5D1;
+  color: var(--tp-wine);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.nd-temple-page .temple-nav-tabs {
+  border-bottom: 1px solid var(--tp-border);
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.nd-temple-page .temple-nav-tabs .nav-link {
+  color: var(--tp-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 650;
+  padding: 0.75rem 1rem;
+  background: transparent;
+}
+
+.nd-temple-page .temple-nav-tabs .nav-link:hover {
+  color: var(--tp-wine);
+  background: var(--tp-pale);
+}
+
+.nd-temple-page .temple-nav-tabs .nav-link.active {
+  color: var(--tp-wine);
+  border-bottom-color: var(--tp-rose);
+  background: transparent;
+}
+
+.nd-temple-page .temple-nav-tabs .nav-link i {
+  color: inherit;
+}
+
+.nd-temple-page .temple-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.nd-temple-page .temple-gallery-item {
+  border-radius: var(--tp-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--tp-border);
+  background: var(--tp-white);
+  box-shadow: var(--tp-shadow);
+  aspect-ratio: 4 / 3;
+}
+
+.nd-temple-page .temple-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nd-temple-page .temple-empty-state {
+  border: 1px dashed var(--tp-border);
+  border-radius: var(--tp-radius);
+  background: var(--tp-ivory);
+  padding: 2rem 1.25rem;
+}
+
+.nd-temple-page .temple-empty-state-icon {
+  color: var(--tp-rose);
+}
+
+.nd-temple-page .temple-empty-state-text {
+  color: var(--tp-muted);
+}
+
+.nd-temple-page .pinned-posts-section .card {
+  border-radius: var(--tp-radius);
+  border-color: #F5D0A9;
+  box-shadow: var(--tp-shadow);
+}
+
+.nd-temple-page .pinned-posts-section h3 {
+  font-family: var(--tp-serif);
+  color: var(--tp-text);
+}
+
+/* Reviews premium accents inside temple page */
+.nd-temple-page .rating-summary-card,
+.nd-temple-page .review-card-premium {
+  border-radius: var(--tp-radius);
+  border: 1px solid var(--tp-border);
+  box-shadow: var(--tp-shadow);
+  background: var(--tp-white);
+}
+
+.nd-temple-page .review-btn-submit {
+  background: var(--tp-rose) !important;
+  border-color: var(--tp-rose) !important;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.nd-temple-page .review-btn-submit:hover {
+  background: var(--tp-wine) !important;
+  border-color: var(--tp-wine) !important;
+}
+
+.nd-temple-page #gallery .btn-primary {
+  background: var(--tp-rose) !important;
+  border-color: var(--tp-rose) !important;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991.98px) {
+  .nd-temple-page .nd-tp-hero,
+  .nd-temple-page .nd-tp-hero-body {
+    min-height: 340px;
+  }
+
+  .nd-temple-page .temple-profile-avatar,
+  .nd-temple-page .temple-profile-avatar-placeholder {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .nd-temple-page .nd-tp-hero {
+    border-radius: 14px;
+    min-height: 420px;
+  }
+
+  .nd-temple-page .nd-tp-hero-body {
+    min-height: 420px;
+    padding: 1.25rem 1rem 1.15rem;
+  }
+
+  .nd-temple-page .nd-tp-identity {
+    align-items: center;
+  }
+
+  .nd-temple-page .nd-tp-actions {
+    width: 100%;
+  }
+
+  .nd-temple-page .nd-tp-actions > a,
+  .nd-temple-page .nd-tp-actions > button,
+  .nd-temple-page .follow-button-container {
+    width: 100%;
+  }
+
+  .nd-temple-page .follow-btn,
+  .nd-temple-page .share-trigger,
+  .nd-temple-page .temple-btn-primary,
+  .nd-temple-page .temple-btn-secondary,
+  .nd-temple-page .follow-button-container > a.btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nd-temple-page .temple-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 419.98px) {
+  .nd-temple-page .temple-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nd-temple-page .temple-profile-avatar,
+  .nd-temple-page .temple-profile-avatar-placeholder {
+    width: 84px;
+    height: 84px;
+  }
+}

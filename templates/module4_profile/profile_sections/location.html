@@ -1,12 +1,11 @@
+{# Location tab — existing cities/areas only #}
+<div class="premium-card nd-pp-card p-4 mb-4">
+    <h6 class="fw-semibold nd-pp-card__title mb-3">Location</h6>
 
-<!-- Location Section -->
-<div class="premium-card p-4 mb-4">
-    <h6 class="fw-semibold mb-3">Location</h6>
-    
     <div class="location-info">
         {% if pandit.cities_served.all %}
             <p class="mb-2">
-                <strong>Cities Served:</strong> 
+                <strong>Cities Served</strong>
                 <span>
                     {% for city in pandit.cities_served.all %}
                         {{ city.name }}{% if not forloop.last %}, {% endif %}
@@ -14,19 +13,19 @@
                 </span>
             </p>
         {% endif %}
-        
+
         {% if not pandit.cities_served.all and pandit.custom_city_name %}
             <p class="mb-2">
-                <strong>Cities Served:</strong>
+                <strong>Cities Served</strong>
                 <span>
                     {{ pandit.custom_city_name }}{% if pandit.custom_state_name %}, {{ pandit.custom_state_name }}{% endif %}
                 </span>
             </p>
         {% endif %}
-        
+
         {% if pandit.areas_served.all %}
             <p class="mb-0">
-                <strong>Areas Served:</strong> 
+                <strong>Areas Served</strong>
                 <span>
                     {% for area in pandit.areas_served.all %}
                         {{ area.name }}{% if not forloop.last %}, {% endif %}
@@ -34,17 +33,19 @@
                 </span>
             </p>
         {% endif %}
-        
+
         {% if not pandit.areas_served.all and pandit.custom_area_name %}
             <p class="mb-0">
-                <strong>Areas Served:</strong>
+                <strong>Areas Served</strong>
                 <span>{{ pandit.custom_area_name }}</span>
             </p>
         {% endif %}
-        
+
         {% if not pandit.cities_served.all and not pandit.areas_served.all and not pandit.custom_city_name and not pandit.custom_area_name %}
-            <p class="muted mb-0">Location information not available.</p>
+            <div class="nd-pp-empty">
+                <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                <p>Location information not available.</p>
+            </div>
         {% endif %}
     </div>
 </div>
-

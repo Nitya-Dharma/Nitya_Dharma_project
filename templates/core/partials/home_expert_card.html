@@ -1,0 +1,57 @@
+{# Homepage expert card — presentation only; destinations/conditionals unchanged. Expects: expert, service_label #}
+{% load static %}
+{% load expert_contact_tags %}
+<div class="card nd-home-card h-100 shadow-sm border-0">
+  <div class="card-body d-flex flex-column p-3 text-center">
+    <div class="nd-home-card__avatar{% if not expert.profile_image %} nd-home-card__avatar-fallback{% endif %}">
+      {% if expert.profile_image %}
+        <img src="{{ expert.profile_image.url }}"
+             alt="{{ expert.name|default:service_label }} profile photo"
+             width="88" height="88"
+             loading="lazy" decoding="async"
+             onerror="this.onerror=null; this.src='{% static 'images/default-avatar.svg' %}';">
+      {% else %}
+        <i class="bi bi-person-fill" aria-hidden="true"></i>
+      {% endif %}
+    </div>
+
+    <span class="nd-home-card__category">{{ service_label }}</span>
+
+    <h6 class="nd-home-card__name mb-1">{{ expert.name|default:"-" }}</h6>
+
+    {% if expert.experience_years %}
+      <p class="nd-home-card__meta mb-2">{{ expert.experience_years }} yrs exp</p>
+    {% endif %}
+
+    {% if expert.is_verified %}
+      <div class="nd-home-card__badge-verified">
+        <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Verified
+      </div>
+    {% endif %}
+
+    <div class="mt-auto nd-home-card__actions">
+      {% url 'expert_profile' expert.id as profile_url %}
+      <a href="{{ profile_url }}" class="btn btn-sm btn-primary w-100 mb-2">
+        View Profile
+      </a>
+      {% if user.is_authenticated %}
+        <a href="{{ profile_url }}#booking" class="btn btn-sm btn-danger w-100 mb-2">
+          Send Booking Intent
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}?next={{ profile_url|urlencode }}%23booking"
+           class="btn btn-sm btn-danger w-100 mb-2">
+          Login to Send Booking Intent
+        </a>
+      {% endif %}
+      <div class="d-flex gap-2">
+        {% with contact_info=expert|expert_contact_info %}
+          {% if contact_info.has_call %}
+            <a href="{{ contact_info.call_url }}" class="btn btn-success btn-sm w-100">Call</a>
+          {% endif %}
+          {% include "partials/whatsapp_cta_link.html" with whatsapp_url=contact_info.whatsapp_url btn_class="btn btn-sm w-100" %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
