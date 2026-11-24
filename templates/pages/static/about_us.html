@@ -4,6 +4,7 @@
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+<link rel="stylesheet" href="{% static 'css/about_us_ui_redesign.css' %}">
 {% endblock %}
 
 {% block extra_head %}
@@ -104,6 +105,8 @@
                         <li><strong>Transparent Pricing:</strong> Clear pricing information with no hidden costs</li>
                     </ul>
                 </section>
+
+                {% include "pages/partials/about_service_areas.html" %}
 
                 <section class="content-block">
                     <h2>Why Choose Us</h2>

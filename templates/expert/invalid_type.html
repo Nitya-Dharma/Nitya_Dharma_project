@@ -1,2 +1,29 @@
-<h1>Invalid Expert Type</h1>
-<p>The selected expert type is not supported.</p>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invalid Expert Type - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error_pages_premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="nd-error-page" aria-labelledby="nd-error-invalid-expert-heading">
+    <div class="nd-error-shell">
+        <div class="nd-error-card">
+            <div class="nd-error-header">
+                <div class="nd-error-mark" aria-hidden="true">N</div>
+                <p class="nd-error-header-title" style="margin-top:0.35rem;">Expert Services</p>
+            </div>
+            <div class="nd-error-body">
+                <div class="nd-error-icon" aria-hidden="true"><i class="bi bi-person-x"></i></div>
+                <h1 class="nd-error-heading" id="nd-error-invalid-expert-heading">Invalid Expert Type</h1>
+                <p class="nd-error-copy">The selected expert type is not supported.</p>
+                <div class="nd-error-actions">
+                    <a href="{% url 'core:home' %}" class="nd-error-btn-primary">Go to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

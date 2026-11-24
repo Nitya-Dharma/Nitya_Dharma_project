@@ -89,12 +89,15 @@
     <link rel="stylesheet" href="{% static 'css/navbar_premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/footer_premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar_dark_mode_fix.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar_ui_redesign.css' %}">
     <link rel="stylesheet" href="{% static 'css/checkbox_fix.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile_ux.css' %}">
     <link rel="stylesheet" href="{% static 'css/micro-interactions.css' %}">
     {% block extra_css %}{% endblock %}
+    {# Footer redesign loads after page extra_css so it wins over homepage/search overlays #}
+    <link rel="stylesheet" href="{% static 'css/footer_ui_redesign.css' %}">
 
     <!-- PWA: manifest, theme, app icon -->
     <link rel="manifest" href="/manifest.json">

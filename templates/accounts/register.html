@@ -7,14 +7,8 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/auth_ui.css' %}">
 <link rel="stylesheet" href="{% static 'css/password_toggle.css' %}">
-<style>
-    /* PART 5: Register Page - Same Design Language */
-    .password-requirements {
-        font-size: 0.85rem;
-        color: #64748B;
-        margin-top: 0.5rem;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/register_page_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/registration_pages_premium.css' %}">
 {% endblock %}
 
 {% block extra_js %}
@@ -22,15 +16,13 @@
 {% endblock %}
 
 {% block content %}
-<!-- PART 5: Premium Register Page (Same Design Language) -->
-<section class="auth-section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-6">
-                <div class="auth-card" style="max-width: 100%;">
+<!-- Registration page visual redesign (presentation only; fields/actions unchanged) -->
+<section id="nd-register-page" class="auth-section" aria-label="Create your Nitya Dharma account">
+    <div class="nd-register-shell">
+                <div class="auth-card">
                     
-                    <!-- PART 5: Same Gradient Header -->
                     <div class="auth-header">
+                        <div class="nd-register-mark" aria-hidden="true">N</div>
                         <h2>Create Account</h2>
                         <p>Join Nitya Dharma</p>
                     </div>
@@ -174,12 +166,22 @@
                         </form>
                         
                         
-                        <!-- PART 5: Secondary Links -->
                         <div class="text-center mt-4">
                             <p class="mb-0 auth-helper-text">
                                 Already have an account? 
                                 <a href="{% url 'accounts:login' %}" class="fw-bold">Sign In</a>
                             </p>
+                        </div>
+
+                        <div class="nd-register-expert">
+                            <div class="nd-register-divider" aria-hidden="true">OR JOIN AS AN EXPERT</div>
+                            <p class="nd-register-expert-title">Want to join as an Expert?</p>
+                            <div class="nd-register-expert-links">
+                                <a href="/services/expert/register/?type=astrology" class="btn btn-outline-primary">Join as Astrologer</a>
+                                <a href="/services/expert/register/?type=numerology" class="btn btn-outline-success">Join as Numerologist</a>
+                                <a href="/services/expert/register/?type=palmistry" class="btn btn-outline-warning">Join as Palmist</a>
+                                <a href="/bureaus/register/" class="btn btn-outline-primary">Hindu Marriage Bureaus</a>
+                            </div>
                         </div>
                         
                         <!-- Join as Pandit CTA -->
@@ -190,7 +192,6 @@
                             </a>
                         </div>
                         
-                        <!-- PART 5: Info Note (Consistent Styling) -->
                         <div class="auth-info-note">
                             <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>About Registration</h6>
                             <p class="mb-2">
@@ -217,8 +218,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
 </section>
 <script>

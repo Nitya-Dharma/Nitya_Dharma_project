@@ -1,28 +1,75 @@
-<div class="card h-100 shadow-sm">
-  {% if bureau.profile_image %}
-    <img src="{{ bureau.profile_image.url }}"
-         class="card-img-top nd-img-cover-h-200"
-         alt="{{ bureau.bureau_name }}"
-         loading="lazy"
-         decoding="async">
-  {% else %}
-    <img src="/static/images/default.png"
-         class="card-img-top nd-img-cover-h-200"
-         alt="No image"
-         loading="lazy"
-         decoding="async">
-  {% endif %}
+{% load bureau_contact_tags %}
+<div class="card h-100 shadow-sm nd-bureau-card nd-home-card">
+  <div class="nd-bureau-card__media">
+    {# Priority: profile_image → cover_image → default. Never loop onerror. #}
+    {% if bureau.profile_image %}
+      <img src="{{ bureau.profile_image.url }}"
+           class="nd-bureau-card__logo"
+           alt="{{ bureau.bureau_name }}"
+           loading="lazy"
+           decoding="async"
+           data-fallback-cover="{% if bureau.cover_image %}{{ bureau.cover_image.url }}{% endif %}"
+           data-fallback-default="/static/images/default-avatar.svg"
+           onerror="(function(img){if(img.dataset.stage==='cover'){img.onerror=null;img.removeAttribute('data-fallback-cover');img.src=img.dataset.fallbackDefault||'/static/images/default-avatar.svg';img.className='nd-bureau-card__logo';img.alt='No image';return;}if(img.dataset.fallbackCover){img.dataset.stage='cover';img.className='nd-bureau-card__cover';img.src=img.dataset.fallbackCover;img.removeAttribute('data-fallback-cover');return;}img.onerror=null;img.src=img.dataset.fallbackDefault||'/static/images/default-avatar.svg';img.className='nd-bureau-card__logo';img.alt='No image';})(this)">
+    {% elif bureau.cover_image %}
+      <img src="{{ bureau.cover_image.url }}"
+           class="nd-bureau-card__cover"
+           alt="{{ bureau.bureau_name }}"
+           loading="lazy"
+           decoding="async"
+           data-fallback-default="/static/images/default-avatar.svg"
+           onerror="this.onerror=null;this.src=this.dataset.fallbackDefault||'/static/images/default-avatar.svg';this.className='nd-bureau-card__logo';this.alt='No image';">
+    {% else %}
+      <img src="/static/images/default-avatar.svg"
+           class="nd-bureau-card__logo"
+           alt="No image"
+           loading="lazy"
+           decoding="async">
+    {% endif %}
+  </div>
 
   <div class="card-body d-flex flex-column">
+    <span class="nd-home-card__category">Hindu Marriage Bureau</span>
     <h5 class="card-title mb-1">{{ bureau.bureau_name|default:"-" }}</h5>
-    <p class="text-muted mb-2">{{ bureau.city|default:"-" }}</p>
-    <p class="small text-muted mb-3">{{ bureau.description|default:""|truncatechars:120 }}</p>
+    {% if bureau.city %}
+      <p class="text-muted mb-2">
+        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+        {{ bureau.city }}
+      </p>
+    {% endif %}
+    {% if bureau.description %}
+      <p class="small text-muted mb-3">{{ bureau.description|truncatechars:120 }}</p>
+    {% endif %}
 
     {% url 'bureaus:bureau_detail' bureau.public_id as bureau_detail_url %}
-    <div class="mt-auto">
-      <a href="{{ bureau_detail_url }}" class="btn btn-danger w-100">
+    {% bureau_whatsapp_url bureau as whatsapp_url %}
+    <div class="mt-auto nd-home-card__actions">
+      {# View Profile — destination unchanged #}
+      <a href="{{ bureau_detail_url }}" class="btn btn-sm btn-primary w-100 mb-2">
         View Profile
       </a>
+
+      {# Existing bureau booking flow: deep-link to detail #booking (same as Expert cards) #}
+      {% if user.is_authenticated %}
+        <a href="{{ bureau_detail_url }}#booking" class="btn btn-sm btn-danger w-100 mb-2">
+          Send Booking Intent
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}?next={{ bureau_detail_url|urlencode }}%23booking"
+           class="btn btn-sm btn-danger w-100 mb-2">
+          Login to Send Booking Intent
+        </a>
+      {% endif %}
+
+      {# Call + WhatsApp only when existing bureau fields permit #}
+      {% if bureau.phone_number or whatsapp_url %}
+        <div class="d-flex gap-2 nd-bureau-card__contact-row">
+          {% if bureau.phone_number %}
+            <a href="tel:{{ bureau.phone_number }}" class="btn btn-success btn-sm w-100">Call</a>
+          {% endif %}
+          {% include "partials/whatsapp_cta_link.html" with whatsapp_url=whatsapp_url btn_class="btn btn-sm w-100" %}
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

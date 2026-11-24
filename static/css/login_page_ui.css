@@ -1,0 +1,475 @@
+/* =========================================================
+   Nitya Dharma — Login page visual redesign
+   Scoped exclusively to #nd-login-page
+   Does not alter registration or other auth pages.
+   Palette aligned with register_page_ui.css
+   ========================================================= */
+
+#nd-login-page {
+  --su-red: #E11D48;
+  --su-deep: #BE123C;
+  --su-wine: #881337;
+  --su-pale: #FFF1F4;
+  --su-bg: #F8FAFC;
+  --su-white: #FFFFFF;
+  --su-ink: #211A2B;
+  --su-muted: #716977;
+  --su-border: #E1E4EA;
+  --su-soft-pink: #F1D5DB;
+  --su-label: #4A4350;
+  --su-input-bg: #F9FAFB;
+
+  display: block;
+  width: 100%;
+  min-height: 70vh;
+  padding: 38px 14px 42px;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFDFE 100%);
+  color: var(--su-ink);
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  isolation: isolate;
+  align-items: stretch;
+}
+
+#nd-login-page,
+#nd-login-page * {
+  box-sizing: border-box;
+}
+
+#nd-login-page .nd-login-shell {
+  width: min(100%, 390px);
+  margin: 0 auto;
+}
+
+#nd-login-page .auth-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #E9E7EB;
+  border-radius: 16px;
+  background: var(--su-white);
+  box-shadow: 0 16px 40px rgba(24, 18, 32, 0.13);
+  transition: none;
+}
+
+#nd-login-page .auth-card:hover {
+  box-shadow: 0 16px 40px rgba(24, 18, 32, 0.13);
+}
+
+/* Header — rose-to-wine gradient */
+#nd-login-page .auth-header {
+  padding: 25px 22px 23px;
+  text-align: center;
+  background: linear-gradient(120deg, #881337 0%, #BE123C 62%, #E11D48 100%);
+  color: #fff;
+}
+
+#nd-login-page .nd-login-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+#nd-login-page .auth-header h2 {
+  margin: 0;
+  color: #fff !important;
+  font-size: 25px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+#nd-login-page .auth-header p {
+  margin: 7px 0 0;
+  color: #FFF0F3 !important;
+  font-size: 12px;
+  opacity: 1;
+}
+
+#nd-login-page .auth-body {
+  padding: 25px 25px 22px;
+}
+
+/* Alerts */
+#nd-login-page .auth-body .alert {
+  border-radius: 8px;
+  border: 1px solid #F5C9D4;
+  background: #FFF2F5;
+  color: var(--su-wine);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+}
+
+#nd-login-page .auth-body .alert-success {
+  border-color: #cfe8d4;
+  background: #f3faf5;
+  color: #1f6b3a;
+}
+
+/* Floating labels → static label-above (fields unchanged) */
+#nd-login-page .auth-body .form-floating {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px !important;
+  min-width: 0;
+}
+
+#nd-login-page .auth-body .form-floating > label {
+  order: -1;
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  height: auto !important;
+  margin: 0 0 7px;
+  padding: 0 !important;
+  color: var(--su-label) !important;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 1 !important;
+  pointer-events: none;
+  z-index: auto;
+}
+
+#nd-login-page .auth-body .form-floating > .form-control:focus ~ label,
+#nd-login-page .auth-body .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  transform: none !important;
+  opacity: 1 !important;
+  color: var(--su-label) !important;
+}
+
+#nd-login-page .auth-body .form-floating > .form-control {
+  order: 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 13px !important;
+  border: 1px solid #E3E0E6 !important;
+  border-radius: 9px !important;
+  background: var(--su-input-bg) !important;
+  color: var(--su-ink) !important;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: normal;
+  box-shadow: none !important;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+#nd-login-page .auth-body .form-floating > .form-control::placeholder {
+  color: transparent;
+  opacity: 0;
+}
+
+#nd-login-page .auth-body .form-floating > .form-control:focus {
+  border-color: var(--su-red) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1) !important;
+  outline: none;
+  color: var(--su-ink) !important;
+}
+
+#nd-login-page .auth-body .form-floating > .form-control:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 2px;
+}
+
+/* Password toggle */
+#nd-login-page .password-field-wrapper {
+  position: relative;
+}
+
+#nd-login-page .password-field-wrapper .form-control.password-input {
+  padding-right: 54px !important;
+}
+
+#nd-login-page .password-field-wrapper .password-toggle {
+  top: auto;
+  bottom: 5px;
+  right: 5px;
+  transform: none;
+  width: auto;
+  min-width: 42px;
+  height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #7C6B7B;
+  font-size: 14px;
+  z-index: 3;
+}
+
+#nd-login-page .password-field-wrapper.form-floating .password-toggle {
+  top: auto;
+  bottom: 5px;
+  transform: none;
+}
+
+#nd-login-page .password-field-wrapper .password-toggle:hover {
+  background: #FFF0F3;
+  color: var(--su-wine);
+}
+
+#nd-login-page .password-field-wrapper .password-toggle:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 1px;
+}
+
+#nd-login-page .password-field-wrapper .password-toggle:active {
+  transform: none;
+}
+
+/* Remember me + Forgot password row
+   Override global .d-flex.justify-content-between { flex-direction:column }
+   at ≤575px so these stay on one horizontal row. */
+#nd-login-page .nd-login-options {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 3px 0 19px;
+  flex-wrap: nowrap;
+}
+
+#nd-login-page .nd-login-options .form-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+#nd-login-page .nd-login-options .form-check-input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  float: none;
+  accent-color: var(--su-red);
+}
+
+#nd-login-page .nd-login-options .form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+  border-color: var(--su-red);
+}
+
+#nd-login-page .nd-login-options .form-check-label {
+  color: var(--su-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+}
+
+#nd-login-page .nd-login-options a {
+  color: var(--su-deep) !important;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#nd-login-page .nd-login-options a:hover {
+  color: var(--su-wine) !important;
+  text-decoration: underline;
+}
+
+#nd-login-page .nd-login-options a:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 2px;
+}
+
+/* Sign In button */
+#nd-login-page .auth-body .btn-primary-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 47px;
+  min-height: 47px;
+  margin: 0;
+  padding: 0 15px;
+  border: 1px solid var(--su-red);
+  border-radius: 9px;
+  background: var(--su-red);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.4;
+  box-shadow: 0 5px 12px rgba(225, 29, 72, 0.16);
+  transform: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+#nd-login-page .auth-body .btn-primary-cta:hover:not(:disabled) {
+  background: var(--su-wine);
+  border-color: var(--su-wine);
+  color: #fff;
+  transform: none;
+  box-shadow: 0 5px 12px rgba(225, 29, 72, 0.2);
+}
+
+#nd-login-page .auth-body .btn-primary-cta:focus-visible {
+  outline: 2px solid var(--su-red);
+  outline-offset: 3px;
+}
+
+#nd-login-page .auth-body .btn-primary-cta:active:not(:disabled) {
+  transform: none;
+}
+
+#nd-login-page .auth-body .btn-primary-cta:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#nd-login-page .auth-body .d-grid.mt-4 {
+  margin-top: 0 !important;
+}
+
+/* Register helper */
+#nd-login-page .auth-body p.auth-helper-text {
+  margin: 19px 0 0;
+  text-align: center;
+  color: #625767 !important;
+  font-size: 12px;
+}
+
+#nd-login-page .auth-body p.auth-helper-text a,
+#nd-login-page .auth-body p.auth-helper-text a.fw-bold {
+  color: var(--su-deep) !important;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+#nd-login-page .auth-body p.auth-helper-text a:hover {
+  color: var(--su-wine) !important;
+  text-decoration: underline;
+}
+
+#nd-login-page .auth-body a:not(.btn):not(.auth-helper-text a) {
+  color: var(--su-deep);
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  #nd-login-page {
+    padding: 30px 14px 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  #nd-login-page {
+    padding: 24px 12px 32px;
+  }
+
+  #nd-login-page .auth-card {
+    border-radius: 14px;
+  }
+
+  #nd-login-page .auth-header {
+    padding: 22px 18px 20px;
+  }
+
+  #nd-login-page .auth-header h2 {
+    font-size: 24px;
+  }
+
+  #nd-login-page .auth-body {
+    padding: 22px 18px 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  #nd-login-page {
+    padding: 22px 12px 30px;
+  }
+
+  #nd-login-page .nd-login-shell {
+    width: min(100%, 390px);
+  }
+
+  #nd-login-page .auth-card {
+    border-radius: 13px;
+  }
+
+  #nd-login-page .auth-header {
+    padding: 22px 16px;
+  }
+
+  #nd-login-page .auth-header h2 {
+    font-size: 23px;
+  }
+
+  #nd-login-page .auth-body {
+    padding: 21px 18px 20px;
+  }
+
+  #nd-login-page .auth-body .form-floating > .form-control {
+    height: 47px;
+    min-height: 47px;
+  }
+
+  #nd-login-page .nd-login-options {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    gap: 8px 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  #nd-login-page {
+    padding: 18px 10px 26px;
+  }
+
+  #nd-login-page .auth-header h2 {
+    font-size: 22px;
+  }
+
+  #nd-login-page .auth-body {
+    padding: 18px 14px 18px;
+  }
+
+  #nd-login-page .nd-login-options {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  #nd-login-page .nd-login-options a {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #nd-login-page *,
+  #nd-login-page *::before,
+  #nd-login-page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

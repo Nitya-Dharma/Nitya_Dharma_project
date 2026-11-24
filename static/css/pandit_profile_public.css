@@ -1,0 +1,721 @@
+/* =========================================================
+   Nitya Dharma — Premium Pandit Public Profile
+   Scoped to .nd-pandit-profile only. Presentation only.
+   ========================================================= */
+
+.nd-pandit-profile {
+  --pp-rose: #E11D48;
+  --pp-deep: #BE123C;
+  --pp-wine: #881337;
+  --pp-pale: #FFF1F4;
+  --pp-bg: #F8FAFC;
+  --pp-white: #FFFFFF;
+  --pp-text: #211A2B;
+  --pp-muted: #716977;
+  --pp-border: #E1E4EA;
+  --pp-gold: #B45309;
+  --pp-gold-soft: #FEF3C7;
+  --pp-radius: 16px;
+  --pp-radius-sm: 12px;
+  --pp-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --pp-shadow: 0 10px 28px rgba(33, 26, 43, 0.07);
+  --pp-shadow-lg: 0 18px 40px rgba(136, 19, 55, 0.12);
+  background: var(--pp-bg);
+  color: var(--pp-text);
+}
+
+/* ---------- Hero ---------- */
+.nd-pandit-profile .profile-hero-section,
+.nd-pandit-profile .nd-pp-hero {
+  position: relative;
+  min-height: 420px;
+  height: auto;
+  background-color: var(--pp-wine);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(225, 29, 72, 0.35), transparent 55%),
+    linear-gradient(145deg, #881337 0%, #BE123C 48%, #9F1239 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.nd-pandit-profile .profile-hero-section::before,
+.nd-pandit-profile .nd-pp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(105deg, rgba(33, 26, 43, 0.72) 0%, rgba(136, 19, 55, 0.45) 48%, rgba(33, 26, 43, 0.55) 100%);
+  z-index: 1;
+}
+
+.nd-pandit-profile .profile-hero-content {
+  position: relative;
+  z-index: 2;
+  min-height: 420px;
+  height: auto;
+  display: flex;
+  align-items: flex-end;
+  padding: 2.25rem 0 2rem;
+  color: var(--pp-white);
+}
+
+.nd-pandit-profile .profile-hero-info {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.nd-pandit-profile .profile-icon-large {
+  width: 128px;
+  height: 128px;
+  background: linear-gradient(145deg, var(--pp-pale), #fff);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  flex-shrink: 0;
+  overflow: hidden;
+  backdrop-filter: none;
+}
+
+.nd-pandit-profile .profile-icon-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.nd-pandit-profile .profile-icon-large i {
+  font-size: 3.5rem;
+  color: var(--pp-wine);
+}
+
+.nd-pandit-profile .profile-hero-details {
+  flex: 1;
+  min-width: 240px;
+}
+
+.nd-pandit-profile .profile-hero-name {
+  font-family: var(--pp-serif);
+  font-size: clamp(1.65rem, 2.5vw, 2.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.nd-pandit-profile .profile-hero-name .verified-badge {
+  color: #FCD34D;
+  font-size: 1.35rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.nd-pandit-profile .profile-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.nd-pandit-profile .profile-hero-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+}
+
+.nd-pandit-profile .profile-hero-meta-item i {
+  font-size: 0.95rem;
+  color: #FCD34D;
+}
+
+.nd-pandit-profile .follow-button-container {
+  margin-top: 1rem !important;
+}
+
+.nd-pandit-profile .follower-count {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 0.875rem;
+}
+
+.nd-pandit-profile .profile-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: stretch;
+  min-width: 180px;
+}
+
+.nd-pandit-profile .profile-hero-actions .btn {
+  min-height: 46px;
+  min-width: 0;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.nd-pandit-profile .profile-hero-actions .btn-outline-light {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  color: #fff;
+}
+
+.nd-pandit-profile .profile-hero-actions .btn-outline-light:hover,
+.nd-pandit-profile .profile-hero-actions .btn-outline-light:focus {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #fff;
+  color: #fff;
+}
+
+.nd-pandit-profile .profile-hero-actions .btn-danger {
+  background: var(--pp-rose) !important;
+  border-color: var(--pp-rose) !important;
+}
+
+.nd-pandit-profile .profile-hero-actions .btn-danger:hover {
+  background: var(--pp-deep) !important;
+  border-color: var(--pp-deep) !important;
+}
+
+.nd-pandit-profile .profile-hero-actions .btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ---------- Tabs ---------- */
+.nd-pandit-profile .profile-nav-tabs,
+.nd-pandit-profile .nd-pp-tabs {
+  background: var(--pp-white);
+  border-bottom: 1px solid var(--pp-border);
+  box-shadow: 0 4px 16px rgba(33, 26, 43, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-tabs {
+  gap: 0.15rem;
+  border: 0;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link {
+  color: var(--pp-muted);
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  border-radius: 0;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  background: transparent;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link i {
+  color: var(--pp-wine);
+  opacity: 0.7;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link:hover {
+  color: var(--pp-wine);
+  background: var(--pp-pale);
+  border-bottom-color: rgba(225, 29, 72, 0.35) !important;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link.active {
+  color: var(--pp-wine) !important;
+  background: var(--pp-pale);
+  border-bottom-color: var(--pp-rose) !important;
+  font-weight: 700;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link.active i {
+  opacity: 1;
+}
+
+.nd-pandit-profile .profile-nav-tabs .nav-link:focus-visible {
+  outline: 2px solid var(--pp-rose);
+  outline-offset: -2px;
+}
+
+/* ---------- Content shell ---------- */
+.nd-pandit-profile .pandit-public-profile.section-padding {
+  padding: 2rem 0 3rem;
+  background: var(--pp-bg);
+}
+
+.nd-pandit-profile .pandit-public-profile > .container {
+  max-width: 1120px;
+}
+
+.nd-pandit-profile .tab-content {
+  padding-top: 0.5rem;
+}
+
+/* ---------- Cards ---------- */
+.nd-pandit-profile .nd-pp-card,
+.nd-pandit-profile .pandit-public-profile .card,
+.nd-pandit-profile .pandit-public-profile .premium-card {
+  background: var(--pp-white);
+  border: 1px solid var(--pp-border) !important;
+  border-radius: var(--pp-radius) !important;
+  box-shadow: var(--pp-shadow);
+  overflow: hidden;
+}
+
+.nd-pandit-profile .pandit-public-profile .card:hover,
+.nd-pandit-profile .pandit-public-profile .premium-card:hover {
+  box-shadow: var(--pp-shadow-lg);
+  transform: translateY(-2px);
+  border-color: rgba(225, 29, 72, 0.22) !important;
+}
+
+.nd-pandit-profile .pandit-public-profile .card-header {
+  background: linear-gradient(180deg, var(--pp-pale) 0%, #fff 100%);
+  border-bottom: 1px solid var(--pp-border);
+  padding: 1rem 1.25rem;
+}
+
+.nd-pandit-profile .pandit-public-profile .card-header h3,
+.nd-pandit-profile .pandit-public-profile .card-header h5,
+.nd-pandit-profile .nd-pp-card__title,
+.nd-pandit-profile .premium-card > h6,
+.nd-pandit-profile .reviews-section-title {
+  font-family: var(--pp-serif);
+  color: var(--pp-text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.nd-pandit-profile .pandit-public-profile .card-body,
+.nd-pandit-profile .premium-card {
+  padding: 1.25rem 1.35rem !important;
+}
+
+.nd-pandit-profile .nd-pp-card__body p,
+.nd-pandit-profile .pandit-public-profile .card-body p {
+  color: var(--pp-text);
+  line-height: 1.65;
+  margin-bottom: 0.75rem;
+}
+
+.nd-pandit-profile .pandit-public-profile .card-body p:last-child {
+  margin-bottom: 0;
+}
+
+.nd-pandit-profile .pandit-public-profile .muted,
+.nd-pandit-profile .pandit-public-profile .text-muted {
+  color: var(--pp-muted) !important;
+}
+
+.nd-pandit-profile .nd-pp-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pp-wine);
+  margin-bottom: 0.35rem;
+}
+
+.nd-pandit-profile .nd-pp-detail-row {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--pp-border);
+}
+
+.nd-pandit-profile .nd-pp-detail-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.nd-pandit-profile .nd-pp-detail-row:first-child {
+  padding-top: 0;
+}
+
+/* ---------- Sidebar actions ---------- */
+.nd-pandit-profile .nd-pp-sidebar-actions .btn,
+.nd-pandit-profile .pandit-public-profile .col-md-4 > .btn,
+.nd-pandit-profile .pandit-public-profile .col-12.col-md-4 > a.btn {
+  min-height: 46px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nd-pandit-profile .pandit-public-profile .btn-danger {
+  background: var(--pp-wine) !important;
+  border-color: var(--pp-wine) !important;
+}
+
+.nd-pandit-profile .pandit-public-profile .btn-danger:hover {
+  background: var(--pp-deep) !important;
+  border-color: var(--pp-deep) !important;
+}
+
+.nd-pandit-profile .pandit-public-profile .btn:focus-visible {
+  outline: 2px solid var(--pp-wine);
+  outline-offset: 2px;
+}
+
+/* ---------- Poojas ---------- */
+.nd-pandit-profile .nd-pp-pooja-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.nd-pandit-profile .nd-pp-pooja-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-sm);
+  background: linear-gradient(180deg, #fff 0%, var(--pp-pale) 160%);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nd-pandit-profile .nd-pp-pooja-item:hover {
+  border-color: rgba(225, 29, 72, 0.28);
+  box-shadow: 0 6px 18px rgba(136, 19, 55, 0.08);
+}
+
+.nd-pandit-profile .nd-pp-pooja-name {
+  font-family: var(--pp-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pp-text);
+}
+
+.nd-pandit-profile .nd-pp-pooja-meta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pp-wine);
+  letter-spacing: 0.02em;
+}
+
+.nd-pandit-profile .nd-pp-pooja-desc {
+  font-size: 0.9rem;
+  color: var(--pp-muted);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.nd-pandit-profile .pooja-chip {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pp-wine);
+  background: var(--pp-pale);
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+}
+
+.nd-pandit-profile .nd-pp-empty {
+  text-align: center;
+  padding: 2rem 1.25rem;
+  border: 1px dashed var(--pp-border);
+  border-radius: var(--pp-radius-sm);
+  background: #fff;
+}
+
+.nd-pandit-profile .nd-pp-empty i {
+  font-size: 1.75rem;
+  color: var(--pp-rose);
+  margin-bottom: 0.65rem;
+  display: block;
+}
+
+.nd-pandit-profile .nd-pp-empty p {
+  color: var(--pp-muted);
+  margin: 0;
+}
+
+/* ---------- Location ---------- */
+.nd-pandit-profile .location-info p {
+  margin-bottom: 1rem;
+}
+
+.nd-pandit-profile .location-info strong {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pp-wine);
+  margin-bottom: 0.3rem;
+}
+
+.nd-pandit-profile .location-info span {
+  color: var(--pp-text);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ---------- Reviews ---------- */
+.nd-pandit-profile .reviews-section-container {
+  background: var(--pp-white);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius);
+  box-shadow: var(--pp-shadow);
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+
+.nd-pandit-profile .reviews-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--pp-border);
+}
+
+.nd-pandit-profile .reviews-write-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--pp-wine);
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.nd-pandit-profile .reviews-write-btn:hover {
+  background: var(--pp-deep);
+  color: #fff !important;
+}
+
+.nd-pandit-profile .reviews-write-btn-secondary {
+  background: transparent;
+  color: var(--pp-wine) !important;
+  border: 1.5px solid var(--pp-wine);
+}
+
+.nd-pandit-profile .reviews-write-btn-secondary:hover {
+  background: var(--pp-pale);
+  color: var(--pp-wine) !important;
+}
+
+.nd-pandit-profile .reviews-empty-state-compact {
+  text-align: center;
+  padding: 2.25rem 1rem;
+  background: var(--pp-pale);
+  border-radius: var(--pp-radius-sm);
+}
+
+.nd-pandit-profile .reviews-empty-state-icon-compact i {
+  font-size: 2rem;
+  color: var(--pp-gold);
+}
+
+.nd-pandit-profile .reviews-empty-state-text-compact {
+  color: var(--pp-muted);
+  margin: 0.75rem 0 0;
+}
+
+/* ---------- WhatsApp (preserve behaviour, polish look) ---------- */
+.nd-pandit-profile .whatsapp-btn,
+.nd-pandit-profile .whatsapp-btn-hero {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+  color: #fff !important;
+}
+
+.nd-pandit-profile .whatsapp-btn:hover,
+.nd-pandit-profile .whatsapp-btn:focus,
+.nd-pandit-profile .whatsapp-btn-hero:hover,
+.nd-pandit-profile .whatsapp-btn-hero:focus {
+  background-color: #16A34A !important;
+  border-color: #16A34A !important;
+  color: #fff !important;
+}
+
+/* ---------- Pending alert ---------- */
+.nd-pandit-profile .alert-warning {
+  border-radius: var(--pp-radius-sm);
+  border-color: #FCD34D;
+  background: var(--pp-gold-soft);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991.98px) {
+  .nd-pandit-profile .profile-hero-content {
+    min-height: 380px;
+    padding: 1.75rem 0 1.5rem;
+  }
+
+  .nd-pandit-profile .profile-icon-large {
+    width: 112px;
+    height: 112px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nd-pandit-profile .profile-hero-content {
+    min-height: 0;
+    padding: 1.5rem 0 1.35rem;
+  }
+
+  .nd-pandit-profile .profile-hero-info {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.1rem;
+  }
+
+  .nd-pandit-profile .profile-icon-large {
+    width: 96px;
+    height: 96px;
+    align-self: center;
+  }
+
+  .nd-pandit-profile .profile-hero-details {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .nd-pandit-profile .profile-hero-name {
+    justify-content: center;
+    font-size: 1.55rem;
+  }
+
+  .nd-pandit-profile .profile-hero-meta {
+    justify-content: center;
+  }
+
+  .nd-pandit-profile .follow-button-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nd-pandit-profile .profile-hero-actions {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .nd-pandit-profile .profile-hero-actions .btn {
+    width: 100%;
+  }
+
+  .nd-pandit-profile .profile-hero-actions .btn:first-child,
+  .nd-pandit-profile .profile-hero-actions .share-trigger {
+    grid-column: 1 / -1;
+  }
+
+  .nd-pandit-profile .profile-nav-tabs {
+    position: sticky;
+    top: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .nd-pandit-profile .profile-nav-tabs .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .nd-pandit-profile .profile-nav-tabs .nav {
+    flex-wrap: nowrap;
+    min-width: max-content;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .nd-pandit-profile .profile-nav-tabs .nav-link {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .nd-pandit-profile .pandit-public-profile.section-padding {
+    padding: 1.25rem 0 2rem;
+  }
+
+  .nd-pandit-profile .reviews-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 576px) {
+  .nd-pandit-profile .profile-icon-large {
+    width: 84px;
+    height: 84px;
+  }
+
+  .nd-pandit-profile .profile-hero-name {
+    font-size: 1.35rem;
+  }
+
+  .nd-pandit-profile .profile-hero-meta {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nd-pandit-profile .profile-hero-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .nd-pandit-profile .profile-hero-actions .btn:first-child,
+  .nd-pandit-profile .profile-hero-actions .share-trigger {
+    grid-column: auto;
+  }
+
+  .nd-pandit-profile .profile-nav-tabs .nav-link {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  /* Keep icons visible; do not hide existing UI */
+  .nd-pandit-profile .profile-nav-tabs .nav-link i {
+    display: inline-block;
+    margin-right: 0.35rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .nd-pandit-profile {
+    overflow-x: hidden;
+  }
+}

@@ -1,16 +1,29 @@
+{# Poojas tab — existing masterdata only #}
+<div class="premium-card nd-pp-card p-4 mb-4">
+    <h6 class="fw-semibold nd-pp-card__title mb-3">Poojas Performed</h6>
 
-<!-- UNIT 14: Poojas as Premium Chips -->
-<div class="premium-card p-4 mb-4">
-    <h6 class="fw-semibold mb-3">Poojas Performed</h6>
-    
     {% if pandit.poojas_performed.all %}
-        <div class="d-flex flex-wrap gap-2">
+        <div class="nd-pp-pooja-list">
             {% for pooja in pandit.poojas_performed.all %}
-                <span class="pooja-chip">{{ pooja.name }}</span>
+                <article class="nd-pp-pooja-item">
+                    <span class="nd-pp-pooja-name">{{ pooja.name }}</span>
+                    {% if pooja.pooja_category %}
+                        <span class="nd-pp-pooja-meta">{{ pooja.pooja_category.name }}</span>
+                    {% elif pooja.get_category_display %}
+                        <span class="nd-pp-pooja-meta">{{ pooja.get_category_display }}</span>
+                    {% elif pooja.category %}
+                        <span class="nd-pp-pooja-meta">{{ pooja.category }}</span>
+                    {% endif %}
+                    {% if pooja.description %}
+                        <p class="nd-pp-pooja-desc">{{ pooja.description }}</p>
+                    {% endif %}
+                </article>
             {% endfor %}
         </div>
     {% else %}
-        <p class="muted mb-0">No poojas listed yet.</p>
+        <div class="nd-pp-empty">
+            <i class="bi bi-bookmark" aria-hidden="true"></i>
+            <p>No poojas listed yet.</p>
+        </div>
     {% endif %}
 </div>
-

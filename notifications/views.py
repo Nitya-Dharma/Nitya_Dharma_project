@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
+from django.urls import reverse
 
 from .models import Notification
 try:
@@ -109,11 +110,19 @@ def mark_notification_read(request, notification_id):
         return redirect('support:contact_requests_admin')
     # Check if this is a page moderator assigned notification
     if notification.notification_type == 'page_moderator_assigned':
-        # Redirect to Pandit Dashboard with Temple Pages tab
+        # Redirect moderator to the specific temple/page they were assigned to.
+        if notification.page and getattr(notification.page, "public_id", None):
+            return redirect('pages:page_detail', page_public_id=notification.page.public_id)
+        payload_public_id = (
+            (notification.payload or {}).get("page_public_id")
+            or (notification.payload or {}).get("public_id")
+        )
+        if payload_public_id:
+            return redirect('pages:page_detail', page_public_id=payload_public_id)
+        # Fallback only when page linkage is unavailable.
         if request.user.role == 'pandit':
-            return redirect('module5_dashboards:dashboard_pandit' + '#temple-pages-tab')
-        else:
-            return redirect('notifications:list')
+            return redirect(f"{reverse('module5_dashboards:dashboard_pandit')}#temple-pages-tab")
+        return redirect('notifications:list')
     
     # TEMPLE-SCOPED NOTIFICATION: Handle temple announcement notification clicks
     if notification.notification_type == 'temple_announcement' and notification.page:

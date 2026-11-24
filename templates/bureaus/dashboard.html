@@ -4,16 +4,11 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
-    <style>
-        .dashboard-container {
-            background-color: #F8FAFC;
-            min-height: 100vh;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/nd_dashboard_premium.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container pandit-page">
+<div class="dashboard-container pandit-page nd-dash">
     <section class="admin-section">
         <div class="container-fluid">
 
@@ -36,9 +31,16 @@
             <div class="row g-4">
 
                 <!-- SIDEBAR -->
-                <div class="col-12 col-lg-2 dashboard-sidebar admin-sidebar">
+                <div class="col-12 col-lg-3 col-xl-2 dashboard-sidebar admin-sidebar">
                     <div class="admin-card">
                         <div class="p-3">
+                            <div class="nd-dash-sidebar-brand">
+                                <span class="nd-dash-sidebar-brand__mark" aria-hidden="true"><i class="bi bi-building"></i></span>
+                                <span>
+                                    <span class="nd-dash-sidebar-brand__text">Nitya Dharma</span>
+                                    <span class="nd-dash-sidebar-brand__sub">Bureau Dashboard</span>
+                                </span>
+                            </div>
                             {% if ads.dashboard_sidebar %}
                             <div class="dashboard-ad-sidebar mb-3">
                                 {% include 'partials/ad_unit.html' with ad=ads.dashboard_sidebar slot='dashboard_sidebar' %}
@@ -84,7 +86,7 @@
                 </div>
 
                 <!-- MAIN CONTENT -->
-                <div class="col-12 col-lg-10 dashboard-main" role="main" aria-label="Bureau dashboard main content">
+                <div class="col-12 col-lg-9 col-xl-10 dashboard-main" role="main" aria-label="Bureau dashboard main content">
 
                     {% if ads.dashboard_top %}
                     <div class="dashboard-ad-top text-center my-3">
@@ -122,7 +124,19 @@
             overlay.classList.toggle('active');
         }
     }
-    window.addEventListener('resize', function () {
+
+    document.addEventListener('click', function(event) {
+        const sidebar = document.querySelector('.dashboard-sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const toggle = document.querySelector('.sidebar-toggle');
+        if (window.innerWidth <= 992 && sidebar && overlay && sidebar.classList.contains('active')) {
+            if (!sidebar.contains(event.target) && toggle && !toggle.contains(event.target) && overlay.contains(event.target)) {
+                toggleBureauSidebar();
+            }
+        }
+    });
+
+    window.addEventListener('resize', function() {
         if (window.innerWidth > 992) {
             const sidebar = document.querySelector('.dashboard-sidebar');
             const overlay = document.querySelector('.sidebar-overlay');

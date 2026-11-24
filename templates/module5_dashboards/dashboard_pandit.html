@@ -7,14 +7,9 @@
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
-<style>
-    /* Wrap dashboard in pandit-page for scoped styles */
-    .dashboard-container {
-        background-color: #F8FAFC;
-        min-height: 100vh;
-    }
-</style>
 {% endblock %}
+
+{% block dashboard_sidebar_label %}Pandit Dashboard{% endblock %}
 
 {% block dashboard_heading %}Pandit Dashboard{% endblock %}
 

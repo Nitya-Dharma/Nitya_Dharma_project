@@ -1,25 +1,9 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{# Overview about — existing about_description only; no invented copy #}
+{% if pandit.about_description %}
+<div class="premium-card nd-pp-card mb-4">
+    <h6 class="fw-semibold nd-pp-card__title mb-3">About</h6>
+    <div class="nd-pp-card__body">
+        {{ pandit.about_description|linebreaks }}
+    </div>
+</div>
+{% endif %}

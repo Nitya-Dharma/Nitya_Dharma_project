@@ -1,0 +1,220 @@
+/* ==========================================================================
+   Nitya Dharma — Premium Error / Status Pages
+   Scoped to .nd-error-page only. Presentation only.
+   ========================================================================== */
+
+.nd-error-page {
+  --er-rose: #E11D48;
+  --er-deep: #BE123C;
+  --er-wine: #881337;
+  --er-pale: #FFF1F4;
+  --er-ivory: #FFFCFD;
+  --er-white: #FFFFFF;
+  --er-text: #211A2B;
+  --er-muted: #716977;
+  --er-border: #E1E4EA;
+  --er-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --er-shadow: 0 18px 48px rgba(24, 32, 55, 0.1);
+
+  display: block;
+  width: 100%;
+  min-height: 60vh;
+  padding: 2.5rem 1rem 3rem;
+  background: linear-gradient(180deg, #F8FAFC 0%, var(--er-ivory) 100%);
+  color: var(--er-text);
+}
+
+.nd-error-page .nd-error-shell {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+.nd-error-page .nd-error-card {
+  overflow: hidden;
+  border: 1px solid #E8E9EF;
+  border-radius: 16px;
+  background: var(--er-white);
+  box-shadow: var(--er-shadow);
+  text-align: center;
+}
+
+.nd-error-page .nd-error-header {
+  padding: 1.5rem 1.35rem 1.25rem;
+  background: linear-gradient(115deg, #881337 0%, #BE123C 58%, #E11D48 100%);
+  color: #fff;
+}
+
+.nd-error-page .nd-error-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.nd-error-page .nd-error-code {
+  margin: 0;
+  color: #fff;
+  font-family: var(--er-serif);
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.nd-error-page .nd-error-header-title {
+  margin: 0.45rem 0 0;
+  color: #FFF1F4;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.nd-error-page .nd-error-body {
+  padding: 1.65rem 1.5rem 1.75rem;
+}
+
+.nd-error-page .nd-error-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--er-pale);
+  border: 1px solid #F9C5D1;
+  color: var(--er-wine);
+  font-size: 1.45rem;
+}
+
+.nd-error-page .nd-error-heading {
+  margin: 0 0 0.55rem;
+  color: var(--er-text);
+  font-family: var(--er-serif);
+  font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.nd-error-page .nd-error-copy {
+  margin: 0 0 1.35rem;
+  color: var(--er-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.nd-error-page .nd-error-copy ul {
+  text-align: left;
+  margin: 0.75rem auto 0;
+  padding-left: 1.2rem;
+  max-width: 28rem;
+}
+
+.nd-error-page .nd-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.nd-error-page .nd-error-btn-primary,
+.nd-error-page a.nd-error-btn-primary,
+.nd-error-page button.nd-error-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--er-rose);
+  border-radius: 10px;
+  background: var(--er-rose);
+  color: #fff !important;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.nd-error-page .nd-error-btn-primary:hover,
+.nd-error-page a.nd-error-btn-primary:hover,
+.nd-error-page button.nd-error-btn-primary:hover {
+  background: var(--er-wine);
+  border-color: var(--er-wine);
+  color: #fff !important;
+}
+
+.nd-error-page .nd-error-btn-secondary,
+.nd-error-page a.nd-error-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--er-border);
+  border-radius: 10px;
+  background: var(--er-white);
+  color: var(--er-wine) !important;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nd-error-page .nd-error-btn-secondary:hover,
+.nd-error-page a.nd-error-btn-secondary:hover {
+  background: var(--er-pale);
+  border-color: #F9C5D1;
+  color: var(--er-wine) !important;
+}
+
+/* Password-reset invalid branch (same page shell) */
+.nd-error-page .nd-error-inline-alert {
+  text-align: left;
+  border: 1px solid #F9C5D1;
+  border-radius: 12px;
+  background: var(--er-pale);
+  color: var(--er-wine);
+  padding: 1rem 1.1rem;
+}
+
+.nd-error-page .nd-error-inline-alert .btn-primary,
+.nd-error-page .password-reset-confirm-body .btn-primary {
+  background: var(--er-rose);
+  border-color: var(--er-rose);
+  border-radius: 10px;
+  font-weight: 700;
+  min-height: 44px;
+}
+
+.nd-error-page .nd-error-inline-alert .btn-primary:hover,
+.nd-error-page .password-reset-confirm-body .btn-primary:hover {
+  background: var(--er-wine);
+  border-color: var(--er-wine);
+}
+
+@media (max-width: 575.98px) {
+  .nd-error-page {
+    padding: 1.5rem 0.75rem 2.25rem;
+  }
+
+  .nd-error-page .nd-error-body {
+    padding: 1.35rem 1.1rem 1.45rem;
+  }
+
+  .nd-error-page .nd-error-actions {
+    flex-direction: column;
+  }
+
+  .nd-error-page .nd-error-actions > a,
+  .nd-error-page .nd-error-actions > button {
+    width: 100%;
+  }
+}

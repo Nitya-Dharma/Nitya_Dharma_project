@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
+{% load expert_contact_tags %}
 
 {% block title %}Home - Nitya Dharma{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui_hidden.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home_page_ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_listing_cards.css' %}">
     <style>
         /* Page Type Buttons - Updated for red theme */
         .page-type-buttons {
@@ -60,12 +63,14 @@
 {% endblock %}
 
 {% block content %}
+<!-- Homepage visual redesign wrapper (presentation only; controls unchanged) -->
+<div id="nd-home-page">
     <section class="hero-section">
         <div class="container">
             <div class="row animate-fade-up">
                 <div class="col-12 text-center">
-                    <h1>Find Trusted Pandits for Every Sacred Ritual</h1>
-                    <p class="lead">Book experienced and verified Pandits for poojas, homams, and temple ceremonies near you.</p>
+                    <h1>Find Trusted Experts for Every Sacred Need</h1>
+                    <p class="lead">Book experienced and verified experts for poojas, homams, temple ceremonies, astrologers, numerologists, palmists, and Hindu marriage bureaus near you.</p>
                 </div>
             </div>
             
@@ -81,6 +86,10 @@
                             <a href="#" class="page-type-btn" data-result-type="pandits" onclick="handlePageTypeClick(event, 'pandits'); return false;">
                                 <i class="bi bi-person-circle"></i>
                                 <span>Pandits</span>
+                            </a>
+                            <a href="/search/results/?type=bureau" class="page-type-btn">
+                                <i class="bi bi-building"></i>
+                                <span>Hindu Marriage Bureaus</span>
                             </a>
                             <a href="#" class="page-type-btn" data-result-type="pages" data-page-type="TEMPLE" onclick="handlePageTypeClick(event, 'pages', 'TEMPLE'); return false;">
                                 <i class="bi bi-building"></i>
@@ -114,6 +123,15 @@
                                 <span>Social</span>
                             </a>
                             {% endif %}
+                            <a href="/search/results/?tab=astrology" class="page-type-btn">
+                                <span>Astrology</span>
+                            </a>
+                            <a href="/search/results/?tab=numerology" class="page-type-btn">
+                                <span>Numerology</span>
+                            </a>
+                            <a href="/search/results/?tab=palmistry" class="page-type-btn">
+                                <span>Palmistry</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -126,16 +144,16 @@
     {% endif %}
 
     {% if sample_listings %}
-    <section class="sample-listings-section py-5">
+    <section class="sample-listings-section nd-home-listings py-5">
         <div class="container animate-fade-up">
             <div class="row mb-4">
                 <div class="col-12">
-                    <h2 class="h3 text-center fw-bold">Explore Pandits</h2>
+                    <h2 class="h3 text-center fw-bold nd-home-listings__title">Explore Pandits</h2>
                 </div>
             </div>
-            <div class="row g-4">
+            <div class="row g-4 nd-home-listings__grid">
                 {% for pandit in sample_listings %}
-                    <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="col-12 col-md-6 col-lg-4 nd-home-card-col">
                         {% include "module7_search/listing_card.html" with pandit=pandit %}
                     </div>
                 {% endfor %}
@@ -149,13 +167,125 @@
     </section>
     {% endif %}
 
+    <div class="container my-5 nd-home-listings">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="nd-home-listings__title">Explore Hindu Marriage Bureaus</h3>
+      </div>
+
+      <div class="row g-4 nd-home-listings__grid">
+        {% with bureaus_list=bureaus|default_if_none:None %}
+        {% if bureaus_list %}
+          {% for bureau in bureaus_list|slice:":3" %}
+            <div class="col-12 col-md-6 col-lg-4 nd-home-card-col">
+              {% include "bureaus/_card.html" with bureau=bureau %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12 text-center">
+            <p>No bureaus available</p>
+          </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/bureaus/" class="btn btn-danger px-4 py-2">
+          View All Bureaus →
+        </a>
+      </div>
+    </div>
+
+    <div class="container mt-5 nd-home-listings">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold nd-home-listings__title">Explore Astrologers</h4>
+      </div>
+
+      {% if astrologers %}
+      <div class="row g-4 nd-home-listings__grid">
+        {% for expert in astrologers %}
+          <div class="col-12 col-md-6 col-lg-4 nd-home-card-col">
+            {% include "core/partials/home_expert_card.html" with expert=expert service_label="Astrology" %}
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted text-center">
+        No astrologers available right now.
+      </p>
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/astrology/" class="btn btn-danger px-4 py-2">
+          View All Astrologers →
+        </a>
+      </div>
+
+    </div>
+
+    <div class="container mt-5 nd-home-listings">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold nd-home-listings__title">Explore Numerologists</h4>
+      </div>
+
+      {% if numerologists %}
+        <div class="row g-4 nd-home-listings__grid">
+          {% for expert in numerologists %}
+            <div class="col-12 col-md-6 col-lg-4 nd-home-card-col">
+              {% include "core/partials/home_expert_card.html" with expert=expert service_label="Numerology" %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-center">
+          No numerologists available right now.
+        </p>
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/numerology/" class="btn btn-danger px-4 py-2">
+          View All Numerologists →
+        </a>
+      </div>
+
+    </div>
+
+    <div class="container mt-5 nd-home-listings">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold nd-home-listings__title">Explore Palmists</h4>
+      </div>
+
+      {% if palmists %}
+        <div class="row g-4 nd-home-listings__grid">
+          {% for expert in palmists %}
+            <div class="col-12 col-md-6 col-lg-4 nd-home-card-col">
+              {% include "core/partials/home_expert_card.html" with expert=expert service_label="Palmistry" %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-center">
+          No palmists available right now.
+        </p>
+      {% endif %}
+
+      <div class="text-center mt-4 mb-3">
+        <a href="/services/palmistry/" class="btn btn-danger px-4 py-2">
+          View All Palmists →
+        </a>
+      </div>
+
+    </div>
+
     <section class="trust-section py-5 bg-light">
         <div class="container animate-fade-up">
             <div class="row">
                 <div class="col-12 text-center mb-4">
                     <h3 class="text-center fw-bold mb-2">Why Trust Nitya Dharma</h3>
                     <p class="text-center text-muted mb-5">
-                        Verified Pandits. Transparent profiles. Direct communication.
+                        Verified profiles. Transparent listings. Direct communication.
                     </p>
                 </div>
             </div>
@@ -164,21 +294,21 @@
                     <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
                         <i class="bi bi-patch-check-fill fs-1 text-danger mb-3 d-block"></i>
                         <h5 class="fw-semibold mb-2">Verified Profiles</h5>
-                        <p class="text-muted mb-0 small">All Pandits go through a verification process to ensure authenticity and reliability.</p>
+                        <p class="text-muted mb-0 small">Listed profiles go through a verification process to help ensure authenticity and reliability.</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-4">
                     <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
                         <i class="bi bi-chat-dots-fill fs-1 text-danger mb-3 d-block"></i>
                         <h5 class="fw-semibold mb-2">Direct Contact</h5>
-                        <p class="text-muted mb-0 small">No middlemen. Connect directly with Pandits via call or WhatsApp for transparent communication.</p>
+                        <p class="text-muted mb-0 small">No middlemen. Connect directly with the listed professional or bureau via call or WhatsApp for transparent communication.</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-4">
                     <div class="text-center p-4 bg-white rounded-4 shadow-sm h-100">
                         <i class="bi bi-geo-alt-fill fs-1 text-danger mb-3 d-block"></i>
                         <h5 class="fw-semibold mb-2">Local & Language-friendly</h5>
-                        <p class="text-muted mb-0 small">Find Pandits in your area who understand your language and cultural preferences.</p>
+                        <p class="text-muted mb-0 small">Find professionals and bureaus in your area who understand your language and cultural preferences.</p>
                     </div>
                 </div>
             </div>
@@ -199,8 +329,8 @@
                             <span>1</span>
                         </div>
                         <i class="bi bi-search-heart fs-1 text-muted mb-3 d-block"></i>
-                        <h4 class="h5 fw-semibold mb-2">Search Pandits</h4>
-                        <p class="text-muted mb-0">Find Pandits by location, pooja type, or keyword</p>
+                        <h4 class="h5 fw-semibold mb-2">Search</h4>
+                        <p class="text-muted mb-0">Find a Pandit, Astrologer, Numerologist, Palmist, Marriage Bureau, or another listed service by location or keyword</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
@@ -210,7 +340,7 @@
                         </div>
                         <i class="bi bi-person-badge fs-1 text-muted mb-3 d-block"></i>
                         <h4 class="h5 fw-semibold mb-2">View Profiles</h4>
-                        <p class="text-muted mb-0">Explore Pandit profiles, experience, and services</p>
+                        <p class="text-muted mb-0">Explore profiles, experience, and services</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
@@ -220,7 +350,7 @@
                         </div>
                         <i class="bi bi-envelope-check fs-1 text-muted mb-3 d-block"></i>
                         <h4 class="h5 fw-semibold mb-2">Send Booking Intent</h4>
-                        <p class="text-muted mb-0">Express your interest in booking a Pandit</p>
+                        <p class="text-muted mb-0">Express your interest in a booking</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
@@ -230,7 +360,7 @@
                         </div>
                         <i class="bi bi-telephone fs-1 text-muted mb-3 d-block"></i>
                         <h4 class="h5 fw-semibold mb-2">Coordinate Offline</h4>
-                        <p class="text-muted mb-0">Connect directly with Pandit to finalize details</p>
+                        <p class="text-muted mb-0">Connect directly to finalize the details</p>
                     </div>
                 </div>
             </div>
@@ -316,6 +446,7 @@ function handlePageTypeClick(event, resultType, pageType) {
 }
 </script>
 
+</div>
 {% endblock %}
 
 

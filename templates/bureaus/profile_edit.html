@@ -3,16 +3,11 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/pandit_ui.css' %}">
-    <style>
-        .dashboard-container {
-            background-color: #F8FAFC;
-            min-height: 100vh;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/nd_dashboard_premium.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container pandit-page">
+<div class="dashboard-container pandit-page nd-dash">
   <div class="container py-4">
     <div class="row justify-content-center">
       <div class="col-12 col-lg-9">

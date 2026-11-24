@@ -4,6 +4,11 @@
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/static_pages.css' %}">
+{% if page.page_type == 'about' %}
+<link rel="stylesheet" href="{% static 'css/about_us_ui_redesign.css' %}">
+{% elif page.page_type == 'terms' or page.page_type == 'privacy' %}
+<link rel="stylesheet" href="{% static 'css/legal_pages_ui_redesign.css' %}">
+{% endif %}
 {% endblock %}
 
 {% block extra_head %}
@@ -80,7 +85,7 @@
 
 {% block content %}
 <main>
-    <div class="static-page-container">
+    <div class="static-page-container{% if page.page_type == 'terms' or page.page_type == 'privacy' %} nd-legal-page{% endif %}">
         <div class="static-page-content">
             <!-- Hero Section -->
             <div class="static-hero-section">
@@ -103,6 +108,10 @@
                 <div class="cms-content">
                     {{ page.content|safe }}
                 </div>
+
+                {% if page.page_type == 'about' %}
+                {% include "pages/partials/about_service_areas.html" %}
+                {% endif %}
 
                 <!-- Internal Links (About Us only) -->
                 {% if page.page_type == 'about' %}

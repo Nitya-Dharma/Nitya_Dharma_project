@@ -1,165 +1,168 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Expert Registration - Nitya Dharma{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/auth_ui.css' %}">
+<link rel="stylesheet" href="{% static 'css/registration_pages_premium.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="bg-light py-5">
-  <div class="container">
-    <a href="/services/" class="text-decoration-none small text-muted">← Back to Services</a>
-    <div class="row justify-content-center mt-2">
-      <div class="col-lg-7">
-        <div class="card shadow-lg border-0 rounded-4">
-          <div class="card-body p-4 p-md-5">
-            <div class="text-center mb-4">
-              <h2 class="fw-bold">Expert Registration</h2>
-              <p class="text-muted mb-0">
-                Join Nitya Dharma as a trusted expert and start receiving bookings.
-              </p>
+<section class="nd-reg-page nd-reg-page--wide" aria-label="Expert registration">
+  <div class="nd-register-shell">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="nd-register-mark" aria-hidden="true">N</div>
+        <h2>Expert Registration</h2>
+        <p>Join Nitya Dharma as a trusted expert and start receiving bookings.</p>
+      </div>
+
+      <div class="auth-body">
+        <a href="/services/" class="text-decoration-none small text-muted d-inline-block mb-3">← Back to Services</a>
+
+        {% if expert_type %}
+          <div class="text-center mb-3">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill border border-danger-subtle">
+              Registering as {{ expert_type|title }}
+            </span>
+          </div>
+        {% endif %}
+
+        {% if success %}
+          <div class="alert alert-success">
+            Registration successful. Please check your email to set your password and wait for admin approval.
+          </div>
+        {% endif %}
+
+        {% if error %}
+          <div class="alert alert-danger">
+            {{ error }}
+          </div>
+        {% endif %}
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}secondary{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Full Name</label>
+              <input type="text" name="name" class="form-control form-control-lg shadow-sm rounded-3" required>
             </div>
 
-            {% if expert_type %}
-              <div class="text-center mb-4">
-                <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill border border-danger-subtle">
-                  Registering as {{ expert_type|title }}
-                </span>
-              </div>
-            {% endif %}
+            <div class="col-12">
+              <label class="form-label fw-semibold">Email</label>
+              <input type="email" name="email" class="form-control form-control-lg shadow-sm rounded-3" required>
+            </div>
 
-            {% if success %}
-              <div class="alert alert-success">
-                Registration successful. Please check your email to set your password and wait for admin approval.
-              </div>
-            {% endif %}
+            <div class="col-12">
+              <label class="form-label fw-semibold">Password</label>
+              <input type="password" name="password" class="form-control form-control-lg shadow-sm rounded-3" required>
+              <small class="text-muted">Use at least 8 characters for a secure password.</small>
+            </div>
 
-            {% if error %}
-              <div class="alert alert-danger">
-                {{ error }}
-              </div>
-            {% endif %}
+            <div class="col-12">
+              <label class="form-label fw-semibold">Confirm Password</label>
+              <input type="password" name="confirm_password" class="form-control form-control-lg shadow-sm rounded-3" required>
+            </div>
 
-            {% if messages %}
-              {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}secondary{% endif %}">
-                  {{ message }}
-                </div>
-              {% endfor %}
-            {% endif %}
+            <div class="col-12">
+              <label class="form-label fw-semibold">Phone Number</label>
+              <input type="tel"
+                     name="phone"
+                     class="form-control form-control-lg shadow-sm rounded-3"
+                     inputmode="numeric"
+                     maxlength="10"
+                     pattern="[0-9]{10}"
+                     autocomplete="tel-national"
+                     required>
+              <div class="form-text">Enter 10-digit mobile number</div>
+              {% include "otp_verification/partials/mobile_verification.html" with id_prefix="expert_mv" phone_input_name="phone" flow_type="expert_registration" action_btn_class="btn btn-outline-danger" verify_otp_btn_class="btn btn-danger" %}
+            </div>
 
-            <hr class="my-4">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Years of Experience</label>
+              <input type="number" name="experience_years" class="form-control form-control-lg shadow-sm rounded-3" min="0" required>
+            </div>
 
-            <form method="post">
-              {% csrf_token %}
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea name="description" class="form-control shadow-sm rounded-3" rows="4" required></textarea>
+            </div>
 
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Full Name</label>
-                  <input type="text" name="name" class="form-control form-control-lg shadow-sm rounded-3" required>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Email</label>
-                  <input type="email" name="email" class="form-control form-control-lg shadow-sm rounded-3" required>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Password</label>
-                  <input type="password" name="password" class="form-control form-control-lg shadow-sm rounded-3" required>
-                  <small class="text-muted">Use at least 8 characters for a secure password.</small>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Confirm Password</label>
-                  <input type="password" name="confirm_password" class="form-control form-control-lg shadow-sm rounded-3" required>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Phone Number</label>
-                  <input type="tel"
-                         name="phone"
-                         class="form-control form-control-lg shadow-sm rounded-3"
-                         inputmode="numeric"
-                         maxlength="10"
-                         pattern="[0-9]{10}"
-                         autocomplete="tel-national"
+            <div class="col-12">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Social Profiles (at least one required)</label>
+                <div id="social-links-container">
+                  <input type="url"
+                         name="social_links[]"
+                         class="form-control mb-2 shadow-sm rounded-3"
+                         placeholder="Instagram / YouTube link"
                          required>
-                  <div class="form-text">Enter 10-digit mobile number</div>
-                  {% include "otp_verification/partials/mobile_verification.html" with id_prefix="expert_mv" phone_input_name="phone" flow_type="expert_registration" action_btn_class="btn btn-outline-danger" verify_otp_btn_class="btn btn-danger" %}
                 </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Years of Experience</label>
-                  <input type="number" name="experience_years" class="form-control form-control-lg shadow-sm rounded-3" min="0" required>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Description</label>
-                  <textarea name="description" class="form-control shadow-sm rounded-3" rows="4" required></textarea>
-                </div>
-
-                <div class="col-12">
-                  <div class="mb-3">
-                    <label class="form-label fw-semibold">Social Profiles (at least one required)</label>
-                    <div id="social-links-container">
-                      <input type="url"
-                             name="social_links[]"
-                             class="form-control mb-2 shadow-sm rounded-3"
-                             placeholder="Instagram / YouTube link"
-                             required>
-                    </div>
-                    <button type="button"
-                            class="btn btn-outline-secondary btn-sm"
-                            onclick="addSocialLink()">
-                      + Add another
-                    </button>
-                  </div>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label fw-semibold">Services Offered</label>
-                  <div class="row">
-                    {% for service in available_services %}
-                      <div class="col-12 col-md-4 mb-2">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 name="services"
-                                 value="{{ service.id }}"
-                                 id="service_{{ service.id }}"
-                                 {% if service.id in selected_service_ids %}checked{% endif %}>
-                          <label class="form-check-label" for="service_{{ service.id }}">
-                            {{ service.name }}
-                          </label>
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                  <div class="form-text">Select at least one service.</div>
-                </div>
-              </div>
-
-              <div class="mt-4 d-grid gap-2">
-                <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
-                  Create Expert Account
-                </button>
-                {% if expert_otp_required %}
                 <button type="button"
-                        class="btn btn-outline-secondary btn-lg rounded-pill"
-                        id="expert-skip-phone-verify">
-                  Continue without phone verification
+                        class="btn btn-outline-secondary btn-sm"
+                        onclick="addSocialLink()">
+                  + Add another
                 </button>
-                {% endif %}
               </div>
+            </div>
 
-              <div class="text-center mt-3">
-                <small class="text-muted">
-                  Your profile will be reviewed before it goes live.
-                </small>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Services Offered</label>
+              <div class="row">
+                {% for service in available_services %}
+                  <div class="col-12 col-md-4 mb-2">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             name="services"
+                             value="{{ service.id }}"
+                             id="service_{{ service.id }}"
+                             {% if service.id in selected_service_ids %}checked{% endif %}>
+                      <label class="form-check-label" for="service_{{ service.id }}">
+                        {{ service.name }}
+                      </label>
+                    </div>
+                  </div>
+                {% endfor %}
               </div>
-            </form>
+              <div class="form-text">Select at least one service.</div>
+            </div>
           </div>
-        </div>
+
+          <div class="mt-4 d-grid gap-2">
+            <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
+              Create Expert Account
+            </button>
+            {% if expert_otp_required %}
+            <button type="button"
+                    class="btn btn-outline-secondary btn-lg rounded-pill"
+                    id="expert-skip-phone-verify">
+              Continue without phone verification
+            </button>
+            {% endif %}
+          </div>
+
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              Your profile will be reviewed before it goes live.
+            </small>
+          </div>
+        </form>
       </div>
     </div>
   </div>
-</div>
+</section>
 
 <script>
 function addSocialLink() {
